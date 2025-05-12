@@ -6,44 +6,31 @@ package cn.doraro.flexedge.driver.s7.eth;
 
 import cn.doraro.flexedge.core.UAVal;
 
-public enum S7ValTp
-{
-    X(1, UAVal.ValTP.vt_bool, 1), 
-    B(2, UAVal.ValTP.vt_uint8, 1), 
-    C(3, UAVal.ValTP.vt_byte, 1), 
-    W(4, UAVal.ValTP.vt_uint16, 2), 
-    D(5, UAVal.ValTP.vt_uint32, 4), 
-    DATE(6, UAVal.ValTP.vt_str, 2), 
-    DI(7, UAVal.ValTP.vt_int32, 4), 
-    DT(8, UAVal.ValTP.vt_date, 8), 
-    I(9, UAVal.ValTP.vt_int16, 2), 
-    REAL(10, UAVal.ValTP.vt_float, 4), 
-    STRING(11, UAVal.ValTP.vt_str, -1), 
-    T(12, UAVal.ValTP.vt_str, 4), 
+public enum S7ValTp {
+    X(1, UAVal.ValTP.vt_bool, 1),
+    B(2, UAVal.ValTP.vt_uint8, 1),
+    C(3, UAVal.ValTP.vt_byte, 1),
+    W(4, UAVal.ValTP.vt_uint16, 2),
+    D(5, UAVal.ValTP.vt_uint32, 4),
+    DATE(6, UAVal.ValTP.vt_str, 2),
+    DI(7, UAVal.ValTP.vt_int32, 4),
+    DT(8, UAVal.ValTP.vt_date, 8),
+    I(9, UAVal.ValTP.vt_int16, 2),
+    REAL(10, UAVal.ValTP.vt_float, 4),
+    STRING(11, UAVal.ValTP.vt_str, -1),
+    T(12, UAVal.ValTP.vt_str, 4),
     TOD(13, UAVal.ValTP.vt_str, 4);
-    
+
     private final int val;
     private final UAVal.ValTP valTP;
     private final int byteNum;
-    
+
     private S7ValTp(final int v, final UAVal.ValTP vtp, final int byte_num) {
         this.val = v;
         this.valTP = vtp;
         this.byteNum = byte_num;
     }
-    
-    public int getVal() {
-        return this.val;
-    }
-    
-    public UAVal.ValTP getValTP() {
-        return this.valTP;
-    }
-    
-    public int getByteNum() {
-        return this.byteNum;
-    }
-    
+
     public static S7ValTp valOf(final String nn) {
         final String upperCase = nn.toUpperCase();
         switch (upperCase) {
@@ -94,7 +81,7 @@ public enum S7ValTp
             }
         }
     }
-    
+
     public static S7ValTp valOf(final int v) {
         switch (v) {
             case 1: {
@@ -140,5 +127,17 @@ public enum S7ValTp
                 return null;
             }
         }
+    }
+
+    public int getVal() {
+        return this.val;
+    }
+
+    public UAVal.ValTP getValTP() {
+        return this.valTP;
+    }
+
+    public int getByteNum() {
+        return this.byteNum;
     }
 }

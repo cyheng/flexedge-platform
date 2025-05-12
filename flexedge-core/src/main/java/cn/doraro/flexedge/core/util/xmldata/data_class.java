@@ -6,8 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE}) 
-public @interface data_class
-{
+@Target({ElementType.TYPE})
+public @interface data_class {
 
 }

@@ -1,7 +1,6 @@
 package cn.doraro.flexedge.core.ui;
 
-public abstract class UITemp implements IUITemp
-{
+public abstract class UITemp implements IUITemp {
 //	String name = null ;
 //	
 //	String title = null ;
@@ -10,45 +9,40 @@ public abstract class UITemp implements IUITemp
 //	
 //	int tagMaxNum = 1 ;
 //	int tagMinNum = 1 ;
-	
-	public UITemp() //(String name,String title,String desc)
-	{
+
+    public UITemp() //(String name,String title,String desc)
+    {
 //		this.name = name ;
 //		this.title = title ;
 //		this.desc = desc ;
-	}
-	
-	public abstract String getName();
+    }
 
-	public abstract String getTitle();
+    public abstract String getName();
 
-	public String getDesc()
-	{
-		return "";
-	}
+    public abstract String getTitle();
 
-	@Override
-	public int supportInputTagMaxNum()
-	{
-		return 1;
-	}
+    public String getDesc() {
+        return "";
+    }
 
-	@Override
-	public int supportInputMinNum()
-	{
-		return 1;
-	}
+    @Override
+    public int supportInputTagMaxNum() {
+        return 1;
+    }
 
-	@Override
-	public int getWidth()
-	{
-		return 800;
-	}
+    @Override
+    public int supportInputMinNum() {
+        return 1;
+    }
 
-	@Override
-	public int getHeight()
-	{
-		return 600;
-	}
+    @Override
+    public int getWidth() {
+        return 800;
+    }
+
+    @Override
+    public int getHeight() {
+        return 600;
+    }
 
 }

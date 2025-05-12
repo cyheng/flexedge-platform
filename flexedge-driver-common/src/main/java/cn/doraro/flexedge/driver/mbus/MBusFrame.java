@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.mbus;
 
-public class MBusFrame
-{
+public class MBusFrame {
 }

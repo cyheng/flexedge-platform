@@ -4,22 +4,16 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import cn.doraro.flexedge.core.UATag;
-import cn.doraro.flexedge.core.cxt.UAContext;
-import org.json.JSONObject;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.DevAddr;
-import cn.doraro.flexedge.core.UADev;
-import cn.doraro.flexedge.core.UACh;
+import cn.doraro.flexedge.core.*;
 import cn.doraro.flexedge.core.basic.PropGroup;
-import java.util.List;
 import cn.doraro.flexedge.core.conn.ConnPtMsg;
-import cn.doraro.flexedge.core.ConnPt;
-import cn.doraro.flexedge.core.DevDriver;
-import cn.doraro.flexedge.core.DevDriverMsgOnly;
+import cn.doraro.flexedge.core.cxt.UAContext;
+import cn.doraro.flexedge.core.util.Convert;
+import org.json.JSONObject;
 
-public class MsgJSDrv extends DevDriverMsgOnly
-{
+import java.util.List;
+
+public class MsgJSDrv extends DevDriverMsgOnly {
     String onInitJS;
     String onMsgInJS;
     boolean hasMsgInJS;
@@ -28,7 +22,7 @@ public class MsgJSDrv extends DevDriverMsgOnly
     boolean hasTagWriteJS;
     String onLoopJS;
     boolean hasLoopJS;
-    
+
     public MsgJSDrv() {
         this.onInitJS = null;
         this.onMsgInJS = null;
@@ -39,51 +33,51 @@ public class MsgJSDrv extends DevDriverMsgOnly
         this.onLoopJS = null;
         this.hasLoopJS = false;
     }
-    
+
     public String getName() {
         return "msg_js";
     }
-    
+
     public String getTitle() {
         return "Msg JS Handler";
     }
-    
+
     public boolean checkPropValue(final String groupn, final String itemn, final String strv, final StringBuilder failedr) {
         return true;
     }
-    
+
     public DevDriver copyMe() {
-        return (DevDriver)new MsgJSDrv();
+        return (DevDriver) new MsgJSDrv();
     }
-    
+
     public Class<? extends ConnPt> supportConnPtClass() {
-        return (Class<? extends ConnPt>)ConnPtMsg.class;
+        return (Class<? extends ConnPt>) ConnPtMsg.class;
     }
-    
+
     public boolean supportDevFinder() {
         return false;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevDef() {
         return null;
     }
-    
+
     public List<PropGroup> getPropGroupsForCh(final UACh ch) {
         return null;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevInCh(final UADev d) {
         return null;
     }
-    
+
     public DevAddr getSupportAddr() {
         return null;
     }
-    
+
     public boolean hasDriverConfigPage() {
         return true;
     }
-    
+
     protected boolean initDriver(final StringBuilder failedr) throws Exception {
         if (!super.initDriver(failedr)) {
             return false;
@@ -132,7 +126,7 @@ public class MsgJSDrv extends DevDriverMsgOnly
         cxt.scriptEval(tmps);
         return true;
     }
-    
+
     public void RT_onConnMsgIn(final byte[] msgbs) {
         if (!this.hasMsgInJS) {
             return;
@@ -141,63 +135,59 @@ public class MsgJSDrv extends DevDriverMsgOnly
         if (this.msgInStr) {
             try {
                 msg = new String(msgbs, "UTF-8");
-            }
-            catch (final Exception ee) {
+            } catch (final Exception ee) {
                 throw new RuntimeException(ee);
             }
         }
         final UACh ch = this.getBelongToCh();
         final String js_uid = ch.getId();
-        final ConnPtMsg cpm = (ConnPtMsg)this.getBindedConnPt();
+        final ConnPtMsg cpm = (ConnPtMsg) this.getBindedConnPt();
         final UAContext cxt = ch.RT_getContext();
         try {
-            cxt.scriptInvoke("on_msgin_" + js_uid, new Object[] { ch, cpm, msg });
-        }
-        catch (final Exception ee2) {
+            cxt.scriptInvoke("on_msgin_" + js_uid, new Object[]{ch, cpm, msg});
+        } catch (final Exception ee2) {
             ee2.printStackTrace();
         }
     }
-    
+
     public boolean RT_writeVal(final UACh ch, final UADev dev, final UATag tag, final DevAddr da, final Object v) {
         if (!this.hasTagWriteJS) {
             return false;
         }
         final String js_uid = ch.getId();
-        final ConnPtMsg cpm = (ConnPtMsg)this.getBindedConnPt();
+        final ConnPtMsg cpm = (ConnPtMsg) this.getBindedConnPt();
         final UAContext cxt = ch.RT_getContext();
         try {
-            cxt.scriptInvoke("on_tagw_" + js_uid, new Object[] { ch, cpm, tag, v });
+            cxt.scriptInvoke("on_tagw_" + js_uid, new Object[]{ch, cpm, tag, v});
             return true;
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             ee.printStackTrace();
             return false;
         }
     }
-    
+
     protected void RT_onConnReady(final ConnPt cp, final UACh ch, final UADev dev) throws Exception {
     }
-    
+
     protected void RT_onConnInvalid(final ConnPt cp, final UACh ch, final UADev dev) throws Exception {
     }
-    
+
     protected boolean RT_runInLoop(final UACh ch, final UADev dev, final StringBuilder failedr) throws Exception {
         if (!this.hasLoopJS) {
             return true;
         }
         final String js_uid = ch.getId();
-        final ConnPtMsg cpm = (ConnPtMsg)this.getBindedConnPt();
+        final ConnPtMsg cpm = (ConnPtMsg) this.getBindedConnPt();
         final UAContext cxt = ch.RT_getContext();
         try {
-            cxt.scriptInvoke("on_loop_" + js_uid, new Object[] { ch, cpm });
+            cxt.scriptInvoke("on_loop_" + js_uid, new Object[]{ch, cpm});
             return true;
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             ee.printStackTrace();
             return false;
         }
     }
-    
+
     public boolean RT_writeVals(final UACh ch, final UADev dev, final UATag[] tags, final DevAddr[] da, final Object[] v) {
         return false;
     }

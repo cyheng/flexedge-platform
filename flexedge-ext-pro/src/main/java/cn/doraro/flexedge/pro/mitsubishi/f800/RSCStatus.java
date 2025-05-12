@@ -4,23 +4,23 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.f800;
 
-import cn.doraro.flexedge.core.UAVal;
 import cn.doraro.flexedge.core.UADev;
+import cn.doraro.flexedge.core.UAVal;
+
 import java.util.Arrays;
 import java.util.List;
 
-class RSCStatus extends RespSnifferCmd
-{
+class RSCStatus extends RespSnifferCmd {
     static List<String> tagNames;
-    
+
     static {
         RSCStatus.tagNames = Arrays.asList("st_run", "st_forward", "st_reverse", "st_su", "st_ol", "st_ipf", "st_fu", "st_abc1");
     }
-    
+
     public RSCStatus(final RespSnifferDev dev, final F800MsgReq req) {
         super(dev, req);
     }
-    
+
     @Override
     public void reconstructTags(final UADev dev) throws Exception {
         this.addOrUpTag("st_run", "RUN", UAVal.ValTP.vt_bool);
@@ -32,12 +32,12 @@ class RSCStatus extends RespSnifferCmd
         this.addOrUpTag("st_fu", "\u9891\u7387\u68c0\u6d4b", UAVal.ValTP.vt_bool);
         this.addOrUpTag("st_abc1", "\u5f02\u5e38", UAVal.ValTP.vt_bool);
     }
-    
+
     @Override
     protected List<String> listTagNames() {
         return RSCStatus.tagNames;
     }
-    
+
     @Override
     public boolean RT_injectResp(final F800MsgResp resp) {
         final Integer intv = resp.getRespVal();

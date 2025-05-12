@@ -4,27 +4,26 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink.fins;
 
-import java.util.Iterator;
 import cn.doraro.flexedge.core.util.xmldata.DataUtil;
-import java.util.ArrayList;
-import java.util.List;
 import cn.doraro.flexedge.driver.omron.fins.FinsMode;
 import cn.doraro.flexedge.driver.omron.hostlink.HLException;
 import cn.doraro.flexedge.driver.omron.hostlink.HLMsg;
 import cn.doraro.flexedge.driver.omron.hostlink.HLMsgReq;
 
-public class HLFinsRespMemR extends HLFinsResp
-{
-    private HLFinsReqMemR myReq;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HLFinsRespMemR extends HLFinsResp {
     byte[] retBS;
-    
+    private HLFinsReqMemR myReq;
+
     public HLFinsRespMemR(final HLMsgReq req) {
         super(req);
         this.myReq = null;
         this.retBS = null;
-        this.myReq = (HLFinsReqMemR)req;
+        this.myReq = (HLFinsReqMemR) req;
     }
-    
+
     @Override
     protected void parseFinsRet(final String fins_ret) throws HLException {
         final FinsMode.AreaCode ac = this.myReq.getAreaCode();
@@ -33,12 +32,11 @@ public class HLFinsRespMemR extends HLFinsResp
             if (this.retBS.length != this.myReq.itemNum) {
                 throw new HLException(0, "response data num is not match to request");
             }
-        }
-        else if (this.retBS.length != this.myReq.itemNum * 2) {
+        } else if (this.retBS.length != this.myReq.itemNum * 2) {
             throw new HLException(0, "response data num is not match to request");
         }
     }
-    
+
     public String getBitStr() {
         if (this.retBS == null) {
             return "";
@@ -49,7 +47,7 @@ public class HLFinsRespMemR extends HLFinsResp
         }
         return sb.toString();
     }
-    
+
     public List<Boolean> getBitList() {
         if (this.retBS == null) {
             return null;
@@ -60,7 +58,7 @@ public class HLFinsRespMemR extends HLFinsResp
         }
         return rets;
     }
-    
+
     public List<Short> getWordList() {
         if (this.retBS == null) {
             return null;
@@ -73,7 +71,7 @@ public class HLFinsRespMemR extends HLFinsResp
         }
         return rets;
     }
-    
+
     public String getWordStr() {
         final List<Short> ws = this.getWordList();
         if (ws == null) {
@@ -84,15 +82,14 @@ public class HLFinsRespMemR extends HLFinsResp
         for (final Short s : ws) {
             if (bfirst) {
                 bfirst = false;
-            }
-            else {
+            } else {
                 sb.append(',');
             }
             sb.append(s);
         }
         return sb.toString();
     }
-    
+
     public byte[] getReturnBytes() {
         return this.retBS;
     }

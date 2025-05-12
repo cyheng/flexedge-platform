@@ -2,13 +2,11 @@ package cn.doraro.flexedge.core.util.cpd;
 
 /**
  * change point detection
- * 
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public abstract class ChgPtDetect
-{
-	public abstract String getName() ;
-	
-	
+public abstract class ChgPtDetect {
+    public abstract String getName();
+
+
 }

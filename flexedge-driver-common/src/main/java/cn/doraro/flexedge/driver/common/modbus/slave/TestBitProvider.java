@@ -6,13 +6,12 @@ package cn.doraro.flexedge.driver.common.modbus.slave;
 
 import cn.doraro.flexedge.core.util.xmldata.XmlVal;
 
-class TestBitProvider extends MSlaveDataProvider
-{
+class TestBitProvider extends MSlaveDataProvider {
     @Override
     public XmlVal.XmlValType getDataType() {
         return XmlVal.XmlValType.vt_bool;
     }
-    
+
     @Override
     protected SlaveData acquireData(final int idx, final int num) {
         final BoolDatas bds = new BoolDatas();
@@ -24,7 +23,7 @@ class TestBitProvider extends MSlaveDataProvider
         }
         return bds;
     }
-    
+
     @Override
     protected boolean injectData(final SlaveData sd) {
         return false;

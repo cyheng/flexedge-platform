@@ -4,14 +4,13 @@
 
 package cn.doraro.flexedge.driver.s7.ppi;
 
-import java.util.Iterator;
-import java.io.IOException;
 import cn.doraro.flexedge.core.util.Convert;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-public class PPIMsgRespRTC extends PPIMsgResp
-{
+public class PPIMsgRespRTC extends PPIMsgResp {
     PPIMemTp memTp;
     short da;
     short sa;
@@ -19,7 +18,7 @@ public class PPIMsgRespRTC extends PPIMsgResp
     ArrayList<TItem> t_items;
     ArrayList<CItem> c_items;
     private byte[] retData;
-    
+
     public PPIMsgRespRTC(final PPIMemTp mtp) {
         this.sa = 0;
         this.fc = 8;
@@ -28,12 +27,12 @@ public class PPIMsgRespRTC extends PPIMsgResp
         this.retData = null;
         this.memTp = mtp;
     }
-    
+
     public static PPIMsgRespRTC parseFromBS(final PPIMemTp memtp, final byte[] bs, final StringBuilder failedr) {
         final PPIMsgRespRTC ret = new PPIMsgRespRTC(memtp);
-        ret.da = (short)(bs[4] & 0xFF);
-        ret.sa = (short)(bs[5] & 0xFF);
-        if (ret.fc != (short)(bs[6] & 0xFF)) {
+        ret.da = (short) (bs[4] & 0xFF);
+        ret.sa = (short) (bs[5] & 0xFF);
+        if (ret.fc != (short) (bs[6] & 0xFF)) {
             failedr.append("fucntion code err");
             return null;
         }
@@ -49,7 +48,7 @@ public class PPIMsgRespRTC extends PPIMsgResp
             for (int i = 0; i < retnum; ++i) {
                 final TItem ti = new TItem();
                 ti.st = (bs[25 + i * 5] & 0xFF);
-                long v = (long)(bs[25 + i * 5 + 1] << 24) & -1L;
+                long v = (long) (bs[25 + i * 5 + 1] << 24) & -1L;
                 v += (bs[25 + i * 5 + 2] << 16 & 0xFFFFFF);
                 v += (bs[25 + i * 5 + 3] << 8 & 0xFFFF);
                 v += (bs[25 + i * 5 + 4] & 0xFF);
@@ -57,8 +56,7 @@ public class PPIMsgRespRTC extends PPIMsgResp
                 System.arraycopy(bs, 25 + i * 5 + 1, ret.retData, i * 4, 4);
                 ret.t_items.add(ti);
             }
-        }
-        else {
+        } else {
             if (memtp != PPIMemTp.C) {
                 return null;
             }
@@ -78,7 +76,7 @@ public class PPIMsgRespRTC extends PPIMsgResp
         }
         return ret;
     }
-    
+
     public static PPIMsgRespRTC parseFromStream(final PPIMemTp memtp, final InputStream inputs, final long timeout, final StringBuilder failedr) throws IOException {
         final byte[] bs = PPIMsg.readFromStream(inputs, timeout);
         if (bs == null) {
@@ -94,30 +92,30 @@ public class PPIMsgRespRTC extends PPIMsgResp
         }
         return parseFromBS(memtp, bs, failedr);
     }
-    
+
     @Override
     protected short getStartD() {
         return 104;
     }
-    
+
     public short getDestAddr() {
         return this.da;
     }
-    
+
     public short getSorAddr() {
         return this.sa;
     }
-    
+
     @Override
     public byte[] toBytes() {
         return null;
     }
-    
+
     @Override
     public byte[] getRetData() {
         return this.retData;
     }
-    
+
     @Override
     public String toString() {
         String r = this.sa + "->" + this.da + " [";
@@ -125,8 +123,7 @@ public class PPIMsgRespRTC extends PPIMsgResp
             for (final TItem ti : this.t_items) {
                 r = r + ti.val + " ";
             }
-        }
-        else if (this.memTp == PPIMemTp.C) {
+        } else if (this.memTp == PPIMemTp.C) {
             for (final CItem ti2 : this.c_items) {
                 r = r + ti2.val + " ";
             }
@@ -134,23 +131,21 @@ public class PPIMsgRespRTC extends PPIMsgResp
         r += "]";
         return r;
     }
-    
-    public static class TItem
-    {
+
+    public static class TItem {
         public int st;
         public long val;
-        
+
         public TItem() {
             this.st = -1;
             this.val = -1L;
         }
     }
-    
-    public static class CItem
-    {
+
+    public static class CItem {
         public int st;
         public int val;
-        
+
         public CItem() {
             this.st = -1;
             this.val = -1;

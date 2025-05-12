@@ -1,15 +1,6 @@
 package cn.doraro.flexedge.core.util;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,262 +9,213 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class ZipUtil
-{
+public class ZipUtil {
 
 
-	public static void zipFileOut(String metatxt, List<File> files, File zipoutf) throws IOException
-	{
-		File pf = zipoutf.getParentFile();
-		if (!pf.exists())
-			pf.mkdirs();
+    public static final String META_ENTRY_NAME = "__meta__.txt";
 
-		try (FileOutputStream fos = new FileOutputStream(zipoutf); )
-		{
-			zipOut(metatxt, files, fos) ;
-		}
-	}
-	
-	
-	public static void zipOut(String metatxt, List<File> files, OutputStream outputs) throws IOException
-	{
-		try (ZipOutputStream zos = new ZipOutputStream(outputs);)
-		{
-			if (metatxt != null)
-			{
-				writeZipMeta(zos,metatxt) ;
-			}
+    public static void zipFileOut(String metatxt, List<File> files, File zipoutf) throws IOException {
+        File pf = zipoutf.getParentFile();
+        if (!pf.exists())
+            pf.mkdirs();
 
-			for (File f : files)
-			{
-				writeZip(f, "", zos);
-			}
-		}
-	}
-	
-	public static final String META_ENTRY_NAME = "__meta__.txt";
-	
-	public static void writeZipMeta(ZipOutputStream zos,String metatxt) throws  IOException
-	{
-		ZipEntry ze = new ZipEntry(META_ENTRY_NAME);
-		zos.putNextEntry(ze);
-		zos.write(metatxt.getBytes("UTF-8"));
-		zos.flush();
-	}
-	
-	public static String readZipMeta(File zipf) throws IOException
-	{
-		return readZipTxt(zipf,META_ENTRY_NAME,"UTF-8") ;
-	}
+        try (FileOutputStream fos = new FileOutputStream(zipoutf);) {
+            zipOut(metatxt, files, fos);
+        }
+    }
 
-	private static boolean writeZip(File file, String ppath, ZipOutputStream zos) throws IOException
-	{
-		if (!file.exists())
-			return false;
+    public static void zipOut(String metatxt, List<File> files, OutputStream outputs) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputs);) {
+            if (metatxt != null) {
+                writeZipMeta(zos, metatxt);
+            }
 
-		if (file.isDirectory())
-		{
-			ppath += file.getName() + File.separator;
-			File[] files = file.listFiles();
-			if (files.length != 0)
-			{
-				for (File f : files)
-				{
-					writeZip(f, ppath, zos);
-				}
-			}
-			else
-			{
-				zos.putNextEntry(new ZipEntry(ppath));
-			}
-			return true;
-		}
+            for (File f : files) {
+                writeZip(f, "", zos);
+            }
+        }
+    }
 
-		try (FileInputStream fis = new FileInputStream(file);)
-		{
-			ZipEntry ze = new ZipEntry(ppath + file.getName());
-			zos.putNextEntry(ze);
-			byte[] content = new byte[1024];
-			int len;
-			while ((len = fis.read(content)) != -1)
-			{
-				zos.write(content, 0, len);
-				zos.flush();
-			}
-		}
-		return true;
-	}
+    public static void writeZipMeta(ZipOutputStream zos, String metatxt) throws IOException {
+        ZipEntry ze = new ZipEntry(META_ENTRY_NAME);
+        zos.putNextEntry(ze);
+        zos.write(metatxt.getBytes("UTF-8"));
+        zos.flush();
+    }
 
-	public static List<String> readZipEntrys(File file) throws FileNotFoundException, IOException
-	{
+    public static String readZipMeta(File zipf) throws IOException {
+        return readZipTxt(zipf, META_ENTRY_NAME, "UTF-8");
+    }
 
-		ZipEntry ze;
-		ArrayList<String> rets = new ArrayList<>() ;
+    private static boolean writeZip(File file, String ppath, ZipOutputStream zos) throws IOException {
+        if (!file.exists())
+            return false;
 
-		try (ZipFile zf = new ZipFile(file);
-				InputStream in = new BufferedInputStream(new FileInputStream(file));
-				ZipInputStream zin = new ZipInputStream(in);)
-		{
+        if (file.isDirectory()) {
+            ppath += file.getName() + File.separator;
+            File[] files = file.listFiles();
+            if (files.length != 0) {
+                for (File f : files) {
+                    writeZip(f, ppath, zos);
+                }
+            } else {
+                zos.putNextEntry(new ZipEntry(ppath));
+            }
+            return true;
+        }
 
-			while ((ze = zin.getNextEntry()) != null)
-			{
-				if (ze.isDirectory())
-				{
-					rets.add(ze.getName()) ;
-				}
-				else
-				{
-					rets.add(ze.getName()) ;
-				}
-			}
-		}
-		return rets ;
-	}
-	
-	public static List<String> readZipEntrys(InputStream in) throws IOException
-	{
-		ZipEntry ze;
-		ArrayList<String> rets = new ArrayList<>() ;
+        try (FileInputStream fis = new FileInputStream(file);) {
+            ZipEntry ze = new ZipEntry(ppath + file.getName());
+            zos.putNextEntry(ze);
+            byte[] content = new byte[1024];
+            int len;
+            while ((len = fis.read(content)) != -1) {
+                zos.write(content, 0, len);
+                zos.flush();
+            }
+        }
+        return true;
+    }
 
-		try (ZipInputStream zin = new ZipInputStream(in);)
-		{
-			while ((ze = zin.getNextEntry()) != null)
-			{
-				if (ze.isDirectory())
-				{
-					rets.add(ze.getName()) ;
-				}
-				else
-				{
-					rets.add(ze.getName()) ;
-				}
-			}
-		}
-		return rets ;
-	}
-	
-	public static List<String> readZipEntrys(byte[] bs) throws IOException
-	{
-		return readZipEntrys(new ByteArrayInputStream(bs)) ;
-	}
-	
-	
-	public static String readZipTxt(File file,String entryn,String encoding) throws IOException
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream() ;
-		if(!readZipOut(file,entryn,baos))
-			return null ;
-		byte[] bs = baos.toByteArray() ;
-		return new String(bs,encoding) ;
-	}
-	
-	public static String readZipTxt(InputStream inputs,String entryn,String encoding) throws IOException
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream() ;
-		if(!readZipOut(inputs,entryn,baos))
-			return null ;
-		byte[] bs = baos.toByteArray() ;
-		return new String(bs,encoding) ;
-	}
-	
-	
-	public static byte[] readZipBytes(File file,String entryn,String encoding) throws IOException
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream() ;
-		if(!readZipOut(file,entryn,baos))
-			return null ;
-		return baos.toByteArray() ;
-	}
-	
-	public static boolean readZipOut(File file,String entryn,OutputStream outs) throws IOException
-	{
-		try (ZipFile zf = new ZipFile(file);
-				InputStream in = new BufferedInputStream(new FileInputStream(file)))
-		{
-			return readZipOut(in,entryn,outs) ;
-		}
-	}
-	
-	public static boolean readZipOut(InputStream in,String entryn,OutputStream outs) throws IOException
-	{
-		ZipEntry ze;
+    public static List<String> readZipEntrys(File file) throws FileNotFoundException, IOException {
 
-		try (
-				ZipInputStream zin = new ZipInputStream(in);)
-		{
-			byte[] buf = new byte[1024] ;
-			while ((ze = zin.getNextEntry()) != null)
-			{
-				String en = ze.getName() ;
-				if(!entryn.equals(en))
-					continue ;
-				
-				if (ze.isDirectory())
-				{
-					return false ;
-				}
-				
-				//try(InputStream tmpins = // zf.getInputStream(ze);)
-				{
-					int rc ;
-					while((rc=zin.read(buf))>0)
-					{
-						outs.write(buf, 0, rc);
-					}
-				}
-				
-				return true;
-			} //end of while
-		}//end of try
-		// zin.closeEntry();
-		return false;
-	}
-	
-	public static void readZipOut(File file,Map<String,String> entrys,File outdir) throws IOException
-	{
-		try (//ZipFile zf = new ZipFile(file);
-				InputStream in = new BufferedInputStream(new FileInputStream(file)))
-				{
-					readZipOut(in,entrys,outdir) ;
-				}
-	}
-	
-	public static void readZipOut(InputStream in,Map<String,String> entrys,File outdir) throws IOException
-	{
-		ZipEntry ze;
+        ZipEntry ze;
+        ArrayList<String> rets = new ArrayList<>();
 
-		try (ZipInputStream zin = new ZipInputStream(in);)
-		{
-			byte[] buf = new byte[1024] ;
-			while ((ze = zin.getNextEntry()) != null)
-			{
-				String en = ze.getName() ;
-				if(entrys!=null&&!entrys.containsKey(en))
-					continue ;
-				
-				if (ze.isDirectory())
-				{
-					continue ;
-				}
-				String tar_en = entrys.get(en) ;
-				if(Convert.isNullOrEmpty(tar_en))
-					tar_en = en ;
-				tar_en = tar_en.replaceAll("\\\\", "/") ; // for linux bug
-				File outf = new File(outdir,tar_en) ;
-				
-				if(!outf.getParentFile().exists())
-					outf.getParentFile().mkdirs(); 
+        try (ZipFile zf = new ZipFile(file);
+             InputStream in = new BufferedInputStream(new FileInputStream(file));
+             ZipInputStream zin = new ZipInputStream(in);) {
 
-				try(FileOutputStream fos = new FileOutputStream(outf) ;)
-				{
-					int rc ;
-					while((rc=zin.read(buf))>0)
-					{
-						fos.write(buf, 0, rc);
-					}
-				}
-			}
-		}
-		// zin.closeEntry();
-	}
+            while ((ze = zin.getNextEntry()) != null) {
+                if (ze.isDirectory()) {
+                    rets.add(ze.getName());
+                } else {
+                    rets.add(ze.getName());
+                }
+            }
+        }
+        return rets;
+    }
+
+    public static List<String> readZipEntrys(InputStream in) throws IOException {
+        ZipEntry ze;
+        ArrayList<String> rets = new ArrayList<>();
+
+        try (ZipInputStream zin = new ZipInputStream(in);) {
+            while ((ze = zin.getNextEntry()) != null) {
+                if (ze.isDirectory()) {
+                    rets.add(ze.getName());
+                } else {
+                    rets.add(ze.getName());
+                }
+            }
+        }
+        return rets;
+    }
+
+    public static List<String> readZipEntrys(byte[] bs) throws IOException {
+        return readZipEntrys(new ByteArrayInputStream(bs));
+    }
+
+
+    public static String readZipTxt(File file, String entryn, String encoding) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (!readZipOut(file, entryn, baos))
+            return null;
+        byte[] bs = baos.toByteArray();
+        return new String(bs, encoding);
+    }
+
+    public static String readZipTxt(InputStream inputs, String entryn, String encoding) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (!readZipOut(inputs, entryn, baos))
+            return null;
+        byte[] bs = baos.toByteArray();
+        return new String(bs, encoding);
+    }
+
+
+    public static byte[] readZipBytes(File file, String entryn, String encoding) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if (!readZipOut(file, entryn, baos))
+            return null;
+        return baos.toByteArray();
+    }
+
+    public static boolean readZipOut(File file, String entryn, OutputStream outs) throws IOException {
+        try (ZipFile zf = new ZipFile(file);
+             InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            return readZipOut(in, entryn, outs);
+        }
+    }
+
+    public static boolean readZipOut(InputStream in, String entryn, OutputStream outs) throws IOException {
+        ZipEntry ze;
+
+        try (
+                ZipInputStream zin = new ZipInputStream(in);) {
+            byte[] buf = new byte[1024];
+            while ((ze = zin.getNextEntry()) != null) {
+                String en = ze.getName();
+                if (!entryn.equals(en))
+                    continue;
+
+                if (ze.isDirectory()) {
+                    return false;
+                }
+
+                //try(InputStream tmpins = // zf.getInputStream(ze);)
+                {
+                    int rc;
+                    while ((rc = zin.read(buf)) > 0) {
+                        outs.write(buf, 0, rc);
+                    }
+                }
+
+                return true;
+            } //end of while
+        }//end of try
+        // zin.closeEntry();
+        return false;
+    }
+
+    public static void readZipOut(File file, Map<String, String> entrys, File outdir) throws IOException {
+        try (//ZipFile zf = new ZipFile(file);
+             InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            readZipOut(in, entrys, outdir);
+        }
+    }
+
+    public static void readZipOut(InputStream in, Map<String, String> entrys, File outdir) throws IOException {
+        ZipEntry ze;
+
+        try (ZipInputStream zin = new ZipInputStream(in);) {
+            byte[] buf = new byte[1024];
+            while ((ze = zin.getNextEntry()) != null) {
+                String en = ze.getName();
+                if (entrys != null && !entrys.containsKey(en))
+                    continue;
+
+                if (ze.isDirectory()) {
+                    continue;
+                }
+                String tar_en = entrys.get(en);
+                if (Convert.isNullOrEmpty(tar_en))
+                    tar_en = en;
+                tar_en = tar_en.replaceAll("\\\\", "/"); // for linux bug
+                File outf = new File(outdir, tar_en);
+
+                if (!outf.getParentFile().exists())
+                    outf.getParentFile().mkdirs();
+
+                try (FileOutputStream fos = new FileOutputStream(outf);) {
+                    int rc;
+                    while ((rc = zin.read(buf)) > 0) {
+                        fos.write(buf, 0, rc);
+                    }
+                }
+            }
+        }
+        // zin.closeEntry();
+    }
 }

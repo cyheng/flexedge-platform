@@ -6,8 +6,7 @@ package cn.doraro.flexedge.driver.s7.eth;
 
 import java.io.IOException;
 
-public class S7MsgRead extends S7Msg
-{
+public class S7MsgRead extends S7Msg {
     private static final int Size_RD = 31;
     S7MemTp areaMemtp;
     int dbNum;
@@ -15,11 +14,11 @@ public class S7MsgRead extends S7Msg
     int readNum;
     byte[] readRes;
     private boolean readOk;
-    
+
     public S7MsgRead() {
         this.readOk = false;
     }
-    
+
     private static int calBytes(final S7MemTp area_memtp, final int readnum) {
         int ele_byte_n = 1;
         if (area_memtp == S7MemTp.C || area_memtp == S7MemTp.T) {
@@ -27,7 +26,7 @@ public class S7MsgRead extends S7Msg
         }
         return readnum * ele_byte_n;
     }
-    
+
     static void readArea(final S7TcpConn conn, final S7MemTp area_memtp, final int db_num, int pos, final int readnum, final byte[] bs) throws S7Exception, IOException {
         int ele_byte_n = 1;
         if (area_memtp == S7MemTp.C || area_memtp == S7MemTp.T) {
@@ -43,11 +42,10 @@ public class S7MsgRead extends S7Msg
             }
             final int req_bytes = ele_num * ele_byte_n;
             System.arraycopy(S7MsgRead.RW35, 0, conn.PDU, 0, 31);
-            conn.PDU[27] = (byte)area_memtp.getVal();
+            conn.PDU[27] = (byte) area_memtp.getVal();
             if (area_memtp == S7MemTp.DB) {
                 S7Util.setUInt16(conn.PDU, 25, db_num);
-            }
-            else if (area_memtp == S7MemTp.V) {
+            } else if (area_memtp == S7MemTp.V) {
                 S7Util.setUInt16(conn.PDU, 25, 1);
             }
             int addr;
@@ -55,20 +53,18 @@ public class S7MsgRead extends S7Msg
                 addr = pos;
                 if (area_memtp == S7MemTp.C) {
                     conn.PDU[22] = 28;
-                }
-                else {
+                } else {
                     conn.PDU[22] = 29;
                 }
-            }
-            else {
+            } else {
                 addr = pos << 3;
             }
             S7Util.setUInt16(conn.PDU, 23, ele_num);
-            conn.PDU[30] = (byte)(addr & 0xFF);
+            conn.PDU[30] = (byte) (addr & 0xFF);
             addr >>= 8;
-            conn.PDU[29] = (byte)(addr & 0xFF);
+            conn.PDU[29] = (byte) (addr & 0xFF);
             addr >>= 8;
-            conn.PDU[28] = (byte)(addr & 0xFF);
+            conn.PDU[28] = (byte) (addr & 0xFF);
             conn.send(conn.PDU, 31);
             final int len = S7Msg.recvIsoPacket(conn);
             if (len < 25) {
@@ -83,7 +79,7 @@ public class S7MsgRead extends S7Msg
             pos += ele_num * ele_byte_n;
         }
     }
-    
+
     public S7MsgRead withParam(final S7MemTp area_memtp, final int db_num, final int pos, final int readnum) {
         this.areaMemtp = area_memtp;
         this.dbNum = db_num;
@@ -91,19 +87,19 @@ public class S7MsgRead extends S7Msg
         this.readNum = readnum;
         return this;
     }
-    
+
     public int getPos() {
         return this.pos;
     }
-    
+
     public byte[] getReadRes() {
         return this.readRes;
     }
-    
+
     public boolean isReadOk() {
         return this.readOk;
     }
-    
+
     @Override
     public void processByConn(final S7TcpConn conn) throws S7Exception, IOException {
         final int n = calBytes(this.areaMemtp, this.readNum);

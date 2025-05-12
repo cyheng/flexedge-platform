@@ -12,168 +12,150 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class RecProL1 extends RecPro implements IUIProvider
-{
+public abstract class RecProL1 extends RecPro implements IUIProvider {
 
-	// HashSet<String> selTagIds = new HashSet<>() ;
+    // HashSet<String> selTagIds = new HashSet<>() ;
 
-	private transient List<UATag> fitTags = null;
-	private transient List<UATag> selTags = null;
+    private transient List<UATag> fitTags = null;
+    private transient List<UATag> selTags = null;
+    private UITemp ui_temp = new UITemp() {
 
-	public abstract List<RecValStyle> getSupportedValStyle();
+        @Override
+        public String getName() {
+            return RecProL1.this.getName();
+        }
 
-	/**
-	 * fired by tssdb
-	 * 
-	 * @param tagsegs
-	 * @return
-	 * @throws Exception
-	 */
-	protected abstract boolean RT_onTagSegsSaved(TSSSavePK savepk) throws Exception;
+        @Override
+        public String getTitle() {
+            return UI_getTempTitle();//RecProL1.this.getTitle();
+        }
 
-	// public HashSet<String> getSelectTagIds()
-	// {
-	// return this.selTagIds ;
-	// }
+        @Override
+        public boolean checkTagsFitOrNot(List<UATag> tags) {
+            if (tags == null || tags.size() > 1)
+                return false;
 
-	public List<UATag> listFitTags()
-	{
-		if (this.fitTags != null)
-			return this.fitTags;
+            return RecProL1.this.checkTagFitOrNot(tags.get(0));
+        }
 
-		List<RecValStyle> su_vs = this.getSupportedValStyle();
-		if (su_vs == null || su_vs.size() <= 0)
-			return null;
+        @Override
+        public String calUrl(List<String> tagpaths) {
+            return "/prj_tag_recp_" + RecProL1.this.getTp() + ".jsp?prjid=" + belongTo.prj.getId() + "&tagid="
+                    + tagpaths.get(0) + "&proid=" + getId();
+        }
 
-		ArrayList<UATag> rets = new ArrayList<>();
-		for (RecTagParam pm : this.belongTo.getRecTagParams().values())
-		{
-			RecValStyle rvs = pm.getValStyle();
-			if (rvs == null)
-				continue;
-			if (su_vs.contains(rvs))
-				rets.add(pm.getUATag());
-		}
+        public String getIconUrl() {
+            return UI_getTempIcon();
+        }
+    };
+    private List<IUITemp> ui_temps = Arrays.asList(ui_temp);
 
-		this.fitTags = rets;
-		return rets;
-	}
+    // public HashSet<String> getSelectTagIds()
+    // {
+    // return this.selTagIds ;
+    // }
 
-	public boolean checkTagFitOrNot(UATag tag)
-	{
-		List<RecValStyle> su_vs = this.getSupportedValStyle();
-		if (su_vs == null || su_vs.size() <= 0)
-			return false;
-		RecTagParam pm = this.belongTo.getRecTagParam(tag);
-		if (pm == null)
-			return false;
-		RecValStyle rvs = pm.getValStyle();
-		if (rvs == null)
-			return false;
-		;
-		return su_vs.contains(rvs);
-	}
+    public abstract List<RecValStyle> getSupportedValStyle();
 
-	public synchronized List<UATag> listSelectedTags()
-	{
-		if (this.selTags != null)
-			return this.selTags;
+    /**
+     * fired by tssdb
+     *
+     * @param tagsegs
+     * @return
+     * @throws Exception
+     */
+    protected abstract boolean RT_onTagSegsSaved(TSSSavePK savepk) throws Exception;
 
-		this.selTags = this.belongTo.listRecProUsingTags(this.id);
-		return this.selTags;
-	}
+    public List<UATag> listFitTags() {
+        if (this.fitTags != null)
+            return this.fitTags;
 
-	synchronized void clearCache()
-	{
-		fitTags = null;
-		selTags = null;
-	}
+        List<RecValStyle> su_vs = this.getSupportedValStyle();
+        if (su_vs == null || su_vs.size() <= 0)
+            return null;
 
-	public JSONObject toJO()
-	{
-		JSONObject jo = super.toJO();
+        ArrayList<UATag> rets = new ArrayList<>();
+        for (RecTagParam pm : this.belongTo.getRecTagParams().values()) {
+            RecValStyle rvs = pm.getValStyle();
+            if (rvs == null)
+                continue;
+            if (su_vs.contains(rvs))
+                rets.add(pm.getUATag());
+        }
 
-		// for list using
-		JSONArray jarr = new JSONArray();// (this.selTagIds) ;
-		for (UATag tag : listSelectedTags())
-			jarr.put(tag.getId());
-		jo.put("sel_tags", jarr);
+        this.fitTags = rets;
+        return rets;
+    }
 
-		return jo;
-	}
+    public boolean checkTagFitOrNot(UATag tag) {
+        List<RecValStyle> su_vs = this.getSupportedValStyle();
+        if (su_vs == null || su_vs.size() <= 0)
+            return false;
+        RecTagParam pm = this.belongTo.getRecTagParam(tag);
+        if (pm == null)
+            return false;
+        RecValStyle rvs = pm.getValStyle();
+        if (rvs == null)
+            return false;
+        ;
+        return su_vs.contains(rvs);
+    }
 
-	protected boolean fromJO(JSONObject jo, StringBuilder failed)
-	{
-		if (!super.fromJO(jo, failed))
-			return false;
+    public synchronized List<UATag> listSelectedTags() {
+        if (this.selTags != null)
+            return this.selTags;
 
-		// JSONArray jarr = jo.optJSONArray("sel_tags") ;
-		// HashSet<String> tags = new HashSet<>() ;
-		// if(jarr!=null)
-		// {
-		// int n = jarr.length() ;
-		// for(int i = 0 ; i < n ; i ++)
-		// {
-		// tags.add(jarr.getString(i)) ;
-		// }
-		// }
-		// this.selTagIds = tags ;
-		return true;
-	}
+        this.selTags = this.belongTo.listRecProUsingTags(this.id);
+        return this.selTags;
+    }
 
-	// --- UI
-	
-	protected String UI_getTempIcon() 
-	{
-		return "/_flexedge/res/ui_"+this.getTp()+".png" ;
-	}
-	
-	protected String UI_getTempTitle()
-	{
-		return this.getTitle() ;
-	}
+    synchronized void clearCache() {
+        fitTags = null;
+        selTags = null;
+    }
 
-	private UITemp ui_temp = new UITemp() {
+    // --- UI
 
-		@Override
-		public String getName()
-		{
-			return RecProL1.this.getName();
-		}
+    public JSONObject toJO() {
+        JSONObject jo = super.toJO();
 
-		@Override
-		public String getTitle()
-		{
-			return UI_getTempTitle();//RecProL1.this.getTitle();
-		}
+        // for list using
+        JSONArray jarr = new JSONArray();// (this.selTagIds) ;
+        for (UATag tag : listSelectedTags())
+            jarr.put(tag.getId());
+        jo.put("sel_tags", jarr);
 
-		@Override
-		public boolean checkTagsFitOrNot(List<UATag> tags)
-		{
-			if(tags==null||tags.size()>1)
-				return false;
-			
-			return RecProL1.this.checkTagFitOrNot(tags.get(0));
-		}
+        return jo;
+    }
 
-		@Override
-		public String calUrl(List<String> tagpaths)
-		{
-			return "/prj_tag_recp_" + RecProL1.this.getTp() + ".jsp?prjid=" + belongTo.prj.getId() + "&tagid="
-					+ tagpaths.get(0) + "&proid=" + getId();
-		}
-		
-		public String getIconUrl()
-		{
-			return UI_getTempIcon() ;
-		}
-	};
+    protected boolean fromJO(JSONObject jo, StringBuilder failed) {
+        if (!super.fromJO(jo, failed))
+            return false;
 
-	private List<IUITemp> ui_temps = Arrays.asList(ui_temp);
+        // JSONArray jarr = jo.optJSONArray("sel_tags") ;
+        // HashSet<String> tags = new HashSet<>() ;
+        // if(jarr!=null)
+        // {
+        // int n = jarr.length() ;
+        // for(int i = 0 ; i < n ; i ++)
+        // {
+        // tags.add(jarr.getString(i)) ;
+        // }
+        // }
+        // this.selTagIds = tags ;
+        return true;
+    }
 
-	@Override
-	public List<IUITemp> UI_getTemps()
-	{
-		return ui_temps;
-	}
+    protected String UI_getTempIcon() {
+        return "/_flexedge/res/ui_" + this.getTp() + ".png";
+    }
+
+    protected String UI_getTempTitle() {
+        return this.getTitle();
+    }
+
+    @Override
+    public List<IUITemp> UI_getTemps() {
+        return ui_temps;
+    }
 }

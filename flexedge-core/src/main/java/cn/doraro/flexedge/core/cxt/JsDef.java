@@ -5,14 +5,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.METHOD,ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JsDef {
-	String name() default "" ;
-	String title() default "" ;
-	String desc() default "";
-	
-	String icon() default "" ;
-	
-	String method_params_title() default "" ;
+    String name() default "";
+
+    String title() default "";
+
+    String desc() default "";
+
+    String icon() default "";
+
+    String method_params_title() default "";
 }

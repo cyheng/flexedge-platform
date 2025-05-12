@@ -9,83 +9,71 @@ import org.json.JSONObject;
 
 public class NM_PID extends MNNodeMid // implements ILang
 {
-	@Override
-	public String getColor()
-	{
-		return "#e6d970";
-	}
-	
-	@Override
-	public String getIcon()
-	{
-		return "PK_pid";
-	}
+    private transient long lastMsgOutMS = -1;
 
-	@Override
-	public JSONTemp getInJT()
-	{
-		return null;
-	}
+    @Override
+    public String getColor() {
+        return "#e6d970";
+    }
 
-	@Override
-	public JSONTemp getOutJT()
-	{
-		return null;
-	}
+    @Override
+    public String getIcon() {
+        return "PK_pid";
+    }
 
-	@Override
-	public int getOutNum()
-	{
-		return 1;
-	}
-	
-//	@Override
-	public String getTP()
-	{
-		return "pid";
-	}
+    @Override
+    public JSONTemp getInJT() {
+        return null;
+    }
 
-	@Override
-	public String getTPTitle()
-	{
-		return "PID (Todo)";
-	}
+    @Override
+    public JSONTemp getOutJT() {
+        return null;
+    }
 
-	@Override
-	public boolean isParamReady(StringBuilder failedr)
-	{
-		failedr.append("TODO") ;
-		return false;
-	}
+    @Override
+    public int getOutNum() {
+        return 1;
+    }
 
-	@Override
-	public JSONObject getParamJO()
-	{
-		JSONObject jo = new JSONObject() ;
-		
-		return jo;
-	}
+    //	@Override
+    public String getTP() {
+        return "pid";
+    }
 
-	@Override
-	protected void setParamJO(JSONObject jo)
-	{
-		
-	}
-	
-	// --------------
-	
-	private transient long lastMsgOutMS = -1 ;
+    @Override
+    public String getTPTitle() {
+        return "PID (Todo)";
+    }
 
-	@Override
-	protected RTOut RT_onMsgIn(MNConn in_conn, MNMsg msg)
-	{
-		StringBuilder failedr = new StringBuilder() ;
-		if(!this.isParamReady(failedr))
-		{
-			return null ;
-		}
-		
-		return null;
-	}
+    @Override
+    public boolean isParamReady(StringBuilder failedr) {
+        failedr.append("TODO");
+        return false;
+    }
+
+    @Override
+    public JSONObject getParamJO() {
+        JSONObject jo = new JSONObject();
+
+        return jo;
+    }
+
+    // --------------
+
+    @Override
+    protected void setParamJO(JSONObject jo) {
+
+    }
+
+    @Override
+    protected RTOut RT_onMsgIn(MNConn in_conn, MNMsg msg) {
+        StringBuilder failedr = new StringBuilder();
+        if (!this.isParamReady(failedr)) {
+            return null;
+        }
+
+        return null;
+    }
 
 }

@@ -6,67 +6,57 @@ import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.xmldata.XmlData;
 
 
-public class ConnProTcpClient extends ConnProvider
-{
-	public ConnProTcpClient()
-	{
-	
-	}
+public class ConnProTcpClient extends ConnProvider {
+    public ConnProTcpClient() {
 
-	@Override
-	public String getProviderType()
-	{
-		return "tcp_client" ;
-	}
-	
-	@Override
-	public String getProviderTpt()
-	{
-		return "TCP Client" ;
-	}
-	
-	public boolean isSingleProvider()
-	{
-		return true;
-	}
-	
-	@Override
-	public Class<? extends ConnPt> supportConnPtClass()
-	{
-		return ConnPtTcpClient.class ;
-	}
-	
-	public String getName()
-	{
-		String n = super.getName() ;
-		if(Convert.isNotNullEmpty(n))
-			return n;
-		return "" ;
-	}
-	
-	public String getTitle()
-	{
-		String n = super.getTitle() ;
-		if(Convert.isNotNullEmpty(n))
-			return n;
-		return "Tcp Client" ;
-	}
-	
-	public boolean fromXmlData(XmlData xd,StringBuilder errsb)
-	{
-		if(!super.fromXmlData(xd,errsb))
-			return false;
-		
-		return true ;
-	}
+    }
 
-	public XmlData toXmlData()
-	{
-		XmlData xd = super.toXmlData() ;
-		
-		return xd ;
-	}
-	
+    @Override
+    public String getProviderType() {
+        return "tcp_client";
+    }
+
+    @Override
+    public String getProviderTpt() {
+        return "TCP Client";
+    }
+
+    public boolean isSingleProvider() {
+        return true;
+    }
+
+    @Override
+    public Class<? extends ConnPt> supportConnPtClass() {
+        return ConnPtTcpClient.class;
+    }
+
+    public String getName() {
+        String n = super.getName();
+        if (Convert.isNotNullEmpty(n))
+            return n;
+        return "";
+    }
+
+    public String getTitle() {
+        String n = super.getTitle();
+        if (Convert.isNotNullEmpty(n))
+            return n;
+        return "Tcp Client";
+    }
+
+    public boolean fromXmlData(XmlData xd, StringBuilder errsb) {
+        if (!super.fromXmlData(xd, errsb))
+            return false;
+
+        return true;
+    }
+
+    public XmlData toXmlData() {
+        XmlData xd = super.toXmlData();
+
+        return xd;
+    }
+
 
 //	protected void injectByJson(JSONObject jo) throws Exception
 //	{
@@ -88,54 +78,45 @@ public class ConnProTcpClient extends ConnProvider
 //	}
 
 
-	
-	private void disconnAll() //throws IOException
-	{
-		for(ConnPt ci:this.listConns())
-		{
-			try
-			{
-				ConnPtTcpClient conn = (ConnPtTcpClient)ci ;
+    private void disconnAll() //throws IOException
+    {
+        for (ConnPt ci : this.listConns()) {
+            try {
+                ConnPtTcpClient conn = (ConnPtTcpClient) ci;
 //				long st = System.currentTimeMillis() ;
-				conn.disconnect();
+                conn.disconnect();
 //				long et = System.currentTimeMillis() ;
 //				System.out.println(" conn="+conn.getName()+" cost="+(et-st));
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	
-	public void stop()
-	{
-		super.stop() ;
-		
-		disconnAll();
-	}
-	
-	@Override
-	protected long connpRunInterval()
-	{
-		return 500;
-	}
-	
-	
-	@Override
-	protected void connpRunInLoop() throws Exception
-	{
-		for(ConnPt ci:this.listConns())
-		{
-			if(!ci.isEnable())
-				continue ;
-			
-			//if(ci.hasJoinedCh() || ci.hasJoinedDev())
-			//	continue ;
-			//ConnPtTcpClient citc = (ConnPtTcpClient)ci ;
-			ci.RT_checkConn() ;
-		}
-	}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public void stop() {
+        super.stop();
+
+        disconnAll();
+    }
+
+    @Override
+    protected long connpRunInterval() {
+        return 500;
+    }
+
+
+    @Override
+    protected void connpRunInLoop() throws Exception {
+        for (ConnPt ci : this.listConns()) {
+            if (!ci.isEnable())
+                continue;
+
+            //if(ci.hasJoinedCh() || ci.hasJoinedDev())
+            //	continue ;
+            //ConnPtTcpClient citc = (ConnPtTcpClient)ci ;
+            ci.RT_checkConn();
+        }
+    }
 
 }

@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.prog.lad;
 
-public class FuncBlock
-{
+public class FuncBlock {
 
 }

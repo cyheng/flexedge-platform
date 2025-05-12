@@ -5,39 +5,33 @@
 package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 
 import cn.doraro.flexedge.core.DevAddr;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashMap;
 import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.UAVal;
 
-public class MCModel extends DevDriver.Model
-{
+import java.util.*;
+
+public class MCModel extends DevDriver.Model {
     private LinkedHashMap<String, MCAddrDef> prefix2addrdef;
-    
+
     public MCModel(final String name, final String t) {
         super(name, t);
         this.prefix2addrdef = new LinkedHashMap<String, MCAddrDef>();
     }
-    
+
     public void setAddrDef(final MCAddrDef addr_def) {
         this.prefix2addrdef.put(addr_def.prefix, addr_def);
     }
-    
+
     public List<String> listPrefix() {
         final ArrayList<String> rets = new ArrayList<String>();
         rets.addAll(this.prefix2addrdef.keySet());
         return rets;
     }
-    
+
     public MCAddrDef getAddrDef(final String prefix) {
         return this.prefix2addrdef.get(prefix);
     }
-    
+
     public MCAddr transAddr(final String prefix, final String num_str, final String bit_num, UAVal.ValTP vtp, final StringBuilder failedr) {
         final MCAddrDef def = this.prefix2addrdef.get(prefix);
         if (def == null) {
@@ -61,8 +55,7 @@ public class MCModel extends DevDriver.Model
                 failedr.append("no AddrSeg match with ValTP=" + vtp.name());
                 return null;
             }
-        }
-        else {
+        } else {
             for (final MCAddrSeg seg : def.segs) {
                 iv = seg.matchAddr(num_str);
                 if (iv != null) {
@@ -113,7 +106,7 @@ public class MCModel extends DevDriver.Model
         ret.setWritable(addrseg.bWrite);
         return ret;
     }
-    
+
     public HashMap<MCAddrSeg, List<MCAddr>> filterAndSortAddrs(final String prefix, final List<MCAddr> addrs) {
         final MCAddrDef def = this.getAddrDef(prefix);
         if (def == null) {
@@ -140,10 +133,10 @@ public class MCModel extends DevDriver.Model
         }
         return rets;
     }
-    
+
     public List<DevAddr.IAddrDef> getAddrDefs() {
         final ArrayList<DevAddr.IAddrDef> rets = new ArrayList<DevAddr.IAddrDef>();
-        rets.addAll((Collection<? extends DevAddr.IAddrDef>)this.prefix2addrdef.values());
+        rets.addAll((Collection<? extends DevAddr.IAddrDef>) this.prefix2addrdef.values());
         return rets;
     }
 }

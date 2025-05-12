@@ -6,27 +6,26 @@ package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 
 import java.io.OutputStream;
 
-public abstract class MCMsg3EReq extends MCMsg3E
-{
+public abstract class MCMsg3EReq extends MCMsg3E {
     int waitTO;
-    
+
     public MCMsg3EReq() {
         this.waitTO = 1;
     }
-    
+
     public abstract int getCmd();
-    
+
     public abstract int getCmdSub();
-    
+
     public abstract int calRespLenAscii();
-    
+
     public abstract int calRespLenBin();
-    
+
     public MCMsg3EReq asWaitTimeout(final int wait_to) {
         this.waitTO = wait_to;
         return this;
     }
-    
+
     @Override
     public final void writeOutAscii(final OutputStream outputs) throws Exception {
         super.writeOutAscii(outputs);
@@ -40,7 +39,7 @@ public abstract class MCMsg3EReq extends MCMsg3E
         outputs.write(bs);
         outputs.write(databs);
     }
-    
+
     @Override
     public final void writeOutBin(final OutputStream outputs) throws Exception {
         super.writeOutBin(outputs);
@@ -56,25 +55,24 @@ public abstract class MCMsg3EReq extends MCMsg3E
         outputs.write(bs);
         outputs.write(databs);
     }
-    
+
     protected abstract byte[] packDataAscii() throws Exception;
-    
+
     protected abstract byte[] packDataBin() throws Exception;
-    
-    public static class RRItem
-    {
+
+    public static class RRItem {
         MCCode code;
         int addr;
-        
+
         public RRItem(final MCCode mcc, final int addr) {
             this.code = mcc;
             this.addr = addr;
         }
-        
+
         public MCCode getCode() {
             return this.code;
         }
-        
+
         public int getAddr() {
             return this.addr;
         }

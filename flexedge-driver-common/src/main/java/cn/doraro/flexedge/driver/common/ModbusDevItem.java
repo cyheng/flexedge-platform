@@ -4,34 +4,29 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdRead;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadWords;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadBits;
-import cn.doraro.flexedge.driver.common.modbus.sniffer.SnifferCmd;
-import cn.doraro.flexedge.core.basic.IConnEndPoint;
-import cn.doraro.flexedge.core.conn.ConnPtStream;
-import java.util.Collections;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
-import java.util.Iterator;
 import cn.doraro.flexedge.core.DevAddr;
-import java.util.ArrayList;
 import cn.doraro.flexedge.core.DevDef;
 import cn.doraro.flexedge.core.UADev;
-import cn.doraro.flexedge.driver.common.modbus.ModbusBlock;
+import cn.doraro.flexedge.core.basic.IConnEndPoint;
+import cn.doraro.flexedge.core.conn.ConnPtStream;
+import cn.doraro.flexedge.driver.common.modbus.*;
+import cn.doraro.flexedge.driver.common.modbus.sniffer.SnifferCmd;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class ModbusDevItem
-{
-    private transient List<ModbusAddr> maddrs;
+public class ModbusDevItem {
     ModbusBlock mbCoilIn;
     ModbusBlock mbCoilOut;
     ModbusBlock mbRegIn;
     ModbusBlock mbRegHold;
+    private transient List<ModbusAddr> maddrs;
     private transient UADev uaDev;
     private transient DevDef devDef;
     private int failAfterSuccessive;
     private transient int errCount;
-    
+
     public ModbusDevItem(final UADev dev) {
         this.maddrs = new ArrayList<ModbusAddr>();
         this.mbCoilIn = null;
@@ -45,11 +40,11 @@ public class ModbusDevItem
         this.uaDev = dev;
         this.devDef = dev.getDevDef();
     }
-    
+
     public UADev getUADev() {
         return this.uaDev;
     }
-    
+
     boolean init(final StringBuilder failedr) {
         final List<DevAddr> addrs = this.uaDev.listTagsAddrAll();
         if (addrs == null || addrs.size() <= 0) {
@@ -58,10 +53,10 @@ public class ModbusDevItem
         }
         final List<ModbusAddr> tmpads = new ArrayList<ModbusAddr>();
         for (final DevAddr d : addrs) {
-            tmpads.add((ModbusAddr)d);
+            tmpads.add((ModbusAddr) d);
         }
         this.maddrs = tmpads;
-        final int devid = (int)this.uaDev.getOrDefaultPropValueLong("modbus_spk", "mdev_addr", 1L);
+        final int devid = (int) this.uaDev.getOrDefaultPropValueLong("modbus_spk", "mdev_addr", 1L);
         this.failAfterSuccessive = this.uaDev.getOrDefaultPropValueInt("timing", "failed_tryn", 3);
         int blocksize_out_coils = this.uaDev.getOrDefaultPropValueInt("block_size", "out_coils", -1);
         if (blocksize_out_coils < 0 && this.devDef != null) {
@@ -95,19 +90,19 @@ public class ModbusDevItem
         final long recvto = this.uaDev.getOrDefaultPropValueLong("timing", "recv_to", 200L);
         final long inter_ms = this.uaDev.getOrDefaultPropValueLong("timing", "inter_req", 100L);
         final long scan_intv = this.uaDev.getOrDefaultPropValueLong("timing", "scan_intv", 100L);
-        final List<ModbusAddr> coil_in_addrs = this.filterAndSortAddrs((short)49);
-        final List<ModbusAddr> coil_out_addrs = this.filterAndSortAddrs((short)48);
-        final List<ModbusAddr> reg_input_addrs = this.filterAndSortAddrs((short)51);
-        final List<ModbusAddr> reg_hold_addrs = this.filterAndSortAddrs((short)52);
+        final List<ModbusAddr> coil_in_addrs = this.filterAndSortAddrs((short) 49);
+        final List<ModbusAddr> coil_out_addrs = this.filterAndSortAddrs((short) 48);
+        final List<ModbusAddr> reg_input_addrs = this.filterAndSortAddrs((short) 51);
+        final List<ModbusAddr> reg_hold_addrs = this.filterAndSortAddrs((short) 52);
         if (coil_in_addrs.size() > 0) {
-            final ModbusBlock mb = new ModbusBlock(devid, (short)49, coil_in_addrs, blocksize_in_coils, scan_intv, this.failAfterSuccessive);
+            final ModbusBlock mb = new ModbusBlock(devid, (short) 49, coil_in_addrs, blocksize_in_coils, scan_intv, this.failAfterSuccessive);
             mb.setTimingParam(reqto, recvto, inter_ms);
             if (mb.initReadCmds()) {
                 this.mbCoilIn = mb;
             }
         }
         if (coil_out_addrs.size() > 0) {
-            final ModbusBlock mb = new ModbusBlock(devid, (short)48, coil_out_addrs, blocksize_out_coils, scan_intv, this.failAfterSuccessive);
+            final ModbusBlock mb = new ModbusBlock(devid, (short) 48, coil_out_addrs, blocksize_out_coils, scan_intv, this.failAfterSuccessive);
             mb.setTimingParam(reqto, recvto, inter_ms);
             if (mb.initReadCmds()) {
                 this.mbCoilOut = mb;
@@ -115,7 +110,7 @@ public class ModbusDevItem
         }
         if (reg_input_addrs.size() > 0) {
             final boolean fwlow32 = this.uaDev.getOrDefaultPropValueBool("data_encod", "fw_low32", true);
-            final ModbusBlock mb2 = new ModbusBlock(devid, (short)51, reg_input_addrs, blocksize_internal_reg, scan_intv, this.failAfterSuccessive).asFirstWordLowIn32Bit(fwlow32);
+            final ModbusBlock mb2 = new ModbusBlock(devid, (short) 51, reg_input_addrs, blocksize_internal_reg, scan_intv, this.failAfterSuccessive).asFirstWordLowIn32Bit(fwlow32);
             mb2.setTimingParam(reqto, recvto, inter_ms);
             if (mb2.initReadCmds()) {
                 this.mbRegIn = mb2;
@@ -123,7 +118,7 @@ public class ModbusDevItem
         }
         if (reg_hold_addrs.size() > 0) {
             final boolean fwlow32 = this.uaDev.getOrDefaultPropValueBool("data_encod", "fw_low32", true);
-            final ModbusBlock mb2 = new ModbusBlock(devid, (short)52, reg_hold_addrs, blocksize_holding, scan_intv, this.failAfterSuccessive).asFirstWordLowIn32Bit(fwlow32);
+            final ModbusBlock mb2 = new ModbusBlock(devid, (short) 52, reg_hold_addrs, blocksize_holding, scan_intv, this.failAfterSuccessive).asFirstWordLowIn32Bit(fwlow32);
             mb2.setTimingParam(reqto, recvto, inter_ms);
             if (mb2.initReadCmds()) {
                 this.mbRegHold = mb2;
@@ -131,7 +126,7 @@ public class ModbusDevItem
         }
         return true;
     }
-    
+
     public void setModbusProtocal(final ModbusCmd.Protocol p) {
         if (this.mbCoilIn != null) {
             this.mbCoilIn.setModbusProtocal(p);
@@ -146,7 +141,7 @@ public class ModbusDevItem
             this.mbRegHold.setModbusProtocal(p);
         }
     }
-    
+
     private List<ModbusAddr> filterAndSortAddrs(final short addrtp) {
         final ArrayList<ModbusAddr> r = new ArrayList<ModbusAddr>();
         for (final ModbusAddr ma : this.maddrs) {
@@ -157,14 +152,14 @@ public class ModbusDevItem
         Collections.sort(r);
         return r;
     }
-    
+
     boolean doModbusCmd(final ConnPtStream ep) throws Exception {
         boolean ret = true;
         if (this.mbCoilIn != null) {
             if (!this.mbCoilIn.checkDemotionCanRun()) {
                 return false;
             }
-            if (!this.mbCoilIn.runCmds((IConnEndPoint)ep)) {
+            if (!this.mbCoilIn.runCmds((IConnEndPoint) ep)) {
                 ret = false;
             }
         }
@@ -172,7 +167,7 @@ public class ModbusDevItem
             if (!this.mbCoilOut.checkDemotionCanRun()) {
                 return false;
             }
-            if (!this.mbCoilOut.runCmds((IConnEndPoint)ep)) {
+            if (!this.mbCoilOut.runCmds((IConnEndPoint) ep)) {
                 ret = false;
             }
         }
@@ -180,7 +175,7 @@ public class ModbusDevItem
             if (!this.mbRegIn.checkDemotionCanRun()) {
                 return false;
             }
-            if (!this.mbRegIn.runCmds((IConnEndPoint)ep)) {
+            if (!this.mbRegIn.runCmds((IConnEndPoint) ep)) {
                 ret = false;
             }
         }
@@ -188,7 +183,7 @@ public class ModbusDevItem
             if (!this.mbRegHold.checkDemotionCanRun()) {
                 return false;
             }
-            if (!this.mbRegHold.runCmds((IConnEndPoint)ep)) {
+            if (!this.mbRegHold.runCmds((IConnEndPoint) ep)) {
                 ret = false;
             }
         }
@@ -201,7 +196,7 @@ public class ModbusDevItem
         }
         return ret;
     }
-    
+
     long getLastReadOkDT() {
         long ret = -1L;
         if (this.mbCoilIn != null) {
@@ -230,7 +225,7 @@ public class ModbusDevItem
         }
         return ret;
     }
-    
+
     void onSnifferCmd(final SnifferCmd sc) {
         final ModbusCmdRead mcr = sc.getFindedCmd();
         final byte[] fdd = sc.getFindedData();
@@ -241,8 +236,7 @@ public class ModbusDevItem
             if (this.mbCoilOut != null) {
                 this.mbCoilOut.onSnifferCmd(sc);
             }
-        }
-        else if (mcr instanceof ModbusCmdReadWords) {
+        } else if (mcr instanceof ModbusCmdReadWords) {
             if (this.mbRegIn != null) {
                 this.mbRegIn.onSnifferCmd(sc);
             }
@@ -251,7 +245,7 @@ public class ModbusDevItem
             }
         }
     }
-    
+
     void doModbusCmdErr() {
         if (this.mbCoilIn != null) {
             this.mbCoilIn.runCmdsErr();
@@ -266,9 +260,9 @@ public class ModbusDevItem
             this.mbRegHold.runCmdsErr();
         }
     }
-    
+
     public boolean RT_writeVal(final DevAddr da, final Object v) {
-        final ModbusAddr ma = (ModbusAddr)da;
+        final ModbusAddr ma = (ModbusAddr) da;
         ModbusBlock mb = null;
         switch (ma.addrTp) {
             case 48: {

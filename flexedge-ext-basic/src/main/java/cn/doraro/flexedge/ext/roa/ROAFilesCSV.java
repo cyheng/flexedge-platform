@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.ext.roa;
 
-public class ROAFilesCSV
-{
+public class ROAFilesCSV {
 }

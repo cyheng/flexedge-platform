@@ -1,10 +1,9 @@
 package cn.doraro.flexedge.core.util.xmldata;
 
-import org.json.*;
+import org.json.JSONObject;
 
-public interface IJSONObj
-{
-	public JSONObject toJSONObj() ;
-	
-	public boolean fromJSONObj(JSONObject job) ;
+public interface IJSONObj {
+    public JSONObject toJSONObj();
+
+    public boolean fromJSONObj(JSONObject job);
 }

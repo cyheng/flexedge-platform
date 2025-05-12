@@ -4,28 +4,24 @@
 
 package cn.doraro.flexedge.driver.gb.szy;
 
-import java.util.List;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.UAVal;
-import cn.doraro.flexedge.core.UADev;
 import cn.doraro.flexedge.core.DevAddr;
+import cn.doraro.flexedge.core.UADev;
+import cn.doraro.flexedge.core.UAVal;
+import cn.doraro.flexedge.core.util.Convert;
 
-public class SZYAddr extends DevAddr implements Comparable<SZYAddr>
-{
+import java.util.List;
+
+public class SZYAddr extends DevAddr implements Comparable<SZYAddr> {
     byte[] terminal;
     SZYFrame.FC fc;
     int idx;
-    
+
     public SZYAddr() {
         this.terminal = null;
         this.fc = null;
         this.idx = -1;
     }
-    
-    public DevAddr parseAddr(final UADev dev, final String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
-        return parseAddrStr(str);
-    }
-    
+
     static SZYAddr parseAddrStr(final String str) {
         if (Convert.isNullOrEmpty(str)) {
             return null;
@@ -36,19 +32,23 @@ public class SZYAddr extends DevAddr implements Comparable<SZYAddr>
             return null;
         }
         final SZYAddr ret = new SZYAddr();
-        ret.terminal = Convert.hexStr2ByteArray((String)ss.get(0));
+        ret.terminal = Convert.hexStr2ByteArray((String) ss.get(0));
         final String mk = ss.get(1).toUpperCase();
         ret.fc = SZYFrame.FC.fromMk(mk);
         if (ret.fc == null) {
             return null;
         }
-        ret.idx = Convert.parseToInt32((String)ss.get(2), -1);
+        ret.idx = Convert.parseToInt32((String) ss.get(2), -1);
         if (ret.idx < 0) {
             return null;
         }
         return ret;
     }
-    
+
+    public DevAddr parseAddr(final UADev dev, final String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
+        return parseAddrStr(str);
+    }
+
     public String toString() {
         if (this.terminal != null) {
             return "";
@@ -63,7 +63,7 @@ public class SZYAddr extends DevAddr implements Comparable<SZYAddr>
         }
         return sb.toString();
     }
-    
+
     public String toCheckAdjStr() {
         final String str = this.getAddr();
         final SZYAddr addr = parseAddrStr(str);
@@ -72,31 +72,31 @@ public class SZYAddr extends DevAddr implements Comparable<SZYAddr>
         }
         return this.toString();
     }
-    
+
     public boolean isSupportGuessAddr() {
         return false;
     }
-    
+
     public DevAddr guessAddr(final UADev dev, final String str, final UAVal.ValTP vtp) {
         return null;
     }
-    
+
     public List<String> listAddrHelpers() {
         return null;
     }
-    
+
     public UAVal.ValTP[] getSupportValTPs() {
         return null;
     }
-    
+
     public boolean canRead() {
         return false;
     }
-    
+
     public boolean canWrite() {
         return false;
     }
-    
+
     public int compareTo(final SZYAddr o) {
         return 0;
     }

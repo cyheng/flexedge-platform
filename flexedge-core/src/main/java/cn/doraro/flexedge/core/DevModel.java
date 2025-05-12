@@ -3,27 +3,24 @@ package cn.doraro.flexedge.core;
 /**
  * driver support's model which may limit device addresses
  * and some other's param to limit device driver
- * 
- * @author zzj
  *
+ * @author zzj
  */
 public class DevModel // extends DevDef implements IPropChecker
 {
-	String name = null ;
-	
-	String title = null ;
-	
-	public String getName()
-	{
-		return name ;
-	}
-	
-	public String getTitle()
-	{
-		return title ;
-	}
-	
-	
+    String name = null;
+
+    String title = null;
+
+    public String getName() {
+        return name;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+
 //	DevCat devCat = null ;
 //
 //	ArrayList<String> dependDrvNames = new ArrayList<>() ;
@@ -162,5 +159,5 @@ public class DevModel // extends DevDef implements IPropChecker
 //		RT_writeVal(da,v);
 //		return true;
 //	}
-	
+
 }

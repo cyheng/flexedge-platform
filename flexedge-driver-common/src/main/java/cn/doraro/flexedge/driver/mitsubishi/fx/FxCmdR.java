@@ -4,17 +4,16 @@
 
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
-import java.io.OutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 
-public class FxCmdR extends FxCmd
-{
+public class FxCmdR extends FxCmd {
     private int baseAddr;
     private int readNum;
     private int startAddr;
     private transient FxMsgReqR req;
     private transient FxMsgRespR resp;
-    
+
     public FxCmdR(final int base_addr, final int startaddr, final int readnum) {
         this.req = null;
         this.resp = null;
@@ -22,19 +21,19 @@ public class FxCmdR extends FxCmd
         this.startAddr = startaddr;
         this.readNum = readnum;
     }
-    
+
     public int getBaseAddr() {
         return this.baseAddr;
     }
-    
+
     public int getStartAddr() {
         return this.startAddr;
     }
-    
+
     public int getReadNum() {
         return this.readNum;
     }
-    
+
     @Override
     void initCmd(final FxDriver drv, final boolean b_ext) {
         super.initCmd(drv, b_ext);
@@ -42,7 +41,7 @@ public class FxCmdR extends FxCmd
         reqr.asStartAddr(this.baseAddr, this.startAddr).asByteNum(this.readNum).asExt(b_ext);
         this.req = reqr;
     }
-    
+
     @Override
     public boolean doCmd(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.drv.getCmdInterval());
@@ -61,15 +60,15 @@ public class FxCmdR extends FxCmd
         this.onResp(resp);
         return true;
     }
-    
+
     private void onResp(final FxMsgRespR resp) {
         this.resp = resp;
     }
-    
+
     public FxMsgReqR getReq() {
         return this.req;
     }
-    
+
     public FxMsgRespR getResp() {
         return this.resp;
     }

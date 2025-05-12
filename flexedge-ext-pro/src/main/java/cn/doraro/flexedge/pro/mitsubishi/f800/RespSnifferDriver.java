@@ -4,37 +4,28 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.f800;
 
-import cn.doraro.flexedge.core.UATag;
-import java.util.Iterator;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.StringReader;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.ConnMsg;
-import cn.doraro.flexedge.core.DevAddr;
-import cn.doraro.flexedge.core.basic.PropItem;
-import cn.doraro.flexedge.core.util.Lan;
-import cn.doraro.flexedge.core.UADev;
-import java.util.ArrayList;
-import cn.doraro.flexedge.core.conn.ConnPtMSGMultiTcp;
-import cn.doraro.flexedge.core.ConnPt;
-import cn.doraro.flexedge.core.DevDriver;
-import cn.doraro.flexedge.core.UACh;
+import cn.doraro.flexedge.core.*;
 import cn.doraro.flexedge.core.basic.PropGroup;
-import java.util.List;
-import cn.doraro.flexedge.core.DevDriverMsgOnly;
+import cn.doraro.flexedge.core.basic.PropItem;
+import cn.doraro.flexedge.core.conn.ConnPtMSGMultiTcp;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.Lan;
 
-public class RespSnifferDriver extends DevDriverMsgOnly
-{
-    private List<PropGroup> repPGS;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class RespSnifferDriver extends DevDriverMsgOnly {
     List<RespSnifferDev> snifferDevs;
+    int RT_curDevIdx;
+    private List<PropGroup> repPGS;
     private long parseIntv;
     private long parseTO;
     private UACh ch;
     private transient long rt_lastParseDT;
-    int RT_curDevIdx;
-    
+
     public RespSnifferDriver() {
         this.repPGS = null;
         this.snifferDevs = null;
@@ -44,31 +35,31 @@ public class RespSnifferDriver extends DevDriverMsgOnly
         this.rt_lastParseDT = -1L;
         this.RT_curDevIdx = 0;
     }
-    
+
     public boolean checkPropValue(final String groupn, final String itemn, final String strv, final StringBuilder failedr) {
         return false;
     }
-    
+
     public DevDriver copyMe() {
-        return (DevDriver)new RespSnifferDriver();
+        return (DevDriver) new RespSnifferDriver();
     }
-    
+
     public String getName() {
         return "mitsubishi_f800_snif";
     }
-    
+
     public String getTitle() {
         return "\u4e09\u83f1\u53d8\u9891\u5668\u76d1\u542c\u5668";
     }
-    
+
     public Class<? extends ConnPt> supportConnPtClass() {
-        return (Class<? extends ConnPt>)ConnPtMSGMultiTcp.class;
+        return (Class<? extends ConnPt>) ConnPtMSGMultiTcp.class;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevDef() {
         return null;
     }
-    
+
     public List<PropGroup> getPropGroupsForCh(final UACh ch) {
         if (this.repPGS != null) {
             return this.repPGS;
@@ -77,28 +68,28 @@ public class RespSnifferDriver extends DevDriverMsgOnly
         pgs.add(this.getPropGroup());
         return this.repPGS = pgs;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevInCh(final UADev d) {
         return null;
     }
-    
+
     private PropGroup getPropGroup() {
-        final Lan lan = Lan.getPropLangInPk((Class)this.getClass());
+        final Lan lan = Lan.getPropLangInPk((Class) this.getClass());
         final PropGroup r = new PropGroup("f800_lis", lan);
-        r.addPropItem(new PropItem("f800_req", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)"").withTxtMultiLine(true));
-        r.addPropItem(new PropItem("f800_p_intv", lan, PropItem.PValTP.vt_int, false, (String[])null, (Object[])null, (Object)1000));
-        r.addPropItem(new PropItem("f800_p_timeout", lan, PropItem.PValTP.vt_int, false, (String[])null, (Object[])null, (Object)10000));
+        r.addPropItem(new PropItem("f800_req", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) "").withTxtMultiLine(true));
+        r.addPropItem(new PropItem("f800_p_intv", lan, PropItem.PValTP.vt_int, false, (String[]) null, (Object[]) null, (Object) 1000));
+        r.addPropItem(new PropItem("f800_p_timeout", lan, PropItem.PValTP.vt_int, false, (String[]) null, (Object[]) null, (Object) 10000));
         return r;
     }
-    
+
     public DevAddr getSupportAddr() {
         return null;
     }
-    
+
     public List<ConnMsg> getConnMsgs() {
         return null;
     }
-    
+
     private List<RespSnifferDev> parseReqStr(final String reqstr, final StringBuilder failedr) throws IOException {
         if (Convert.isNullOrEmpty(reqstr)) {
             failedr.append("no req str input");
@@ -128,18 +119,18 @@ public class RespSnifferDriver extends DevDriverMsgOnly
         }
         return rets;
     }
-    
+
     public boolean supportDevFinder() {
         return true;
     }
-    
+
     public boolean updateFindedDevs(final StringBuilder failedr) {
         this.ch = this.getBelongToCh();
         if (this.ch == null) {
             failedr.append("no ch found");
             return false;
         }
-        final String reqstr = (String)this.ch.getPropValue("f800_lis", "f800_req");
+        final String reqstr = (String) this.ch.getPropValue("f800_lis", "f800_req");
         List<RespSnifferDev> snf_devs = null;
         try {
             snf_devs = this.parseReqStr(reqstr, failedr);
@@ -147,8 +138,7 @@ public class RespSnifferDriver extends DevDriverMsgOnly
                 failedr.append("no sniffer device found by request cmd or it is not be set");
                 return false;
             }
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             failedr.append(ee.getMessage());
             return false;
         }
@@ -157,13 +147,12 @@ public class RespSnifferDriver extends DevDriverMsgOnly
                 snfdev.reconstructDevTree();
             }
             return true;
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             failedr.append(ee.getMessage());
             return false;
         }
     }
-    
+
     protected boolean initDriver(final StringBuilder failedr) throws Exception {
         if (!super.initDriver(failedr)) {
             return false;
@@ -173,21 +162,21 @@ public class RespSnifferDriver extends DevDriverMsgOnly
             failedr.append("no ch found");
             return false;
         }
-        final String reqstr = (String)this.ch.getPropValue("f800_lis", "f800_req");
+        final String reqstr = (String) this.ch.getPropValue("f800_lis", "f800_req");
         this.snifferDevs = this.parseReqStr(reqstr, failedr);
-        this.parseIntv = ((Number)this.ch.getPropValue("f800_lis", "f800_p_intv", (Object)1000)).longValue();
-        this.parseTO = ((Number)this.ch.getPropValue("f800_lis", "f800_p_timeout", (Object)10000)).longValue();
+        this.parseIntv = ((Number) this.ch.getPropValue("f800_lis", "f800_p_intv", (Object) 1000)).longValue();
+        this.parseTO = ((Number) this.ch.getPropValue("f800_lis", "f800_p_timeout", (Object) 10000)).longValue();
         if (this.parseTO <= 0L) {
             this.parseTO = 10000L;
         }
         this.rt_lastParseDT = -1L;
         return this.snifferDevs != null;
     }
-    
+
     public long RT_getLastParseDT() {
         return this.rt_lastParseDT;
     }
-    
+
     public void RT_onConnMsgIn(final byte[] msgbs) {
         if (this.parseIntv > 0L && System.currentTimeMillis() - this.rt_lastParseDT < this.parseIntv) {
             return;
@@ -201,14 +190,14 @@ public class RespSnifferDriver extends DevDriverMsgOnly
             this.rt_lastParseDT = System.currentTimeMillis();
         }
     }
-    
+
     private void RT_resetDevs() {
         for (final RespSnifferDev d : this.snifferDevs) {
             d.parsedResps = null;
         }
         this.RT_curDevIdx = 0;
     }
-    
+
     private boolean RT_onConnMsgParse(final byte[] msgbs) {
         final F800MsgResp resp = F800MsgResp.parseFrom(msgbs);
         if (resp == null) {
@@ -235,27 +224,27 @@ public class RespSnifferDriver extends DevDriverMsgOnly
         ++this.RT_curDevIdx;
         return false;
     }
-    
+
     private void RT_useParsed() {
         for (final RespSnifferDev d : this.snifferDevs) {
             d.RT_updateDevice(this.ch);
         }
     }
-    
+
     protected void RT_onConnReady(final ConnPt cp, final UACh ch, final UADev dev) throws Exception {
     }
-    
+
     protected void RT_onConnInvalid(final ConnPt cp, final UACh ch, final UADev dev) throws Exception {
     }
-    
+
     protected boolean RT_runInLoop(final UACh ch, final UADev dev, final StringBuilder failedr) throws Exception {
         return true;
     }
-    
+
     public boolean RT_writeVal(final UACh ch, final UADev dev, final UATag tag, final DevAddr da, final Object v) {
         return false;
     }
-    
+
     public boolean RT_writeVals(final UACh ch, final UADev dev, final UATag[] tags, final DevAddr[] da, final Object[] v) {
         return false;
     }

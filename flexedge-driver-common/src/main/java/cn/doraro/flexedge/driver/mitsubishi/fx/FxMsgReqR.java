@@ -4,23 +4,22 @@
 
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
-public class FxMsgReqR extends FxMsg
-{
+public class FxMsgReqR extends FxMsg {
     int baseAddr;
     int startAddr;
     int byteNum;
-    
+
     public FxMsgReqR() {
         this.startAddr = 0;
         this.byteNum = 5;
     }
-    
+
     public FxMsgReqR asStartAddr(final int baseaddr, final int startaddr) {
         this.baseAddr = baseaddr;
         this.startAddr = startaddr;
         return this;
     }
-    
+
     public FxMsgReqR asByteNum(final int num) {
         if (num >= 64) {
             throw new IllegalArgumentException("reg num cannot big than 0x40");
@@ -28,7 +27,7 @@ public class FxMsgReqR extends FxMsg
         this.byteNum = num;
         return this;
     }
-    
+
     @Override
     public byte[] toBytes() {
         if (!this.bExt) {
@@ -46,7 +45,7 @@ public class FxMsgReqR extends FxMsg
         FxMsg.toAsciiHexBytes(crc, bs, 11, 2);
         return bs;
     }
-    
+
     public byte[] toBytes_30() {
         final int n = 11;
         final byte[] bs = new byte[n];
@@ -59,7 +58,7 @@ public class FxMsgReqR extends FxMsg
         FxMsg.toAsciiHexBytes(crc, bs, 9, 2);
         return bs;
     }
-    
+
     public int getRetOffsetBytes() {
         return this.startAddr;
     }

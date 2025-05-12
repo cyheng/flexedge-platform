@@ -7,13 +7,12 @@ package cn.doraro.flexedge.driver.omron.hostlink;
 import cn.doraro.flexedge.core.dict.DataNode;
 import cn.doraro.flexedge.core.util.Lan;
 
-public abstract class HLMsgResp extends HLMsg
-{
+public abstract class HLMsgResp extends HLMsg {
     protected HLMsgReq hlMsgReq;
     String endCode;
-    private String retTxt;
     String headCode;
-    
+    private String retTxt;
+
     public HLMsgResp(final HLMsgReq req) {
         this.hlMsgReq = null;
         this.endCode = null;
@@ -21,20 +20,29 @@ public abstract class HLMsgResp extends HLMsg
         this.headCode = null;
         this.hlMsgReq = req;
     }
-    
+
+    public static String getEndCodeTitle(final String end_code) {
+        final Lan lan = Lan.getLangInPk((Class) HLMsgResp.class);
+        final DataNode dn = lan.gn("encode_" + end_code);
+        if (dn == null) {
+            return "";
+        }
+        return dn.getNameByLang("en");
+    }
+
     public String getHLEndCode() {
         return this.endCode;
     }
-    
+
     @Override
     public String getHeadCode() {
         return this.headCode;
     }
-    
+
     public String getRetTxt() {
         return this.retTxt;
     }
-    
+
     protected void parseFrom(final String str) throws Exception {
         this.retTxt = str;
         if ('@' != str.charAt(0)) {
@@ -46,15 +54,6 @@ public abstract class HLMsgResp extends HLMsg
         final String hl_txt = str.substring(7);
         this.parseHLTxt(hl_txt);
     }
-    
+
     protected abstract void parseHLTxt(final String p0) throws Exception;
-    
-    public static String getEndCodeTitle(final String end_code) {
-        final Lan lan = Lan.getLangInPk((Class)HLMsgResp.class);
-        final DataNode dn = lan.gn("encode_" + end_code);
-        if (dn == null) {
-            return "";
-        }
-        return dn.getNameByLang("en");
-    }
 }

@@ -4,18 +4,17 @@
 
 package cn.doraro.flexedge.driver.opc.da;
 
-import java.util.Iterator;
-import java.util.Collection;
 import org.openscada.opc.dcom.list.ClassDetails;
+import org.openscada.opc.lib.common.ConnectionInformation;
+import org.openscada.opc.lib.da.Server;
 import org.openscada.opc.lib.list.Categories;
 import org.openscada.opc.lib.list.Category;
 import org.openscada.opc.lib.list.ServerList;
-import org.openscada.opc.lib.da.Server;
-import java.util.concurrent.Executors;
-import org.openscada.opc.lib.common.ConnectionInformation;
 
-public class Test
-{
+import java.util.Collection;
+import java.util.concurrent.Executors;
+
+public class Test {
     public static void main(final String[] args) throws Exception {
         final ConnectionInformation ci = new ConnectionInformation();
         ci.setHost("localhost");
@@ -26,7 +25,7 @@ public class Test
         final Server server = new Server(ci, Executors.newSingleThreadScheduledExecutor());
         server.connect();
         final ServerList serverList = new ServerList("localhost", "zzj", "zhijun1090", "");
-        final Collection<ClassDetails> classDetails = serverList.listServersWithDetails(new Category[] { Categories.OPCDAServer10, Categories.OPCDAServer20, Categories.OPCDAServer30 }, new Category[0]);
+        final Collection<ClassDetails> classDetails = serverList.listServersWithDetails(new Category[]{Categories.OPCDAServer10, Categories.OPCDAServer20, Categories.OPCDAServer30}, new Category[0]);
         for (final ClassDetails cds : classDetails) {
             System.out.println(String.valueOf(cds.getProgId()) + "=" + cds.getDescription());
         }

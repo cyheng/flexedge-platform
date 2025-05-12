@@ -4,33 +4,33 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.f800;
 
-import cn.doraro.flexedge.core.UAVal;
 import cn.doraro.flexedge.core.UADev;
+import cn.doraro.flexedge.core.UAVal;
+
 import java.util.Arrays;
 import java.util.List;
 
-class RSCOutHz extends RespSnifferCmd
-{
+class RSCOutHz extends RespSnifferCmd {
     static List<String> tagNames;
-    
+
     static {
         RSCOutHz.tagNames = Arrays.asList("out_hz");
     }
-    
+
     public RSCOutHz(final RespSnifferDev dev, final F800MsgReq req) {
         super(dev, req);
     }
-    
+
     @Override
     public void reconstructTags(final UADev dev) throws Exception {
         this.addOrUpTag("out_hz", "\u8f93\u51fa\u9891\u7387", UAVal.ValTP.vt_float);
     }
-    
+
     @Override
     protected List<String> listTagNames() {
         return RSCOutHz.tagNames;
     }
-    
+
     @Override
     public boolean RT_injectResp(final F800MsgResp resp) {
         final Integer intv = resp.getRespVal();

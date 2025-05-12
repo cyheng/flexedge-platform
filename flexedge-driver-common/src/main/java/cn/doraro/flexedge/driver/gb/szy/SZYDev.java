@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.gb.szy;
 
-public class SZYDev
-{
+public class SZYDev {
 }

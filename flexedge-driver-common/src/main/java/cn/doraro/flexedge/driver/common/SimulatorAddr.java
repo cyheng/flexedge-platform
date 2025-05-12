@@ -4,31 +4,37 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.DevAddr;
 import cn.doraro.flexedge.core.UADev;
 import cn.doraro.flexedge.core.UAVal;
-import cn.doraro.flexedge.core.DevAddr;
+import cn.doraro.flexedge.core.util.Convert;
 
-public class SimulatorAddr extends DevAddr
-{
+import java.util.ArrayList;
+import java.util.List;
+
+public class SimulatorAddr extends DevAddr {
+    static UAVal.ValTP[] TPS0;
+    static UAVal.ValTP[] TPS1;
+    static UAVal.ValTP[] TPS2;
+
+    static {
+        SimulatorAddr.TPS0 = new UAVal.ValTP[]{UAVal.ValTP.vt_bool};
+        SimulatorAddr.TPS1 = new UAVal.ValTP[]{UAVal.ValTP.vt_bool, UAVal.ValTP.vt_bool, UAVal.ValTP.vt_byte, UAVal.ValTP.vt_char, UAVal.ValTP.vt_int16, UAVal.ValTP.vt_int32, UAVal.ValTP.vt_int64, UAVal.ValTP.vt_float, UAVal.ValTP.vt_double};
+        SimulatorAddr.TPS2 = new UAVal.ValTP[]{UAVal.ValTP.vt_str};
+    }
+
     private char tp;
     private int regpos;
     private int bitpos;
     private SimulatorFunc simFunc;
-    static UAVal.ValTP[] TPS0;
-    static UAVal.ValTP[] TPS1;
-    static UAVal.ValTP[] TPS2;
-    
+
     SimulatorAddr() {
         this.tp = 'K';
         this.regpos = -1;
         this.bitpos = -1;
         this.simFunc = null;
     }
-    
+
     public SimulatorAddr(final String addr, final UAVal.ValTP vtp, final SimulatorFunc func) {
         super(addr, vtp);
         this.tp = 'K';
@@ -37,7 +43,7 @@ public class SimulatorAddr extends DevAddr
         this.simFunc = null;
         this.simFunc = func;
     }
-    
+
     public SimulatorAddr(final String addr, final UAVal.ValTP vtp, final char tp, final int regpos) {
         super(addr, vtp);
         this.tp = 'K';
@@ -48,7 +54,7 @@ public class SimulatorAddr extends DevAddr
         this.bitpos = -1;
         this.regpos = regpos;
     }
-    
+
     public SimulatorAddr(final String addr, final char tp, final int regpos, final int bitpos) {
         super(addr, UAVal.ValTP.vt_bool);
         this.tp = 'K';
@@ -59,23 +65,56 @@ public class SimulatorAddr extends DevAddr
         this.regpos = regpos;
         this.bitpos = bitpos;
     }
-    
+
+    static UAVal.ValTP[] getSupportedValTPs(final char tp) {
+        switch (tp) {
+            case 'B': {
+                return SimulatorAddr.TPS0;
+            }
+            case 'K': {
+                return SimulatorAddr.TPS1;
+            }
+            case 'R': {
+                return SimulatorAddr.TPS1;
+            }
+            case 'S': {
+                return SimulatorAddr.TPS2;
+            }
+            default: {
+                return null;
+            }
+        }
+    }
+
+    private static boolean chkValTp(final char tp, final UAVal.ValTP vt) {
+        final UAVal.ValTP[] tps = getSupportedValTPs(tp);
+        if (tps == null) {
+            return false;
+        }
+        for (final UAVal.ValTP vt2 : tps) {
+            if (vt2 == vt) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public char getAddrTp() {
         return this.tp;
     }
-    
+
     public int getRegPos() {
         return this.regpos;
     }
-    
+
     public int getBitPos() {
         return this.bitpos;
     }
-    
+
     public SimulatorFunc getFunc() {
         return this.simFunc;
     }
-    
+
     public DevAddr parseAddr(final UADev dev, final String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         final DevAddr r = this.parseSimFuncAddr(str, vtp, failedr);
         if (r != null) {
@@ -83,7 +122,7 @@ public class SimulatorAddr extends DevAddr
         }
         return this.parseSimRegAddr(str, vtp, failedr);
     }
-    
+
     private DevAddr parseSimFuncAddr(String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         final String addr = str;
         str = str.trim().toLowerCase();
@@ -105,8 +144,7 @@ public class SimulatorAddr extends DevAddr
                 final int fpt = s.indexOf(46);
                 if (fpt < 0) {
                     pobjs.add(Long.parseLong(s));
-                }
-                else {
+                } else {
                     pobjs.add(Double.parseDouble(s));
                 }
             }
@@ -119,13 +157,12 @@ public class SimulatorAddr extends DevAddr
                 return null;
             }
             return new SimulatorAddr(addr, vtp, sf);
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             failedr.append(e.getMessage());
             return null;
         }
     }
-    
+
     private DevAddr parseSimRegAddr(String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         final String addr = str;
         if (Convert.isNullOrEmpty(str)) {
@@ -166,71 +203,32 @@ public class SimulatorAddr extends DevAddr
         final int bitv = Integer.parseInt(str.substring(i + 1));
         return new SimulatorAddr(addr, tp, v, bitv);
     }
-    
+
     public boolean isSupportGuessAddr() {
         return false;
     }
-    
+
     public String toCheckAdjStr() {
         return null;
     }
-    
+
     public DevAddr guessAddr(final UADev dev, final String str, final UAVal.ValTP vtp) {
         return null;
     }
-    
+
     public List<String> listAddrHelpers() {
         return null;
     }
-    
-    static UAVal.ValTP[] getSupportedValTPs(final char tp) {
-        switch (tp) {
-            case 'B': {
-                return SimulatorAddr.TPS0;
-            }
-            case 'K': {
-                return SimulatorAddr.TPS1;
-            }
-            case 'R': {
-                return SimulatorAddr.TPS1;
-            }
-            case 'S': {
-                return SimulatorAddr.TPS2;
-            }
-            default: {
-                return null;
-            }
-        }
-    }
-    
-    private static boolean chkValTp(final char tp, final UAVal.ValTP vt) {
-        final UAVal.ValTP[] tps = getSupportedValTPs(tp);
-        if (tps == null) {
-            return false;
-        }
-        for (final UAVal.ValTP vt2 : tps) {
-            if (vt2 == vt) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
+
     public UAVal.ValTP[] getSupportValTPs() {
         return getSupportedValTPs(this.tp);
     }
-    
+
     public boolean canRead() {
         return true;
     }
-    
+
     public boolean canWrite() {
         return true;
-    }
-    
-    static {
-        SimulatorAddr.TPS0 = new UAVal.ValTP[] { UAVal.ValTP.vt_bool };
-        SimulatorAddr.TPS1 = new UAVal.ValTP[] { UAVal.ValTP.vt_bool, UAVal.ValTP.vt_bool, UAVal.ValTP.vt_byte, UAVal.ValTP.vt_char, UAVal.ValTP.vt_int16, UAVal.ValTP.vt_int32, UAVal.ValTP.vt_int64, UAVal.ValTP.vt_float, UAVal.ValTP.vt_double };
-        SimulatorAddr.TPS2 = new UAVal.ValTP[] { UAVal.ValTP.vt_str };
     }
 }

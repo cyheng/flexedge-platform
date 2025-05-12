@@ -7,25 +7,24 @@ package cn.doraro.flexedge.driver.mitsubishi.fx;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class FxMsgRespR extends FxMsg
-{
+public class FxMsgRespR extends FxMsg {
     int byteNum;
     byte[] byteBuf;
     boolean readOk;
     String errInf;
-    
+
     public FxMsgRespR(final int bytenum) {
         this.byteBuf = null;
         this.readOk = false;
         this.errInf = null;
         this.byteNum = bytenum;
     }
-    
+
     @Override
     public byte[] toBytes() {
         return null;
     }
-    
+
     public boolean readFromStream(final InputStream inputs, final long timeout) throws IOException {
         int st = 0;
         final int len = 3 + this.byteNum * 2;
@@ -59,14 +58,14 @@ public class FxMsgRespR extends FxMsg
                     this.byteBuf = new byte[this.byteNum];
                     for (int i = 0; i < this.byteNum; ++i) {
                         final int bt = FxMsg.fromAsciiHexBytes(ret, i * 2, 2);
-                        this.byteBuf[i] = (byte)bt;
+                        this.byteBuf[i] = (byte) bt;
                     }
                     return this.readOk = true;
                 }
             }
         }
     }
-    
+
     public byte[] getRetData() {
         return this.byteBuf;
     }

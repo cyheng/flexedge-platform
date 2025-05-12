@@ -7,18 +7,18 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD}) //ElementType.METHOD,
-public @interface data_obj
-{
-	/**
-	 * may using another param name in xmldata
-	 * @return
-	 */
-	String param_name() default "";
-	
-	boolean nullable() default true ;//
-	
-	//boolean multi() default false;
-	//default Object.class
-	Class obj_c()  default Object.class;
-	
+public @interface data_obj {
+    /**
+     * may using another param name in xmldata
+     *
+     * @return
+     */
+    String param_name() default "";
+
+    boolean nullable() default true;//
+
+    //boolean multi() default false;
+    //default Object.class
+    Class obj_c() default Object.class;
+
 }

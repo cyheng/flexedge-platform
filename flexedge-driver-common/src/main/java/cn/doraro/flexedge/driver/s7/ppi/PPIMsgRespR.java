@@ -4,30 +4,30 @@
 
 package cn.doraro.flexedge.driver.s7.ppi;
 
-import java.io.IOException;
 import cn.doraro.flexedge.core.util.Convert;
+
+import java.io.IOException;
 import java.io.InputStream;
 
-public class PPIMsgRespR extends PPIMsgResp
-{
+public class PPIMsgRespR extends PPIMsgResp {
     short da;
     short sa;
     short fc;
     int byteNum;
     int bitNum;
     byte[] respBS;
-    
+
     public PPIMsgRespR(final byte[] bs) {
         this.sa = 0;
         this.fc = 8;
         this.respBS = null;
     }
-    
+
     public static PPIMsgRespR parseFromBS(final byte[] bs, final StringBuilder failedr) {
         final PPIMsgRespR ret = new PPIMsgRespR(bs);
-        ret.da = (short)(bs[4] & 0xFF);
-        ret.sa = (short)(bs[5] & 0xFF);
-        if (ret.fc != (short)(bs[6] & 0xFF)) {
+        ret.da = (short) (bs[4] & 0xFF);
+        ret.sa = (short) (bs[5] & 0xFF);
+        if (ret.fc != (short) (bs[6] & 0xFF)) {
             failedr.append("fucntion code err");
             return null;
         }
@@ -58,7 +58,7 @@ public class PPIMsgRespR extends PPIMsgResp
         System.arraycopy(bs, 25, ret.respBS = new byte[byte_num], 0, byte_num);
         return ret;
     }
-    
+
     public static PPIMsgRespR parseFromStream(final InputStream inputs, final long timeout, final StringBuilder failedr) throws IOException {
         final byte[] bs = PPIMsg.readFromStream(inputs, timeout);
         if (bs == null) {
@@ -74,38 +74,38 @@ public class PPIMsgRespR extends PPIMsgResp
         }
         return parseFromBS(bs, failedr);
     }
-    
+
     @Override
     protected short getStartD() {
         return 104;
     }
-    
+
     public short getDestAddr() {
         return this.da;
     }
-    
+
     public short getSorAddr() {
         return this.sa;
     }
-    
+
     public int getByteNum() {
         return this.byteNum;
     }
-    
+
     public int getBitNum() {
         return this.bitNum;
     }
-    
+
     @Override
     public byte[] getRetData() {
         return this.respBS;
     }
-    
+
     @Override
     public byte[] toBytes() {
         return null;
     }
-    
+
     @Override
     public String toString() {
         return this.sa + "->" + this.da + " [" + Convert.byteArray2HexStr(this.respBS, " ") + "]";

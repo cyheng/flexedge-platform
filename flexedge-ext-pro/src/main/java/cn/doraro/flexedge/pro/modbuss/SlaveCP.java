@@ -4,100 +4,39 @@
 
 package cn.doraro.flexedge.pro.modbuss;
 
-import java.util.Iterator;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdErr;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdWriteWords;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdWriteWord;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdWriteBit;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadWords;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadBits;
-import java.io.OutputStream;
-import java.io.PushbackInputStream;
-import cn.doraro.flexedge.driver.common.modbus.ModbusParserReqRTU;
-import kotlin.NotImplementedError;
-import cn.doraro.flexedge.driver.common.modbus.ModbusParserReqTCP;
-import cn.doraro.flexedge.driver.common.modbus.ModbusParserReq;
-import java.util.List;
 import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.IdCreator;
-import org.json.JSONObject;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
 import cn.doraro.flexedge.core.util.xmldata.data_class;
+import cn.doraro.flexedge.driver.common.modbus.*;
+import kotlin.NotImplementedError;
+import org.json.JSONObject;
+
+import java.io.OutputStream;
+import java.io.PushbackInputStream;
+import java.util.List;
 
 @data_class
-public abstract class SlaveCP
-{
+public abstract class SlaveCP {
     protected MSBus_M bus;
     String id;
     ModbusCmd.Protocol proto;
     boolean bEnable;
-    
+
     public SlaveCP(final MSBus_M bus) {
         this.id = null;
         this.proto = ModbusCmd.Protocol.rtu;
         this.bEnable = true;
         this.bus = bus;
     }
-    
-    public String getId() {
-        return this.id;
-    }
-    
-    public boolean isEnable() {
-        return this.bEnable;
-    }
-    
-    public abstract String getCPTp();
-    
-    public abstract String getCPTpT();
-    
-    public abstract boolean isValid(final StringBuilder p0);
-    
-    public abstract String RT_getRunInf();
-    
-    public abstract void RT_init();
-    
-    public abstract String getConnTitle();
-    
-    public JSONObject toJO() {
-        final JSONObject jo = new JSONObject();
-        jo.put("id", (Object)this.id);
-        jo.put("_tp", (Object)this.getCPTp());
-        jo.put("_tpt", (Object)this.getCPTpT());
-        jo.put("tt", (Object)this.getConnTitle());
-        jo.put("proto", (Object)this.proto.name());
-        jo.put("enable", this.bEnable);
-        return jo;
-    }
-    
-    public boolean fromJO(final JSONObject jo) {
-        this.id = jo.optString("id", IdCreator.newSeqId());
-        final String pto = jo.optString("proto");
-        if (Convert.isNotNullEmpty(pto)) {
-            this.proto = ModbusCmd.Protocol.valueOf(pto);
-        }
-        if (this.proto == null) {
-            this.proto = ModbusCmd.Protocol.rtu;
-        }
-        this.bEnable = jo.optBoolean("enable", true);
-        return true;
-    }
-    
-    public abstract void RT_runInLoop();
-    
-    public abstract void RT_stop();
-    
-    public abstract List<SlaveConn> getConns();
-    
-    public abstract int getConnsNum();
-    
+
     public static SlaveCP fromJO(final MSBus_M bus, final JSONObject jo) {
         final String tp = jo.optString("_tp");
         if (Convert.isNullOrEmpty(tp)) {
             return null;
         }
         SlaveCP ret = null;
-        Label_0137: {
+        Label_0137:
+        {
             final String s;
             switch (s = tp) {
                 case "com": {
@@ -122,24 +61,76 @@ public abstract class SlaveCP
         }
         return ret;
     }
-    
+
+    public String getId() {
+        return this.id;
+    }
+
+    public boolean isEnable() {
+        return this.bEnable;
+    }
+
+    public abstract String getCPTp();
+
+    public abstract String getCPTpT();
+
+    public abstract boolean isValid(final StringBuilder p0);
+
+    public abstract String RT_getRunInf();
+
+    public abstract void RT_init();
+
+    public abstract String getConnTitle();
+
+    public JSONObject toJO() {
+        final JSONObject jo = new JSONObject();
+        jo.put("id", (Object) this.id);
+        jo.put("_tp", (Object) this.getCPTp());
+        jo.put("_tpt", (Object) this.getCPTpT());
+        jo.put("tt", (Object) this.getConnTitle());
+        jo.put("proto", (Object) this.proto.name());
+        jo.put("enable", this.bEnable);
+        return jo;
+    }
+
+    public boolean fromJO(final JSONObject jo) {
+        this.id = jo.optString("id", IdCreator.newSeqId());
+        final String pto = jo.optString("proto");
+        if (Convert.isNotNullEmpty(pto)) {
+            this.proto = ModbusCmd.Protocol.valueOf(pto);
+        }
+        if (this.proto == null) {
+            this.proto = ModbusCmd.Protocol.rtu;
+        }
+        this.bEnable = jo.optBoolean("enable", true);
+        return true;
+    }
+
+    public abstract void RT_runInLoop();
+
+    public abstract void RT_stop();
+
+    public abstract List<SlaveConn> getConns();
+
+    public abstract int getConnsNum();
+
     protected void RT_runConnInLoop(final SlaveConn sc) throws Exception {
-        ModbusParserReq mp = (ModbusParserReq)sc.getRelatedOb();
+        ModbusParserReq mp = (ModbusParserReq) sc.getRelatedOb();
         if (mp == null) {
             switch (this.proto) {
                 case tcp: {
-                    mp = (ModbusParserReq)new ModbusParserReqTCP();
+                    mp = (ModbusParserReq) new ModbusParserReqTCP();
                     break;
                 }
                 case ascii: {
                     throw new NotImplementedError();
                 }
                 default: {
-                    mp = (ModbusParserReq)new ModbusParserReqRTU();
+                    mp = (ModbusParserReq) new ModbusParserReqRTU();
                     break;
                 }
             }
-            mp.asLimitDevIds((List)this.bus.limitIds);
+            mp.asLimitDevIds((List) this.bus.limitIds);
             sc.setRelatedOb(mp);
         }
         final PushbackInputStream inputs = sc.getPushbackInputStream();
@@ -154,33 +145,33 @@ public abstract class SlaveCP
             outputs.flush();
         }
     }
-    
+
     byte[] onReqAndResp(final ModbusCmd mc) {
         if (mc instanceof ModbusCmdReadBits) {
-            final ModbusCmdReadBits mcb = (ModbusCmdReadBits)mc;
+            final ModbusCmdReadBits mcb = (ModbusCmdReadBits) mc;
             return this.onReqAndRespReadBits(mcb);
         }
         if (mc instanceof ModbusCmdReadWords) {
-            return this.onReqAndRespReadWords((ModbusCmdReadWords)mc);
+            return this.onReqAndRespReadWords((ModbusCmdReadWords) mc);
         }
         if (mc instanceof ModbusCmdWriteBit) {
-            final ModbusCmdWriteBit wb = (ModbusCmdWriteBit)mc;
+            final ModbusCmdWriteBit wb = (ModbusCmdWriteBit) mc;
             return this.onReqAndRespWriteBit(wb);
         }
         if (mc instanceof ModbusCmdWriteWord) {
-            final ModbusCmdWriteWord ww = (ModbusCmdWriteWord)mc;
+            final ModbusCmdWriteWord ww = (ModbusCmdWriteWord) mc;
             return this.onReqAndRespWriteWord(ww);
         }
         if (mc instanceof ModbusCmdWriteWords) {
-            final ModbusCmdWriteWords ww2 = (ModbusCmdWriteWords)mc;
+            final ModbusCmdWriteWords ww2 = (ModbusCmdWriteWords) mc;
             return this.onReqAndRespWriteWords(ww2);
         }
         if (mc instanceof ModbusCmdErr) {
-            return ((ModbusCmdErr)mc).getRespData();
+            return ((ModbusCmdErr) mc).getRespData();
         }
         return null;
     }
-    
+
     private byte[] onReqAndRespWriteBit(final ModbusCmdWriteBit mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -214,11 +205,11 @@ public abstract class SlaveCP
             }
         }
         if (b_set) {
-            return ModbusCmdWriteBit.createResp((ModbusCmd)mcb, devid, req_idx, bv);
+            return ModbusCmdWriteBit.createResp((ModbusCmd) mcb, devid, req_idx, bv);
         }
-        return ModbusCmdWriteBit.createRespError((ModbusCmd)mcb, devid, mcb.getFC());
+        return ModbusCmdWriteBit.createRespError((ModbusCmd) mcb, devid, mcb.getFC());
     }
-    
+
     private byte[] onReqAndRespWriteWord(final ModbusCmdWriteWord mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -246,17 +237,17 @@ public abstract class SlaveCP
                 if (req_idx >= seg_regidx + seg_regnum) {
                     continue;
                 }
-                seg.setSlaveDataInt16(req_idx, (short)bv, true);
+                seg.setSlaveDataInt16(req_idx, (short) bv, true);
                 b_set = true;
                 break;
             }
         }
         if (b_set) {
-            return ModbusCmdWriteWord.createResp((ModbusCmd)mcb, devid, (int)(short)req_idx, (short)bv);
+            return ModbusCmdWriteWord.createResp((ModbusCmd) mcb, devid, (int) (short) req_idx, (short) bv);
         }
-        return ModbusCmdWriteWord.createRespError((ModbusCmd)mcb, devid, mcb.getFC());
+        return ModbusCmdWriteWord.createRespError((ModbusCmd) mcb, devid, mcb.getFC());
     }
-    
+
     private byte[] onReqAndRespWriteWords(final ModbusCmdWriteWords mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -290,11 +281,11 @@ public abstract class SlaveCP
             }
         }
         if (b_set) {
-            return ModbusCmdWriteWords.createResp((ModbusCmd)mcb, devid, (int)(short)req_idx, bvs);
+            return ModbusCmdWriteWords.createResp((ModbusCmd) mcb, devid, (int) (short) req_idx, bvs);
         }
-        return ModbusCmdWriteWords.createRespError((ModbusCmd)mcb, devid, mcb.getFC());
+        return ModbusCmdWriteWords.createRespError((ModbusCmd) mcb, devid, mcb.getFC());
     }
-    
+
     private byte[] onReqAndRespReadBits(final ModbusCmdReadBits mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -333,26 +324,23 @@ public abstract class SlaveCP
                 if (req_idx < seg_regidx) {
                     if (req_idx + req_num < seg_regidx + bs.length) {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, req_num - (seg_regidx - req_idx));
-                    }
-                    else {
+                    } else {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, bs.length);
                     }
-                }
-                else if (req_idx + req_num < seg_regidx + bs.length) {
+                } else if (req_idx + req_num < seg_regidx + bs.length) {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, req_num);
-                }
-                else {
+                } else {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, bs.length - (req_idx - seg_regidx));
                 }
                 b_get = true;
             }
         }
         if (b_get) {
-            return ModbusCmdReadBits.createResp((ModbusCmd)mcb, devid, mcb.getFC(), resp);
+            return ModbusCmdReadBits.createResp((ModbusCmd) mcb, devid, mcb.getFC(), resp);
         }
-        return ModbusCmdReadBits.createRespError((ModbusCmd)mcb, devid, mcb.getFC());
+        return ModbusCmdReadBits.createRespError((ModbusCmd) mcb, devid, mcb.getFC());
     }
-    
+
     private byte[] onReqAndRespReadWords(final ModbusCmdReadWords mcb) {
         final int fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -391,23 +379,20 @@ public abstract class SlaveCP
                 if (req_idx < seg_regidx) {
                     if (req_idx + req_num < seg_regidx + bs.length) {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, req_num - (seg_regidx - req_idx));
-                    }
-                    else {
+                    } else {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, bs.length);
                     }
-                }
-                else if (req_idx + req_num < seg_regidx + bs.length) {
+                } else if (req_idx + req_num < seg_regidx + bs.length) {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, req_num);
-                }
-                else {
+                } else {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, bs.length - (req_idx - seg_regidx));
                 }
                 b_get = true;
             }
         }
         if (b_get) {
-            return ModbusCmdReadWords.createResp((ModbusCmd)mcb, devid, mcb.getFC(), resp);
+            return ModbusCmdReadWords.createResp((ModbusCmd) mcb, devid, mcb.getFC(), resp);
         }
-        return ModbusCmdReadWords.createRespError((ModbusCmd)mcb, devid, mcb.getFC());
+        return ModbusCmdReadWords.createRespError((ModbusCmd) mcb, devid, mcb.getFC());
     }
 }

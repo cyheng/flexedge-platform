@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.mitsubishi.fxnet;
 
-public class FxNetMsgWW
-{
+public class FxNetMsgWW {
 }

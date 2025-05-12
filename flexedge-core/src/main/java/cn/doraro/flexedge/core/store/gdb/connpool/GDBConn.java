@@ -3,385 +3,308 @@ package cn.doraro.flexedge.core.store.gdb.connpool;
 import cn.doraro.flexedge.core.util.logger.ILogger;
 import cn.doraro.flexedge.core.util.logger.LoggerManager;
 
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.NClob;
-import java.sql.PreparedStatement;
-import java.sql.SQLClientInfoException;
-import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.SQLXML;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.sql.Struct;
+import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
 
-public class GDBConn implements Connection
-{
-	static ILogger logger = LoggerManager.getLogger(GDBConn.class) ;
-	
-	Connection innerConn = null ;
-	DBConnPool belongPool = null ;
-	
-	int accessCount = 0 ;
-	long createDT = System.currentTimeMillis() ;
-	
-	
-	GDBConn(DBConnPool p,Connection conn)
-	{
-		if(logger.isDebugEnabled())
-		{
-			logger.debug("GDBConn construct be called!");
+public class GDBConn implements Connection {
+    static ILogger logger = LoggerManager.getLogger(GDBConn.class);
+
+    Connection innerConn = null;
+    DBConnPool belongPool = null;
+
+    int accessCount = 0;
+    long createDT = System.currentTimeMillis();
+
+
+    GDBConn(DBConnPool p, Connection conn) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("GDBConn construct be called!");
 //			for(StackTraceElement st : Thread.currentThread().getStackTrace())
 //			{
 //				logger.debug(st.toString());
 //			}
-		}
-		
-		belongPool = p ;
-		innerConn = conn ;
-	}
-	
-	/**
-	 * �����־����
-	 *
-	 */
-	public void clearLogBuffer()
-	{
-		//commitLogBuffer.clear() ;
-	}
-	
-	/**
-	 * ������ֱ�ӵ��ñ��������ͷŵ����ӳ���
-	 *
-	 */
-	public void freeToPool()
-	{
-		belongPool.free(this) ;
-	}
-	
-	public Statement createStatement() throws SQLException
-	{
-		return innerConn.createStatement();
-	}
+        }
 
-	public PreparedStatement prepareStatement(String sql) throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql);
-		return new GDBPreparedStatement(this,ps,sql);
-	}
-	
-	public PreparedStatement prepareStatementNoLog(String sql) throws SQLException
-	{
-		return innerConn.prepareStatement(sql);
-		//return new GDBPreparedStatement(this,ps,sql);
-	}
+        belongPool = p;
+        innerConn = conn;
+    }
 
-	public CallableStatement prepareCall(String sql) throws SQLException
-	{
-		return innerConn.prepareCall(sql);
-	}
+    /**
+     * �����־����
+     */
+    public void clearLogBuffer() {
+        //commitLogBuffer.clear() ;
+    }
 
-	public String nativeSQL(String sql) throws SQLException
-	{
-		return innerConn.nativeSQL(sql);
-	}
+    /**
+     * ������ֱ�ӵ��ñ��������ͷŵ����ӳ���
+     */
+    public void freeToPool() {
+        belongPool.free(this);
+    }
 
-	public void setAutoCommit(boolean autoCommit) throws SQLException
-	{
-		innerConn.setAutoCommit(autoCommit) ;
-	}
+    public Statement createStatement() throws SQLException {
+        return innerConn.createStatement();
+    }
 
-	public boolean getAutoCommit() throws SQLException
-	{
-		return innerConn.getAutoCommit();
-	}
+    public PreparedStatement prepareStatement(String sql) throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public void commit() throws SQLException
-	{
-		
-		innerConn.commit();
-	}
+    public PreparedStatement prepareStatementNoLog(String sql) throws SQLException {
+        return innerConn.prepareStatement(sql);
+        //return new GDBPreparedStatement(this,ps,sql);
+    }
 
-	public void rollback() throws SQLException
-	{
-		innerConn.rollback();
-	}
+    public CallableStatement prepareCall(String sql) throws SQLException {
+        return innerConn.prepareCall(sql);
+    }
 
-	public void close() throws SQLException
-	{
-		if(logger.isDebugEnabled())
-		{
-			logger.debug("GDBConn close() be called! Live["+(System.currentTimeMillis()-createDT)+"] AC["+this.accessCount+"]");
-			logger.debug(belongPool.toPoolConnInfoStr()) ;
-		}
-		
-		
-		innerConn.close();
-	}
+    public String nativeSQL(String sql) throws SQLException {
+        return innerConn.nativeSQL(sql);
+    }
 
-	public boolean isClosed() throws SQLException
-	{
-		return innerConn.isClosed();
-	}
+    public boolean getAutoCommit() throws SQLException {
+        return innerConn.getAutoCommit();
+    }
 
-	public DatabaseMetaData getMetaData() throws SQLException
-	{
-		return innerConn.getMetaData();
-	}
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        innerConn.setAutoCommit(autoCommit);
+    }
 
-	public void setReadOnly(boolean readOnly) throws SQLException
-	{
-		innerConn.setReadOnly(readOnly) ;
-	}
+    public void commit() throws SQLException {
 
-	public boolean isReadOnly() throws SQLException
-	{
-		return innerConn.isReadOnly();
-	}
+        innerConn.commit();
+    }
 
-	public void setCatalog(String catalog) throws SQLException
-	{
-		innerConn.setCatalog(catalog) ;
-	}
+    public void rollback() throws SQLException {
+        innerConn.rollback();
+    }
 
-	public String getCatalog() throws SQLException
-	{
-		return innerConn.getCatalog();
-	}
+    public void close() throws SQLException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("GDBConn close() be called! Live[" + (System.currentTimeMillis() - createDT) + "] AC[" + this.accessCount + "]");
+            logger.debug(belongPool.toPoolConnInfoStr());
+        }
 
-	public void setTransactionIsolation(int level) throws SQLException
-	{
-		innerConn.setTransactionIsolation(level) ;
-	}
 
-	public int getTransactionIsolation() throws SQLException
-	{
-		return innerConn.getTransactionIsolation();
-	}
+        innerConn.close();
+    }
 
-	public SQLWarning getWarnings() throws SQLException
-	{
-		return innerConn.getWarnings();
-	}
+    public boolean isClosed() throws SQLException {
+        return innerConn.isClosed();
+    }
 
-	public void clearWarnings() throws SQLException
-	{
-		innerConn.clearWarnings() ;
-	}
+    public DatabaseMetaData getMetaData() throws SQLException {
+        return innerConn.getMetaData();
+    }
 
-	public Statement createStatement(int resultSetType, int resultSetConcurrency)
-			throws SQLException
-	{
-		return innerConn.createStatement(resultSetType, resultSetConcurrency);
-	}
+    public boolean isReadOnly() throws SQLException {
+        return innerConn.isReadOnly();
+    }
 
-	public PreparedStatement prepareStatement(String sql, int resultSetType,
-			int resultSetConcurrency) throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql, resultSetType,
-				resultSetConcurrency);
-		return new GDBPreparedStatement(this,ps,sql) ;
-	}
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        innerConn.setReadOnly(readOnly);
+    }
 
-	public CallableStatement prepareCall(String sql, int resultSetType,
-			int resultSetConcurrency) throws SQLException
-	{
-		return innerConn.prepareCall(sql, resultSetType,
-				resultSetConcurrency);
-	}
+    public String getCatalog() throws SQLException {
+        return innerConn.getCatalog();
+    }
 
-	public Map<String, Class<?>> getTypeMap() throws SQLException
-	{
-		return innerConn.getTypeMap();
-	}
+    public void setCatalog(String catalog) throws SQLException {
+        innerConn.setCatalog(catalog);
+    }
 
-	public void setTypeMap(Map<String, Class<?>> arg0) throws SQLException
-	{
-		innerConn.setTypeMap(arg0) ;
-	}
+    public int getTransactionIsolation() throws SQLException {
+        return innerConn.getTransactionIsolation();
+    }
 
-	public void setHoldability(int holdability) throws SQLException
-	{
-		innerConn.setHoldability(holdability) ;
-	}
+    public void setTransactionIsolation(int level) throws SQLException {
+        innerConn.setTransactionIsolation(level);
+    }
 
-	public int getHoldability() throws SQLException
-	{
-		return innerConn.getHoldability();
-	}
+    public SQLWarning getWarnings() throws SQLException {
+        return innerConn.getWarnings();
+    }
 
-	public Savepoint setSavepoint() throws SQLException
-	{
-		return innerConn.setSavepoint();
-	}
+    public void clearWarnings() throws SQLException {
+        innerConn.clearWarnings();
+    }
 
-	public Savepoint setSavepoint(String name) throws SQLException
-	{
-		return innerConn.setSavepoint(name);
-	}
+    public Statement createStatement(int resultSetType, int resultSetConcurrency)
+            throws SQLException {
+        return innerConn.createStatement(resultSetType, resultSetConcurrency);
+    }
 
-	public void rollback(Savepoint savepoint) throws SQLException
-	{
-		innerConn.rollback(savepoint);
-	}
+    public PreparedStatement prepareStatement(String sql, int resultSetType,
+                                              int resultSetConcurrency) throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql, resultSetType,
+                resultSetConcurrency);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public void releaseSavepoint(Savepoint savepoint) throws SQLException
-	{
-		innerConn.releaseSavepoint(savepoint) ;
-	}
+    public CallableStatement prepareCall(String sql, int resultSetType,
+                                         int resultSetConcurrency) throws SQLException {
+        return innerConn.prepareCall(sql, resultSetType,
+                resultSetConcurrency);
+    }
 
-	public Statement createStatement(int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
-			throws SQLException
-	{
-		return innerConn.createStatement(resultSetType,
-				resultSetConcurrency, resultSetHoldability);
-	}
+    public Map<String, Class<?>> getTypeMap() throws SQLException {
+        return innerConn.getTypeMap();
+    }
 
-	public PreparedStatement prepareStatement(String sql, int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
-			throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql, resultSetType,
-				resultSetConcurrency, resultSetHoldability);
-		return new GDBPreparedStatement(this,ps,sql) ;
-	}
+    public void setTypeMap(Map<String, Class<?>> arg0) throws SQLException {
+        innerConn.setTypeMap(arg0);
+    }
 
-	public CallableStatement prepareCall(String sql, int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
-			throws SQLException
-	{
-		return innerConn.prepareCall( sql,  resultSetType,
-				 resultSetConcurrency,  resultSetHoldability);
-	}
+    public int getHoldability() throws SQLException {
+        return innerConn.getHoldability();
+    }
 
-	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
-			throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql, autoGeneratedKeys);
-		return new GDBPreparedStatement(this,ps,sql) ;
-	}
+    public void setHoldability(int holdability) throws SQLException {
+        innerConn.setHoldability(holdability);
+    }
 
-	public PreparedStatement prepareStatement(String sql, int[] columnIndexes)
-			throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql, columnIndexes);
-		return new GDBPreparedStatement(this,ps,sql) ;
-	}
+    public Savepoint setSavepoint() throws SQLException {
+        return innerConn.setSavepoint();
+    }
 
-	public PreparedStatement prepareStatement(String sql, String[] columnNames)
-			throws SQLException
-	{
-		PreparedStatement ps = innerConn.prepareStatement(sql, columnNames);
-		return new GDBPreparedStatement(this,ps,sql) ;
-	}
+    public Savepoint setSavepoint(String name) throws SQLException {
+        return innerConn.setSavepoint(name);
+    }
 
-	public Clob createClob() throws SQLException
-	{
-		return innerConn.createClob();
-	}
+    public void rollback(Savepoint savepoint) throws SQLException {
+        innerConn.rollback(savepoint);
+    }
 
-	public Blob createBlob() throws SQLException
-	{
-		return innerConn.createBlob();
-	}
+    public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+        innerConn.releaseSavepoint(savepoint);
+    }
 
-	public NClob createNClob() throws SQLException
-	{
-		return innerConn.createNClob();
-	}
+    public Statement createStatement(int resultSetType,
+                                     int resultSetConcurrency, int resultSetHoldability)
+            throws SQLException {
+        return innerConn.createStatement(resultSetType,
+                resultSetConcurrency, resultSetHoldability);
+    }
 
-	public SQLXML createSQLXML() throws SQLException
-	{
-		return innerConn.createSQLXML();
-	}
+    public PreparedStatement prepareStatement(String sql, int resultSetType,
+                                              int resultSetConcurrency, int resultSetHoldability)
+            throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql, resultSetType,
+                resultSetConcurrency, resultSetHoldability);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public boolean isValid(int timeout) throws SQLException
-	{
-		return innerConn.isValid(timeout);
-	}
+    public CallableStatement prepareCall(String sql, int resultSetType,
+                                         int resultSetConcurrency, int resultSetHoldability)
+            throws SQLException {
+        return innerConn.prepareCall(sql, resultSetType,
+                resultSetConcurrency, resultSetHoldability);
+    }
 
-	public void setClientInfo(String name, String value)
-			throws SQLClientInfoException
-	{
-		innerConn.setClientInfo(name, value) ;
-	}
+    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
+            throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql, autoGeneratedKeys);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public void setClientInfo(Properties properties)
-			throws SQLClientInfoException
-	{
-		innerConn.setClientInfo(properties) ;
-	}
+    public PreparedStatement prepareStatement(String sql, int[] columnIndexes)
+            throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql, columnIndexes);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public String getClientInfo(String name) throws SQLException
-	{
-		return innerConn.getClientInfo(name);
-	}
+    public PreparedStatement prepareStatement(String sql, String[] columnNames)
+            throws SQLException {
+        PreparedStatement ps = innerConn.prepareStatement(sql, columnNames);
+        return new GDBPreparedStatement(this, ps, sql);
+    }
 
-	public Properties getClientInfo() throws SQLException
-	{
-		return innerConn.getClientInfo();
-	}
+    public Clob createClob() throws SQLException {
+        return innerConn.createClob();
+    }
 
-	public Array createArrayOf(String typeName, Object[] elements)
-			throws SQLException
-	{
-		return innerConn.createArrayOf(typeName, elements);
-	}
+    public Blob createBlob() throws SQLException {
+        return innerConn.createBlob();
+    }
 
-	public Struct createStruct(String typeName, Object[] attributes)
-			throws SQLException
-	{
-		return innerConn.createStruct(typeName, attributes);
-	}
+    public NClob createNClob() throws SQLException {
+        return innerConn.createNClob();
+    }
 
-	public <T> T unwrap(Class<T> iface) throws SQLException
-	{
-		return innerConn.unwrap(iface);
-	}
+    public SQLXML createSQLXML() throws SQLException {
+        return innerConn.createSQLXML();
+    }
 
-	public boolean isWrapperFor(Class<?> iface) throws SQLException
-	{
-		return innerConn.isWrapperFor(iface);
-	}
+    public boolean isValid(int timeout) throws SQLException {
+        return innerConn.isValid(timeout);
+    }
 
-	public void setSchema(String schema) throws SQLException
-	{
-		// TODO Auto-generated method stub
-		
-	}
+    public void setClientInfo(String name, String value)
+            throws SQLClientInfoException {
+        innerConn.setClientInfo(name, value);
+    }
 
-	public String getSchema() throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public String getClientInfo(String name) throws SQLException {
+        return innerConn.getClientInfo(name);
+    }
 
-	public void abort(Executor executor) throws SQLException
-	{
-		// TODO Auto-generated method stub
-		
-	}
+    public Properties getClientInfo() throws SQLException {
+        return innerConn.getClientInfo();
+    }
 
-	public void setNetworkTimeout(Executor executor, int milliseconds)
-			throws SQLException
-	{
-		// TODO Auto-generated method stub
-		
-	}
+    public void setClientInfo(Properties properties)
+            throws SQLClientInfoException {
+        innerConn.setClientInfo(properties);
+    }
 
-	public int getNetworkTimeout() throws SQLException
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public Array createArrayOf(String typeName, Object[] elements)
+            throws SQLException {
+        return innerConn.createArrayOf(typeName, elements);
+    }
+
+    public Struct createStruct(String typeName, Object[] attributes)
+            throws SQLException {
+        return innerConn.createStruct(typeName, attributes);
+    }
+
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return innerConn.unwrap(iface);
+    }
+
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return innerConn.isWrapperFor(iface);
+    }
+
+    public String getSchema() throws SQLException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setSchema(String schema) throws SQLException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void abort(Executor executor) throws SQLException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void setNetworkTimeout(Executor executor, int milliseconds)
+            throws SQLException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public int getNetworkTimeout() throws SQLException {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
 }

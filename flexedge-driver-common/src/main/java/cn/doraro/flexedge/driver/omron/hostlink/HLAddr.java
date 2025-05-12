@@ -4,15 +4,15 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink;
 
+import cn.doraro.flexedge.core.DevAddr;
 import cn.doraro.flexedge.core.UADev;
 import cn.doraro.flexedge.core.UAVal;
-import java.util.Arrays;
 import cn.doraro.flexedge.core.util.Convert;
-import java.util.List;
-import cn.doraro.flexedge.core.DevAddr;
 
-public class HLAddr extends DevAddr implements Comparable<HLAddr>
-{
+import java.util.Arrays;
+import java.util.List;
+
+public class HLAddr extends DevAddr implements Comparable<HLAddr> {
     protected String prefix;
     protected int addrNum;
     protected int bitNum;
@@ -21,7 +21,32 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
     HLModel fxModel;
     transient HLAddrDef addrDef;
     transient HLAddrSeg addrSeg;
-    
+
+    public HLAddr() {
+        this.prefix = null;
+        this.addrNum = -1;
+        this.bitNum = -1;
+        this.digitNum = 3;
+        this.bWritable = false;
+        this.addrDef = null;
+        this.addrSeg = null;
+    }
+
+    protected HLAddr(final UAVal.ValTP vtp, final String prefix, final int addr_num, final int bit_num, final int digit_num) {
+        super(combineAddrStr(prefix, addr_num, bit_num, digit_num), vtp);
+        this.prefix = null;
+        this.addrNum = -1;
+        this.bitNum = -1;
+        this.digitNum = 3;
+        this.bWritable = false;
+        this.addrDef = null;
+        this.addrSeg = null;
+        this.prefix = prefix;
+        this.addrNum = addr_num;
+        this.bitNum = bit_num;
+        this.digitNum = digit_num;
+    }
+
     private static List<String> splitPrefixNum(String str, final StringBuilder failedr) {
         if (Convert.isNullOrTrimEmpty(str)) {
             failedr.append("addr cannot be empty");
@@ -47,83 +72,14 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
                     return null;
                 }
                 return Arrays.asList(prefix, num);
-            }
-            else {
+            } else {
                 ++i;
             }
         }
         failedr.append("addr no number");
         return null;
     }
-    
-    public HLAddr() {
-        this.prefix = null;
-        this.addrNum = -1;
-        this.bitNum = -1;
-        this.digitNum = 3;
-        this.bWritable = false;
-        this.addrDef = null;
-        this.addrSeg = null;
-    }
-    
-    protected HLAddr(final UAVal.ValTP vtp, final String prefix, final int addr_num, final int bit_num, final int digit_num) {
-        super(combineAddrStr(prefix, addr_num, bit_num, digit_num), vtp);
-        this.prefix = null;
-        this.addrNum = -1;
-        this.bitNum = -1;
-        this.digitNum = 3;
-        this.bWritable = false;
-        this.addrDef = null;
-        this.addrSeg = null;
-        this.prefix = prefix;
-        this.addrNum = addr_num;
-        this.bitNum = bit_num;
-        this.digitNum = digit_num;
-    }
-    
-    HLAddr asDef(final HLAddrDef addr_def, final HLAddrSeg seg) {
-        this.addrDef = addr_def;
-        this.addrSeg = seg;
-        this.bWritable = this.addrSeg.isWritable();
-        return this;
-    }
-    
-    public HLAddrDef getAddrDef() {
-        return this.addrDef;
-    }
-    
-    public HLAddrSeg getAddrSeg() {
-        return this.addrSeg;
-    }
-    
-    public boolean isWritable() {
-        return this.bWritable;
-    }
-    
-    public String getPrefix() {
-        return this.prefix;
-    }
-    
-    public int getAddrNum() {
-        return this.addrNum;
-    }
-    
-    public int getBitNum() {
-        return this.bitNum;
-    }
-    
-    public boolean isBitVal() {
-        return this.bitNum >= 0 || this.addrSeg.isValBitOnly();
-    }
-    
-    public int getDigitNum() {
-        return this.digitNum;
-    }
-    
-    public void setWritable(final boolean bw) {
-        this.bWritable = bw;
-    }
-    
+
     public static String combineAddrStr(final String prefix, final int addr_num, final int bit_num, final int digit_num) {
         final StringBuilder sb = new StringBuilder();
         sb.append(prefix);
@@ -138,27 +94,69 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
         if (bit_num > 0) {
             if (bit_num < 9) {
                 sb.append(".0" + bit_num);
-            }
-            else {
+            } else {
                 sb.append("." + bit_num);
             }
         }
         return sb.toString();
     }
-    
+
+    HLAddr asDef(final HLAddrDef addr_def, final HLAddrSeg seg) {
+        this.addrDef = addr_def;
+        this.addrSeg = seg;
+        this.bWritable = this.addrSeg.isWritable();
+        return this;
+    }
+
+    public HLAddrDef getAddrDef() {
+        return this.addrDef;
+    }
+
+    public HLAddrSeg getAddrSeg() {
+        return this.addrSeg;
+    }
+
+    public boolean isWritable() {
+        return this.bWritable;
+    }
+
+    public void setWritable(final boolean bw) {
+        this.bWritable = bw;
+    }
+
+    public String getPrefix() {
+        return this.prefix;
+    }
+
+    public int getAddrNum() {
+        return this.addrNum;
+    }
+
+    public int getBitNum() {
+        return this.bitNum;
+    }
+
+    public boolean isBitVal() {
+        return this.bitNum >= 0 || this.addrSeg.isValBitOnly();
+    }
+
+    public int getDigitNum() {
+        return this.digitNum;
+    }
+
     public String toCheckAdjStr() {
         return combineAddrStr(this.prefix, this.addrNum, this.bitNum, this.digitNum);
     }
-    
+
     public String toString() {
         return this.toCheckAdjStr();
     }
-    
+
     public DevAddr parseAddr(final UADev dev, final String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         if (dev == null) {
             throw new IllegalArgumentException("no UADev");
         }
-        final HLModel fx_m = (HLModel)dev.getDrvDevModel();
+        final HLModel fx_m = (HLModel) dev.getDrvDevModel();
         if (fx_m == null) {
             throw new IllegalArgumentException("no HLModel");
         }
@@ -176,14 +174,14 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
         }
         return fx_m.transAddr(prefix, addr, bitstr, vtp, failedr);
     }
-    
+
     public DevAddr.ChkRes checkAddr(final UADev dev, final String addr, final UAVal.ValTP vtp) {
         final StringBuilder failedr = new StringBuilder();
         final List<String> ss = splitPrefixNum(addr, failedr);
         if (ss == null) {
             return new DevAddr.ChkRes(-1, addr, vtp, "Invalid HLAddr=" + addr);
         }
-        final HLModel fxm = (HLModel)dev.getDrvDevModel();
+        final HLModel fxm = (HLModel) dev.getDrvDevModel();
         final HLAddrDef addrdef = fxm.getAddrDef(ss.get(0));
         if (addrdef == null) {
             return new DevAddr.ChkRes(-1, addr, vtp, "Invalid HLAddr no address def found");
@@ -197,16 +195,16 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
         }
         return HLAddr.CHK_RES_OK;
     }
-    
+
     public boolean isSupportGuessAddr() {
         return true;
     }
-    
+
     public DevAddr guessAddr(final UADev dev, final String str, UAVal.ValTP vtp) {
         if (dev == null) {
             return null;
         }
-        final HLModel fx_m = (HLModel)dev.getDrvDevModel();
+        final HLModel fx_m = (HLModel) dev.getDrvDevModel();
         if (fx_m == null) {
             return null;
         }
@@ -223,32 +221,30 @@ public class HLAddr extends DevAddr implements Comparable<HLAddr>
             bitstr = addr.substring(k + 1);
             addr = addr.substring(0, k);
             vtp = UAVal.ValTP.vt_bool;
-        }
-        else if (vtp == null) {
+        } else if (vtp == null) {
             vtp = UAVal.ValTP.vt_uint16;
-        }
-        else if (!vtp.isNumberVT()) {
+        } else if (!vtp.isNumberVT()) {
             vtp = UAVal.ValTP.vt_uint16;
         }
         return fx_m.transAddr(prefix, addr, bitstr, vtp, failedr);
     }
-    
+
     public List<String> listAddrHelpers() {
         return null;
     }
-    
+
     public UAVal.ValTP[] getSupportValTPs() {
         return null;
     }
-    
+
     public boolean canRead() {
         return true;
     }
-    
+
     public boolean canWrite() {
         return this.bWritable;
     }
-    
+
     public int compareTo(final HLAddr o) {
         return this.addrNum - o.addrNum;
     }

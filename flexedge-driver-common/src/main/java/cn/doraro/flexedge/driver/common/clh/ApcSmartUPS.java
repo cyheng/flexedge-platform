@@ -4,17 +4,17 @@
 
 package cn.doraro.flexedge.driver.common.clh;
 
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.conn.ConnPtStream;
 import cn.doraro.flexedge.core.UACh;
-import cn.doraro.flexedge.core.UAVal;
-import cn.doraro.flexedge.driver.common.CmdLineDrv;
 import cn.doraro.flexedge.core.UATag;
+import cn.doraro.flexedge.core.UAVal;
+import cn.doraro.flexedge.core.conn.ConnPtStream;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.driver.common.CmdLineDrv;
 import cn.doraro.flexedge.driver.common.CmdLineHandler;
 
-public class ApcSmartUPS extends CmdLineHandler
-{
+public class ApcSmartUPS extends CmdLineHandler {
     boolean bConnOk;
+    boolean bJustConn;
     private UATag tagTemp;
     private UATag tagLowBatteryV;
     private UATag tagUpsOverload;
@@ -23,8 +23,7 @@ public class ApcSmartUPS extends CmdLineHandler
     private UATag tagBatteryStdV;
     private UATag tagBatteryV;
     private UATag tagBatteryCap;
-    boolean bJustConn;
-    
+
     public ApcSmartUPS() {
         this.bConnOk = false;
         this.tagTemp = null;
@@ -37,32 +36,32 @@ public class ApcSmartUPS extends CmdLineHandler
         this.tagBatteryCap = null;
         this.bJustConn = false;
     }
-    
+
     @Override
     public String getName() {
         return "apc_smart_ups";
     }
-    
+
     @Override
     public String getTitle() {
         return "APC Smart UPS";
     }
-    
+
     @Override
     public String getDesc() {
         return "APC Smart UPS RS232";
     }
-    
+
     @Override
     protected CmdLineHandler copyMe() {
         return new ApcSmartUPS();
     }
-    
+
     @Override
     protected int getRecvMaxLen() {
         return 100;
     }
-    
+
     public boolean init(final CmdLineDrv cld, final StringBuilder sb) throws Exception {
         super.init(cld, sb);
         final UACh ch = this.belongTo.getBelongToCh();
@@ -79,22 +78,22 @@ public class ApcSmartUPS extends CmdLineHandler
         }
         return true;
     }
-    
+
     public void RT_onConned(final ConnPtStream cpt) throws Exception {
         super.RT_onConned(cpt);
         this.bJustConn = true;
     }
-    
+
     public void RT_onDisconn(final ConnPtStream cpt) throws Exception {
         super.RT_onDisconn(cpt);
         this.bConnOk = false;
     }
-    
+
     @Override
     protected boolean RT_useNoWait() {
         return false;
     }
-    
+
     @Override
     public void RT_runInLoop(final ConnPtStream cpt) throws Exception {
         if (this.bJustConn) {
@@ -102,8 +101,7 @@ public class ApcSmartUPS extends CmdLineHandler
                 if (bsucc) {
                     this.bJustConn = false;
                     this.bConnOk = "SM\r\n".equals(ret);
-                }
-                else {
+                } else {
                     this.belongTo.RT_fireDrvWarn("Device has not SM response");
                 }
             });
@@ -120,20 +118,18 @@ public class ApcSmartUPS extends CmdLineHandler
                     final boolean overload = (intv & 0x20) > 0;
                     final boolean use_b = (intv & 0x10) > 0;
                     final boolean use_online = (intv & 0x8) > 0;
-                    this.tagLowBatteryV.RT_setValRaw((Object)low_b);
-                    this.tagUpsOverload.RT_setValRaw((Object)overload);
-                    this.tagUpsUseBattery.RT_setValRaw((Object)use_b);
-                    this.tagUpsOnline.RT_setValRaw((Object)use_online);
-                }
-                catch (final Exception eee) {
+                    this.tagLowBatteryV.RT_setValRaw((Object) low_b);
+                    this.tagUpsOverload.RT_setValRaw((Object) overload);
+                    this.tagUpsUseBattery.RT_setValRaw((Object) use_b);
+                    this.tagUpsOnline.RT_setValRaw((Object) use_online);
+                } catch (final Exception eee) {
                     final String err = "reponse error:" + eee.getMessage();
                     this.tagLowBatteryV.RT_setValErr(err);
                     this.tagUpsOverload.RT_setValErr(err);
                     this.tagUpsUseBattery.RT_setValErr(err);
                     this.tagUpsOnline.RT_setValErr(err);
                 }
-            }
-            else {
+            } else {
                 final String err2 = "reponse error:" + error;
                 this.tagLowBatteryV.RT_setValErr(err2);
                 this.tagUpsOverload.RT_setValErr(err2);
@@ -147,7 +143,7 @@ public class ApcSmartUPS extends CmdLineHandler
         this.sendCmdSyn(this.tagBatteryV, "B", "Battery voltage");
         this.sendCmdSyn(this.tagBatteryCap, "f", "Battery capacity");
     }
-    
+
     private void sendCmdSyn(final UATag tag, final String cmd, final String title) throws Exception {
         this.sendRecvSyn(String.valueOf(cmd) + "\r\n", (bsucc, ret, error) -> {
             if (bsucc) {
@@ -157,27 +153,23 @@ public class ApcSmartUPS extends CmdLineHandler
                     Object v = null;
                     if (vt == UAVal.ValTP.vt_bool) {
                         v = ("true".equalsIgnoreCase(ret) || "1".equals(ret));
-                    }
-                    else if (vt == UAVal.ValTP.vt_float) {
+                    } else if (vt == UAVal.ValTP.vt_float) {
                         v = Float.parseFloat(ret);
-                    }
-                    else if (vt == UAVal.ValTP.vt_int32) {
+                    } else if (vt == UAVal.ValTP.vt_int32) {
                         v = Integer.parseInt(ret);
                     }
                     if (v != null) {
                         uaTag.RT_setValRaw(v);
                     }
-                }
-                catch (final Exception eee) {
+                } catch (final Exception eee) {
                     uaTag.RT_setValErr("Response " + s + " err:" + eee.getMessage(), eee);
                 }
-            }
-            else {
-                uaTag.RT_setValErr("Response " + s + " error:" + error, (Exception)null);
+            } else {
+                uaTag.RT_setValErr("Response " + s + " error:" + error, (Exception) null);
             }
         });
     }
-    
+
     @Override
     public void RT_onRecved(String cmd) {
         if (Convert.isNullOrEmpty(cmd)) {
@@ -191,7 +183,7 @@ public class ApcSmartUPS extends CmdLineHandler
                 break;
             }
             case "%": {
-                this.tagLowBatteryV.RT_setValRaw((Object)true);
+                this.tagLowBatteryV.RT_setValRaw((Object) true);
                 break;
             }
             default:

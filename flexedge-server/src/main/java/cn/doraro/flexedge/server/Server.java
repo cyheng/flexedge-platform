@@ -4,26 +4,25 @@
 
 package cn.doraro.flexedge.server;
 
-import java.io.File;
-import org.w3c.dom.Element;
-import java.util.List;
+import cn.doraro.flexedge.core.Config;
 import cn.doraro.flexedge.core.UAServer;
 import cn.doraro.flexedge.core.util.Convert;
-import java.io.InputStream;
-import cn.doraro.flexedge.core.Config;
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import cn.doraro.flexedge.core.util.IServerBootComp;
-import java.util.ArrayList;
+import org.w3c.dom.Element;
 
-public class Server
-{
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Server {
     static ClassLoader dynCL;
     static ServerTomcat serverTomcat;
     static ArrayList<IServerBootComp> serverComps;
     static Runnable consoleRunner;
-    
+
     static {
         Server.dynCL = null;
         Server.serverTomcat = null;
@@ -35,14 +34,13 @@ public class Server
                     final ServerCtrlHandler sch = new ServerCtrlHandler(System.in);
                     sch.handle();
                     Server.stopServer();
-                }
-                catch (final Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
         };
     }
-    
+
     private static void printBanner() {
         try {
             Exception t = null;
@@ -61,14 +59,12 @@ public class Server
                         }
                         System.out.print("\r\n" + ln);
                     } while (ln != null);
-                }
-                finally {
+                } finally {
                     if (inputs != null) {
                         inputs.close();
                     }
                 }
-            }
-            catch (Exception var12) {
+            } catch (Exception var12) {
                 if (t == null) {
                     t = var12;
                 } else if (t != var12) {
@@ -77,10 +73,10 @@ public class Server
 
                 throw t;
             }
+        } catch (final Exception ex) {
         }
-        catch (final Exception ex) {}
     }
-    
+
     static void startServer(final boolean bservice) throws Exception {
         printBanner();
         if (Config.isDebug()) {
@@ -100,8 +96,7 @@ public class Server
                         try {
                             System.out.println("find server comp:" + serv_comp_cn);
                             ServerBootCompMgr.registerServerBoolComp(serv_comp_cn);
-                        }
-                        catch (final Exception e) {
+                        } catch (final Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -115,30 +110,29 @@ public class Server
             final String n = allServerBootNames[j];
             ServerBootCompMgr.getInstance().startBootComp(n);
         }
-        UAServer.onServerStarted((List)wis);
+        UAServer.onServerStarted((List) wis);
         if (bservice) {
             new Thread(Server::runFileMon, "").start();
-        }
-        else {
+        } else {
             Server.consoleRunner.run();
         }
     }
-    
+
     static void stopServer() {
         UAServer.beforeServerStop();
         try {
             ServerBootCompMgr.getInstance().stopAllBootComp();
             Thread.sleep(5000L);
+        } catch (final Exception ex) {
         }
-        catch (final Exception ex) {}
         if (Server.serverTomcat != null) {
             try {
                 Server.serverTomcat.stopComp();
+            } catch (final Exception ex2) {
             }
-            catch (final Exception ex2) {}
         }
     }
-    
+
     private static void runFileMon() {
         try {
             final File wf = new File("./iottree_running.flag");
@@ -150,17 +144,16 @@ public class Server
             while (wf.exists()) {
                 try {
                     Thread.sleep(3000L);
+                } catch (final Exception ex) {
                 }
-                catch (final Exception ex) {}
             }
             stopServer();
             stopwf.createNewFile();
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     public static void main(final String[] args) throws Exception {
         boolean bservice = false;
         boolean blinux_nohup = false;

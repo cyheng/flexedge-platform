@@ -4,39 +4,38 @@
 
 package cn.doraro.flexedge.driver.common.modbus.sniffer;
 
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdRead;
 import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
+import cn.doraro.flexedge.driver.common.modbus.ModbusCmdRead;
+
 import java.util.HashMap;
 
-public class SnifferRTUCh
-{
-    HashMap<String, SnifferCmd> id2scmd;
+public class SnifferRTUCh {
     private static final int PST_NOR = 0;
     private static final int PST_REQ = 1;
     private static final int PST_RESP = 2;
+    HashMap<String, SnifferCmd> id2scmd;
     private int pst;
     private SnifferCmd curCmd;
     private SnifferBufferFix sniBuf;
-    
+
     public SnifferRTUCh() {
         this.id2scmd = new HashMap<String, SnifferCmd>();
         this.pst = 0;
         this.curCmd = null;
         this.sniBuf = new SnifferBufferFix(1024);
     }
-    
+
     public void onSniffedData(final byte[] bs, final ISnifferCallback cb) {
         if (bs == null || bs.length <= 0) {
             return;
         }
         try {
             this.sniBuf.addData(bs);
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         int buflen;
-    Label_0324:
+        Label_0324:
         while ((buflen = this.sniBuf.getBufLen()) > 0) {
             switch (this.pst) {
                 case 0: {
@@ -89,9 +88,9 @@ public class SnifferRTUCh
             }
         }
     }
-    
+
     private SnifferCmd parseReqCmd(final byte[] bs) {
-        final int[] pl = { 0 };
+        final int[] pl = {0};
         final ModbusCmd mc = ModbusCmd.parseRequest(bs, pl);
         if (mc == null) {
             return null;
@@ -99,18 +98,18 @@ public class SnifferRTUCh
         if (!(mc instanceof ModbusCmdRead)) {
             return null;
         }
-        final ModbusCmdRead mcr = (ModbusCmdRead)mc;
+        final ModbusCmdRead mcr = (ModbusCmdRead) mc;
         final int resplen = mc.calRespLenRTU();
         if (resplen <= 0) {
             return null;
         }
         return new SnifferCmd(mcr);
     }
-    
+
     private void onSnifferCmdFound(final SnifferCmd sc) {
         this.id2scmd.put(sc.getUniqueId(), sc);
     }
-    
+
     public SnifferCmd getSnifferCmd(final String id) {
         return this.id2scmd.get(id);
     }

@@ -6,8 +6,7 @@ package cn.doraro.flexedge.driver.omron.fins;
 
 import cn.doraro.flexedge.core.UAVal;
 
-class FinsMode_CS extends FinsMode
-{
+class FinsMode_CS extends FinsMode {
     protected FinsMode_CS(final boolean cj2) {
         this.setAreaCode(new AreaCode("CIO", "CIO Bit Area", UAVal.ValTP.vt_bool, 48));
         this.setAreaCode(new AreaCode("W", "Work Area Bit Area", UAVal.ValTP.vt_bool, 49));
@@ -29,8 +28,7 @@ class FinsMode_CS extends FinsMode
             this.setAreaCode(new AreaCode("E" + str_i + ":", "Expansion Data Memory", UAVal.ValTP.vt_bool, 32 + i));
             if (cj2) {
                 this.setAreaCode(new AreaCode("E" + str_i + ":", "Expansion Data Memory", UAVal.ValTP.vt_int16, 80 + i));
-            }
-            else {
+            } else {
                 this.setAreaCode(new AreaCode("E" + str_i + ":", "Expansion Data Memory", UAVal.ValTP.vt_int16, 160 + i));
             }
         }

@@ -1,10 +1,9 @@
 package cn.doraro.flexedge.core.util.xmldata;
 
-import org.json.*;
+import org.json.JSONArray;
 
-public interface IJSONArr
-{
-	public JSONArray toJSONArr() ;
-	
-	public boolean fromJSONArr(JSONArray job) ;
+public interface IJSONArr {
+    public JSONArray toJSONArr();
+
+    public boolean fromJSONArr(JSONArray job);
 }

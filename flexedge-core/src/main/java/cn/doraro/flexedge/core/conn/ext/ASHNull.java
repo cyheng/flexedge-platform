@@ -7,55 +7,46 @@ import cn.doraro.flexedge.core.util.xmldata.XmlData;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class ASHNull implements ConnProTcpServer.AcceptedSockHandler
-{
+public class ASHNull implements ConnProTcpServer.AcceptedSockHandler {
 
-	@Override
-	public String getName()
-	{
-		return "null";
-	}
-	
-	public String getTitle()
-	{
-		return "Null" ;
-	}
+    @Override
+    public String getName() {
+        return "null";
+    }
 
-	@Override
-	public String checkSockConnId(Socket sock) throws Exception
-	{
-		return null ;
-	}
+    public String getTitle() {
+        return "Null";
+    }
 
-	@Override
-	public int getRecvTimeout()
-	{
-		return 0;
-	}
+    @Override
+    public String checkSockConnId(Socket sock) throws Exception {
+        return null;
+    }
 
-	@Override
-	public int getRecvEndTimeout()
-	{
-		return 0;
-	}
+    @Override
+    public int getRecvTimeout() {
+        return 0;
+    }
 
-	@Override
-	public NameTitleVal[] getParamDefs()
-	{
-		return null;//need no param
-	}
-	
+    @Override
+    public int getRecvEndTimeout() {
+        return 0;
+    }
 
-	@Override
-	public XmlData chkAndCreateParams(HashMap<String, String> pn2strv, StringBuilder failedr)
-	{
-		return new XmlData(); //return empty
-	}
+    @Override
+    public NameTitleVal[] getParamDefs() {
+        return null;//need no param
+    }
 
-	@Override
-	public void setParams(XmlData xd)
-	{
-		//do nothing
-	}
+
+    @Override
+    public XmlData chkAndCreateParams(HashMap<String, String> pn2strv, StringBuilder failedr) {
+        return new XmlData(); //return empty
+    }
+
+    @Override
+    public void setParams(XmlData xd) {
+        //do nothing
+    }
 
 }

@@ -4,12 +4,19 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import java.util.Arrays;
 import cn.doraro.flexedge.core.UAVal;
+
+import java.util.Arrays;
 import java.util.List;
 
-class SimFuncSine extends SimulatorFunc
-{
+class SimFuncSine extends SimulatorFunc {
+    public static final String NAME = "sine";
+    static List<UAVal.ValTP> VAL_TPS;
+
+    static {
+        SimFuncSine.VAL_TPS = Arrays.asList(UAVal.ValTP.vt_float, UAVal.ValTP.vt_double);
+    }
+
     int rate;
     double lowLimit;
     double highLimit;
@@ -18,20 +25,18 @@ class SimFuncSine extends SimulatorFunc
     double A;
     double B;
     double DX;
-    public static final String NAME = "sine";
-    static List<UAVal.ValTP> VAL_TPS;
     private transient double curX;
-    
+
     SimFuncSine() {
         this.rate = -1;
         this.curX = 0.0;
     }
-    
+
     @Override
     public String getName() {
         return "sine";
     }
-    
+
     @Override
     protected boolean setParams(final List<Object> parms, final StringBuilder failedr) {
         if (parms.size() < 5) {
@@ -60,23 +65,23 @@ class SimFuncSine extends SimulatorFunc
         this.lowLimit = lowLimit;
         this.highLimit = highLimit;
         this.freq = freq.floatValue();
-        this.phase = (float)(phase.floatValue() / 3.141592653589793 / 2.0);
+        this.phase = (float) (phase.floatValue() / 3.141592653589793 / 2.0);
         this.A = (this.highLimit - this.lowLimit) / 2.0;
         this.B = (this.highLimit + this.lowLimit) / 2.0;
         this.DX = 6.283185307179586 / this.freq * this.rate / 1000.0;
         return true;
     }
-    
+
     @Override
     public List<UAVal.ValTP> getFitValTps() {
         return SimFuncSine.VAL_TPS;
     }
-    
+
     @Override
     public int getRunRate() {
         return this.rate;
     }
-    
+
     @Override
     protected Object calculateNextVal(final UAVal.ValTP vtp) {
         if (this.rate <= 0) {
@@ -99,9 +104,5 @@ class SimFuncSine extends SimulatorFunc
                 return null;
             }
         }
-    }
-    
-    static {
-        SimFuncSine.VAL_TPS = Arrays.asList(UAVal.ValTP.vt_float, UAVal.ValTP.vt_double);
     }
 }

@@ -4,23 +4,28 @@
 
 package cn.doraro.flexedge.pro.modbuss;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.InputStream;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.logger.ILogger;
 import cn.doraro.flexedge.core.util.logger.LoggerManager;
+import cn.doraro.flexedge.core.util.xmldata.data_class;
+import cn.doraro.flexedge.core.util.xmldata.data_val;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
-import java.net.Socket;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.util.xmldata.data_val;
-import cn.doraro.flexedge.core.util.logger.ILogger;
-import cn.doraro.flexedge.core.util.xmldata.data_class;
 
 @data_class
-public class SlaveCPTcpClient extends SlaveCP
-{
+public class SlaveCPTcpClient extends SlaveCP {
     static ILogger log;
+
+    static {
+        SlaveCPTcpClient.log = LoggerManager.getLogger((Class) SlaveCPTcpClient.class);
+    }
+
     @data_val(param_name = "server_host")
     String serverHost;
     @data_val(param_name = "server_port")
@@ -34,7 +39,7 @@ public class SlaveCPTcpClient extends SlaveCP
     long connNotUsingTO;
     private byte[] connIdBS;
     private transient TcpConn tcpConn;
-    
+
     public SlaveCPTcpClient(final MSBus_M bus) {
         super(bus);
         this.serverHost = null;
@@ -46,22 +51,22 @@ public class SlaveCPTcpClient extends SlaveCP
         this.connIdBS = null;
         this.tcpConn = null;
     }
-    
+
     @Override
     public String getConnTitle() {
         return this.serverHost + ":" + this.serverPort;
     }
-    
+
     @Override
     public String getCPTp() {
         return "tcpc";
     }
-    
+
     @Override
     public String getCPTpT() {
         return "Tcp Client";
     }
-    
+
     @Override
     public boolean isValid(final StringBuilder failedr) {
         if (Convert.isNullOrEmpty(this.serverHost) || this.serverPort <= 0) {
@@ -76,19 +81,17 @@ public class SlaveCPTcpClient extends SlaveCP
             try {
                 if (this.bConnIdHex) {
                     this.connIdBS = Convert.hexStr2ByteArray(this.connId);
-                }
-                else {
+                } else {
                     this.connIdBS = this.connId.getBytes("UTF-8");
                 }
-            }
-            catch (final Exception ee) {
+            } catch (final Exception ee) {
                 failedr.append("SlaveCPTcpClient conn_id err:" + ee.getMessage());
                 return false;
             }
         }
         return true;
     }
-    
+
     private synchronized boolean connectNor() {
         if (this.tcpConn != null && this.tcpConn.isConnected()) {
             return true;
@@ -101,14 +104,13 @@ public class SlaveCPTcpClient extends SlaveCP
             final Socket sock = new Socket(this.serverHost, this.serverPort);
             sock.setTcpNoDelay(true);
             sock.setKeepAlive(true);
-            this.tcpConn = new TcpConn(this.bus, this, sock, (int)this.connNotUsingTO);
+            this.tcpConn = new TcpConn(this.bus, this, sock, (int) this.connNotUsingTO);
             if (this.sendIdWhenConn) {
                 this.tcpConn.getConnOutputStream().write(this.connIdBS);
             }
             this.tcpConn.RT_start();
             return true;
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             if (SlaveCPTcpClient.log.isDebugEnabled()) {
                 SlaveCPTcpClient.log.debug(" SlaveCPTcpClient will disconnect by connect err:" + ee.getMessage());
                 ee.printStackTrace();
@@ -117,7 +119,7 @@ public class SlaveCPTcpClient extends SlaveCP
             return false;
         }
     }
-    
+
     synchronized void disconnect() {
         if (this.tcpConn == null) {
             return;
@@ -125,7 +127,7 @@ public class SlaveCPTcpClient extends SlaveCP
         this.tcpConn.close();
         this.tcpConn = null;
     }
-    
+
     @Override
     public String RT_getRunInf() {
         if (this.tcpConn != null) {
@@ -133,11 +135,11 @@ public class SlaveCPTcpClient extends SlaveCP
         }
         return this.serverHost + ":" + this.serverPort + " <span style='color:red'>not connect</span>";
     }
-    
+
     @Override
     public void RT_init() {
     }
-    
+
     @Override
     public void RT_runInLoop() {
         this.connectNor();
@@ -150,12 +152,12 @@ public class SlaveCPTcpClient extends SlaveCP
             this.disconnect();
         }
     }
-    
+
     @Override
     public void RT_stop() {
         this.disconnect();
     }
-    
+
     @Override
     public List<SlaveConn> getConns() {
         final TcpConn tc = this.tcpConn;
@@ -164,28 +166,28 @@ public class SlaveCPTcpClient extends SlaveCP
         }
         return Arrays.asList(tc);
     }
-    
+
     @Override
     public int getConnsNum() {
         return (this.tcpConn != null) ? 1 : 0;
     }
-    
+
     @Override
     public JSONObject toJO() {
         final JSONObject jo = super.toJO();
-        jo.putOpt("server_host", (Object)this.serverHost);
-        jo.putOpt("server_port", (Object)this.serverPort);
-        jo.putOpt("send_id", (Object)this.sendIdWhenConn);
-        jo.putOpt("conn_id_hex", (Object)this.bConnIdHex);
-        jo.putOpt("conn_id", (Object)this.connId);
-        jo.putOpt("conn_nouse_to", (Object)this.connNotUsingTO);
+        jo.putOpt("server_host", (Object) this.serverHost);
+        jo.putOpt("server_port", (Object) this.serverPort);
+        jo.putOpt("send_id", (Object) this.sendIdWhenConn);
+        jo.putOpt("conn_id_hex", (Object) this.bConnIdHex);
+        jo.putOpt("conn_id", (Object) this.connId);
+        jo.putOpt("conn_nouse_to", (Object) this.connNotUsingTO);
         return jo;
     }
-    
+
     @Override
     public boolean fromJO(final JSONObject jo) {
         super.fromJO(jo);
-        this.serverHost = jo.optString("server_host", (String)null);
+        this.serverHost = jo.optString("server_host", (String) null);
         this.serverPort = jo.optInt("server_port", -1);
         this.sendIdWhenConn = jo.optBoolean("send_id", true);
         this.bConnIdHex = jo.optBoolean("conn_id_hex", false);
@@ -198,28 +200,21 @@ public class SlaveCPTcpClient extends SlaveCP
             try {
                 if (this.bConnIdHex) {
                     this.connIdBS = Convert.hexStr2ByteArray(this.connId);
-                }
-                else {
+                } else {
                     this.connIdBS = this.connId.getBytes("UTF-8");
                 }
-            }
-            catch (final Exception ee) {
+            } catch (final Exception ee) {
                 SlaveCPTcpClient.log.debug(ee.getMessage());
             }
         }
         return true;
     }
-    
-    static {
-        SlaveCPTcpClient.log = LoggerManager.getLogger((Class)SlaveCPTcpClient.class);
-    }
-    
-    class TcpConn extends SlaveConn
-    {
+
+    class TcpConn extends SlaveConn {
         Socket socket;
         InputStream inputs;
         OutputStream outputs;
-        
+
         public TcpConn(final MSBus_M bus, final SlaveCPTcpClient cp, final Socket sock, final int read_to) throws IOException {
             super(bus, cp);
             this.socket = null;
@@ -229,47 +224,47 @@ public class SlaveCPTcpClient extends SlaveCP
             this.inputs = sock.getInputStream();
             this.outputs = sock.getOutputStream();
         }
-        
+
         public boolean isConnected() {
             return this.socket.isConnected();
         }
-        
+
         public InputStream getConnInputStream() {
             return this.inputs;
         }
-        
+
         public OutputStream getConnOutputStream() {
             return this.outputs;
         }
-        
+
         @Override
         public void pulseConn() throws Exception {
             this.socket.sendUrgentData(0);
         }
-        
+
         @Override
         public String getConnTitle() {
             return "TCP " + this.socket.getInetAddress() + ":" + this.socket.getPort();
         }
-        
+
         @Override
         public void close() {
             try {
                 super.close();
+            } catch (final Exception ex) {
             }
-            catch (final Exception ex) {}
             try {
                 this.inputs.close();
+            } catch (final Exception ex2) {
             }
-            catch (final Exception ex2) {}
             try {
                 this.outputs.close();
+            } catch (final Exception ex3) {
             }
-            catch (final Exception ex3) {}
             try {
                 this.socket.close();
+            } catch (final Exception ex4) {
             }
-            catch (final Exception ex4) {}
         }
     }
 }

@@ -6,17 +6,14 @@ import java.util.List;
 
 /**
  * IMNContainer 接口实现的同时，如果也实现了此接口，则
- * 
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public interface IMNContTagListMapper
-{
-	/**
-	 * 
-	 * @return
-	 */
-	public List<NameTitle> getMNContTagListCatTitles() ;
-	
-	public List<NameTitle> getMNContTagList(String cat) ;
+public interface IMNContTagListMapper {
+    /**
+     * @return
+     */
+    public List<NameTitle> getMNContTagListCatTitles();
+
+    public List<NameTitle> getMNContTagList(String cat);
 }

@@ -4,12 +4,11 @@
 
 package cn.doraro.flexedge.driver.s7.eth;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Date;
-import java.io.UnsupportedEncodingException;
 
-public class S7Util
-{
+public class S7Util {
     public static boolean getBit(final byte[] bs, final int idx, int bit_in_byte) {
         if (bit_in_byte < 0) {
             bit_in_byte = 0;
@@ -20,19 +19,19 @@ public class S7Util
         final int v = bs[idx] & 0xFF;
         return (v & 1 << bit_in_byte) != 0x0;
     }
-    
+
     public static int getUInt16(final byte[] bs, final int idx) {
         final int hi = bs[idx] & 0xFF;
         final int lo = bs[idx + 1] & 0xFF;
         return (hi << 8) + lo;
     }
-    
+
     public static short getInt16(final byte[] bs, final int idx) {
         final int hi = bs[idx];
         final int lo = bs[idx + 1] & 0xFF;
-        return (short)((hi << 8) + lo);
+        return (short) ((hi << 8) + lo);
     }
-    
+
     public static long getUint32(final byte[] bs, final int idx) {
         long v = bs[idx] & 0xFF;
         v <<= 8;
@@ -43,7 +42,7 @@ public class S7Util
         v += (bs[idx + 3] & 0xFF);
         return v;
     }
-    
+
     public static int getInt32(final byte[] bs, final int idx) {
         int v = bs[idx];
         v <<= 8;
@@ -54,21 +53,20 @@ public class S7Util
         v += (bs[idx + 3] & 0xFF);
         return v;
     }
-    
+
     public static float getFloatAt(final byte[] bs, final int idx) {
         final int iv = getInt32(bs, idx);
         return Float.intBitsToFloat(iv);
     }
-    
+
     public static String getStr(final byte[] bs, final int idx, final int len) {
         try {
             return new String(bs, idx, len, "UTF-8");
-        }
-        catch (final UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             return "";
         }
     }
-    
+
     public static String getPrintableStr(final byte[] bs, final int idx, final int len) {
         final byte[] tmpbs = new byte[len];
         System.arraycopy(bs, idx, tmpbs, 0, len);
@@ -79,19 +77,17 @@ public class S7Util
         }
         try {
             return new String(tmpbs, "UTF-8");
-        }
-        catch (final UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             return "";
         }
     }
-    
+
     public static Date getDate(final byte[] bs, final int idx) {
         final Calendar cal = Calendar.getInstance();
         int y = transBCDtoByte(bs[idx]);
         if (y < 90) {
             y += 2000;
-        }
-        else {
+        } else {
             y += 1900;
         }
         final int m = transBCDtoByte(bs[idx + 1]) - 1;
@@ -102,7 +98,7 @@ public class S7Util
         cal.set(y, m, d, h, min, s);
         return cal.getTime();
     }
-    
+
     public static void setBit(final byte[] bs, final int idx, int bit_in_byte, final boolean v) {
         if (bit_in_byte < 0) {
             bit_in_byte = 0;
@@ -111,44 +107,43 @@ public class S7Util
             bit_in_byte = 7;
         }
         if (v) {
-            bs[idx] |= (byte)(1 << bit_in_byte);
-        }
-        else {
-            bs[idx] &= (byte)~(1 << bit_in_byte);
+            bs[idx] |= (byte) (1 << bit_in_byte);
+        } else {
+            bs[idx] &= (byte) ~(1 << bit_in_byte);
         }
     }
-    
+
     public static void setUInt16(final byte[] bs, final int idx, int v) {
         v &= 0xFFFF;
-        bs[idx] = (byte)(v >> 8);
-        bs[idx + 1] = (byte)(v & 0xFF);
+        bs[idx] = (byte) (v >> 8);
+        bs[idx + 1] = (byte) (v & 0xFF);
     }
-    
+
     public static void setInt16(final byte[] bs, final int idx, final int v) {
-        bs[idx] = (byte)(v >> 8);
-        bs[idx + 1] = (byte)(v & 0xFF);
+        bs[idx] = (byte) (v >> 8);
+        bs[idx + 1] = (byte) (v & 0xFF);
     }
-    
+
     public static void setUint32(final byte[] bs, final int idx, long v) {
         v &= -1L;
-        bs[idx + 3] = (byte)(v & 0xFFL);
-        bs[idx + 2] = (byte)(v >> 8 & 0xFFL);
-        bs[idx + 1] = (byte)(v >> 16 & 0xFFL);
-        bs[idx] = (byte)(v >> 24 & 0xFFL);
+        bs[idx + 3] = (byte) (v & 0xFFL);
+        bs[idx + 2] = (byte) (v >> 8 & 0xFFL);
+        bs[idx + 1] = (byte) (v >> 16 & 0xFFL);
+        bs[idx] = (byte) (v >> 24 & 0xFFL);
     }
-    
+
     public static void setInt32(final byte[] bs, final int idx, final int v) {
-        bs[idx + 3] = (byte)(v & 0xFF);
-        bs[idx + 2] = (byte)(v >> 8 & 0xFF);
-        bs[idx + 1] = (byte)(v >> 16 & 0xFF);
-        bs[idx] = (byte)(v >> 24 & 0xFF);
+        bs[idx + 3] = (byte) (v & 0xFF);
+        bs[idx + 2] = (byte) (v >> 8 & 0xFF);
+        bs[idx + 1] = (byte) (v >> 16 & 0xFF);
+        bs[idx] = (byte) (v >> 24 & 0xFF);
     }
-    
+
     public static void setFloat(final byte[] bs, final int idx, final float v) {
         final int iv = Float.floatToIntBits(v);
         setInt32(bs, idx, iv);
     }
-    
+
     public static void setDate(final byte[] bs, final int idx, final Date v) {
         final Calendar cal = Calendar.getInstance();
         cal.setTime(v);
@@ -171,12 +166,12 @@ public class S7Util
         bs[idx + 6] = 0;
         bs[idx + 7] = transByteToBCD(wk);
     }
-    
+
     public static int transBCDtoByte(final byte B) {
         return (B >> 4) * 10 + (B & 0xF);
     }
-    
+
     public static byte transByteToBCD(final int v) {
-        return (byte)(v / 10 << 4 | v % 10);
+        return (byte) (v / 10 << 4 | v % 10);
     }
 }

@@ -5,21 +5,19 @@
 package cn.doraro.flexedge.driver.common.modbus;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PushbackInputStream;
 
-public class ModbusParserReqRTU extends ModbusParserReq
-{
+public class ModbusParserReqRTU extends ModbusParserReq {
     int pST;
     private transient int devId;
     private transient int fc;
-    
+
     public ModbusParserReqRTU() {
         this.pST = 0;
         this.devId = -1;
         this.fc = -1;
     }
-    
+
     @Override
     public ModbusCmd parseReqCmdInLoop(final PushbackInputStream inputs) throws IOException {
         final byte[] bs = new byte[2];
@@ -41,14 +39,13 @@ public class ModbusParserReqRTU extends ModbusParserReq
             pkbs[0] = bs[0];
             pkbs[1] = bs[1];
             final int crc = ModbusCmd.modbus_crc16_check(pkbs, 6);
-            if (pkbs[6] != (byte)(crc >> 8 & 0xFF) || pkbs[7] != (byte)(crc & 0xFF)) {
+            if (pkbs[6] != (byte) (crc >> 8 & 0xFF) || pkbs[7] != (byte) (crc & 0xFF)) {
                 inputs.unread(pkbs, 2, 6);
                 inputs.unread(this.fc);
                 return null;
             }
             return this.parseReqFC(pkbs);
-        }
-        else {
+        } else {
             switch (this.fc) {
                 case 16: {
                     return this.parseReqWriteWords(bs, inputs);
@@ -57,12 +54,12 @@ public class ModbusParserReqRTU extends ModbusParserReq
                     return this.parseReqWriteBits(bs, inputs);
                 }
                 default: {
-                    return new ModbusCmdErr(ModbusCmd.Protocol.rtu, null, (short)this.devId, (short)this.fc, (short)4);
+                    return new ModbusCmdErr(ModbusCmd.Protocol.rtu, null, (short) this.devId, (short) this.fc, (short) 4);
                 }
             }
         }
     }
-    
+
     private int checkReqFCDataLen(final int fc) throws IOException {
         switch (fc) {
             case 1:
@@ -86,7 +83,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
             }
         }
     }
-    
+
     private ModbusCmd parseReqFC(final byte[] pkbs) throws IOException {
         switch (this.fc) {
             case 1:
@@ -104,11 +101,11 @@ public class ModbusParserReqRTU extends ModbusParserReq
                 return this.parseReqWriteWord(pkbs);
             }
             default: {
-                return new ModbusCmdErr(ModbusCmd.Protocol.rtu, null, (short)this.devId, (short)this.fc, (short)4);
+                return new ModbusCmdErr(ModbusCmd.Protocol.rtu, null, (short) this.devId, (short) this.fc, (short) 4);
             }
         }
     }
-    
+
     private ModbusCmd parseReqWriteWords(final byte[] bs_h, final PushbackInputStream inputs) throws IOException {
         final byte[] bs = new byte[5];
         ModbusParser.readFill(inputs, bs, 0, 5);
@@ -127,7 +124,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
         final byte[] vbs = new byte[byte_n + 2];
         ModbusParser.readFill(inputs, vbs, 0, byte_n + 2);
         final int crc = ModbusCmd.modbus_crc16_check_seg(bs_h, 2, bs, 5, vbs, byte_n);
-        if (vbs[vbs.length - 2] != (byte)(crc >> 8 & 0xFF) || vbs[vbs.length - 1] != (byte)(crc & 0xFF)) {
+        if (vbs[vbs.length - 2] != (byte) (crc >> 8 & 0xFF) || vbs[vbs.length - 1] != (byte) (crc & 0xFF)) {
             inputs.unread(vbs);
             inputs.unread(bs);
             inputs.unread(this.fc);
@@ -143,7 +140,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
         final ModbusCmdWriteWords r = new ModbusCmdWriteWords(this.devId, reg_addr, vals);
         return r;
     }
-    
+
     private ModbusCmd parseReqWriteBits(final byte[] bs_h, final PushbackInputStream inputs) throws IOException {
         final byte[] bs = new byte[5];
         ModbusParser.readFill(inputs, bs, 0, 5);
@@ -163,7 +160,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
         final byte[] vbs = new byte[byte_n + 2];
         ModbusParser.readFill(inputs, vbs, 0, byte_n + 2);
         final int crc = ModbusCmd.modbus_crc16_check_seg(bs_h, 2, bs, 5, vbs, byte_n);
-        if (vbs[vbs.length - 2] != (byte)(crc >> 8 & 0xFF) || vbs[vbs.length - 1] != (byte)(crc & 0xFF)) {
+        if (vbs[vbs.length - 2] != (byte) (crc >> 8 & 0xFF) || vbs[vbs.length - 1] != (byte) (crc & 0xFF)) {
             inputs.unread(vbs);
             inputs.unread(bs);
             inputs.unread(this.fc);
@@ -178,7 +175,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
         final ModbusCmdWriteBits r = new ModbusCmdWriteBits(this.devId, reg_addr, vals);
         return r;
     }
-    
+
     private ModbusCmdReadBits parseReqReadBits(final byte[] bs) throws IOException {
         int reg_addr = bs[2] & 0xFF;
         reg_addr <<= 8;
@@ -186,12 +183,12 @@ public class ModbusParserReqRTU extends ModbusParserReq
         int reg_num = bs[4] & 0xFF;
         reg_num <<= 8;
         reg_num += (bs[5] & 0xFF);
-        final ModbusCmdReadBits r = new ModbusCmdReadBits(this.devId, (short)this.fc);
+        final ModbusCmdReadBits r = new ModbusCmdReadBits(this.devId, (short) this.fc);
         r.regAddr = reg_addr;
         r.regNum = reg_num;
         return r;
     }
-    
+
     private ModbusCmdReadWords parseReqReadInt16s(final byte[] bs) throws IOException {
         int reg_addr = bs[2] & 0xFF;
         reg_addr <<= 8;
@@ -199,12 +196,12 @@ public class ModbusParserReqRTU extends ModbusParserReq
         int reg_num = bs[4] & 0xFF;
         reg_num <<= 8;
         reg_num += (bs[5] & 0xFF);
-        final ModbusCmdReadWords r = new ModbusCmdReadWords(this.devId, (short)this.fc);
+        final ModbusCmdReadWords r = new ModbusCmdReadWords(this.devId, (short) this.fc);
         r.regAddr = reg_addr;
         r.regNum = reg_num;
         return r;
     }
-    
+
     private ModbusCmdWriteBit parseReqWriteBit(final byte[] bs) throws IOException {
         int reg_addr = bs[2] & 0xFF;
         reg_addr <<= 8;
@@ -215,7 +212,7 @@ public class ModbusParserReqRTU extends ModbusParserReq
         r.bwVal = bv;
         return r;
     }
-    
+
     private ModbusCmdWriteWord parseReqWriteWord(final byte[] bs) throws IOException {
         int reg_addr = bs[2] & 0xFF;
         reg_addr <<= 8;

@@ -11,16 +11,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface XORMClass {
-	
 
-	String table_name();
-	
 
-	boolean inherit_parent() default false;
+    String table_name();
 
-	String title() default "" ;
 
-	Class<?> base_class() default Object.class;
-	
+    boolean inherit_parent() default false;
+
+    String title() default "";
+
+    Class<?> base_class() default Object.class;
+
 
 }

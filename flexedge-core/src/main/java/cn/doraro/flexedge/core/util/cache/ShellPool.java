@@ -2,51 +2,43 @@ package cn.doraro.flexedge.core.util.cache;
 
 import java.util.Vector;
 
-public class ShellPool
-{
-	 private Vector avail , busy ;
+public class ShellPool {
+    private Vector avail, busy;
 
-	 public ShellPool ()
-	 {
-		  avail = new Vector () ;
-		  busy = new Vector () ;
-	 }
+    public ShellPool() {
+        avail = new Vector();
+        busy = new Vector();
+    }
 
-	 public ShellPool (int initnum)
-	 {
-		  this () ;
-		  for (int i = 0 ; i < initnum ; i ++)
-			   avail.addElement (new Shell()) ;
-	 }
+    public ShellPool(int initnum) {
+        this();
+        for (int i = 0; i < initnum; i++)
+            avail.addElement(new Shell());
+    }
 
-	 //public abstract
-	 public synchronized Shell getShell ()
-	 {
-		  if (!avail.isEmpty())
-		  {
-			   Shell exShell = (Shell)avail.lastElement () ;
-			   int lastIndex = avail.size() - 1 ;
-			   avail.removeElementAt (lastIndex) ;
+    //public abstract
+    public synchronized Shell getShell() {
+        if (!avail.isEmpty()) {
+            Shell exShell = (Shell) avail.lastElement();
+            int lastIndex = avail.size() - 1;
+            avail.removeElementAt(lastIndex);
 
-			   busy.addElement (exShell) ;
-			   return (exShell) ;
-		  }
-		  else
-		  {
-			   //if (total < max)
-			   Shell newShell = new Shell () ;
-			   busy.addElement (newShell) ;
-			   return newShell ;
-		  }
-	 }
+            busy.addElement(exShell);
+            return (exShell);
+        } else {
+            //if (total < max)
+            Shell newShell = new Shell();
+            busy.addElement(newShell);
+            return newShell;
+        }
+    }
 
-	 public synchronized void freeShell (Shell sh)
-	 {
-		  sh.clear () ;
+    public synchronized void freeShell(Shell sh) {
+        sh.clear();
 
-		  busy.removeElement (sh) ;
-		  avail.addElement (sh) ;
-	 }
+        busy.removeElement(sh);
+        avail.addElement(sh);
+    }
 	 /*
 	 public static void main (String[] args)
 	 {

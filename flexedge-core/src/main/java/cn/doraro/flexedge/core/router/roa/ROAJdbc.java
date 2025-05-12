@@ -8,21 +8,18 @@ import cn.doraro.flexedge.core.util.ILang;
 
 import java.util.List;
 
-public abstract class ROAJdbc extends RouterOuterAdp implements ILang
-{
+public abstract class ROAJdbc extends RouterOuterAdp implements ILang {
 
-	public ROAJdbc(RouterManager rm)
-	{
-		super(rm);
-	}
+    public ROAJdbc(RouterManager rm) {
+        super(rm);
+    }
 
-	@Override
-	public String getTp()
-	{
-		return "db_"+this.getDBTp();
-	}
-	
-	public abstract String getDBTp() ;
+    @Override
+    public String getTp() {
+        return "db_" + this.getDBTp();
+    }
+
+    public abstract String getDBTp();
 
 
 //	@Override
@@ -31,37 +28,32 @@ public abstract class ROAJdbc extends RouterOuterAdp implements ILang
 //		return g("db_"+this.getDBTp());
 //	}
 
-	
-	@Override
-	public List<JoinIn> getJoinInList()
-	{
-		return null;
-	}
 
-	@Override
-	public List<JoinOut> getJoinOutList()
-	{
-		return null;
-	}
+    @Override
+    public List<JoinIn> getJoinInList() {
+        return null;
+    }
+
+    @Override
+    public List<JoinOut> getJoinOutList() {
+        return null;
+    }
 
 
-	@Override
-	protected boolean RT_start_ov()
-	{
-		return false;
-	}
+    @Override
+    protected boolean RT_start_ov() {
+        return false;
+    }
 
-	@Override
-	public void RT_stop()
-	{
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void RT_stop() {
+        // TODO Auto-generated method stub
 
-	@Override
-	public boolean RT_isRunning()
-	{
-		// TODO Auto-generated method stub
-		return false;
-	}
+    }
+
+    @Override
+    public boolean RT_isRunning() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

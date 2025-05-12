@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.msgnet;
 
-public interface IMNNodePlug
-{
-	
+public interface IMNNodePlug {
+
 }

@@ -4,16 +4,15 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink.fins;
 
-import cn.doraro.flexedge.driver.omron.hostlink.HLMsg;
 import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.driver.omron.hostlink.HLException;
-import cn.doraro.flexedge.driver.omron.hostlink.HLMsgReq;
 import cn.doraro.flexedge.driver.omron.fins.FinsEndCode;
 import cn.doraro.flexedge.driver.omron.fins.FinsMode;
+import cn.doraro.flexedge.driver.omron.hostlink.HLException;
+import cn.doraro.flexedge.driver.omron.hostlink.HLMsg;
+import cn.doraro.flexedge.driver.omron.hostlink.HLMsgReq;
 import cn.doraro.flexedge.driver.omron.hostlink.HLMsgResp;
 
-public abstract class HLFinsResp extends HLMsgResp
-{
+public abstract class HLFinsResp extends HLMsgResp {
     HLFinsReq hlFinsReq;
     FinsMode mode;
     short icf;
@@ -28,7 +27,7 @@ public abstract class HLFinsResp extends HLMsgResp
     short finsMR;
     short finsSR;
     FinsEndCode finsEndCode;
-    
+
     public HLFinsResp(final HLMsgReq req) {
         super(req);
         this.icf = -1;
@@ -43,10 +42,10 @@ public abstract class HLFinsResp extends HLMsgResp
         this.finsMR = -1;
         this.finsSR = -1;
         this.finsEndCode = null;
-        this.hlFinsReq = (HLFinsReq)req;
+        this.hlFinsReq = (HLFinsReq) req;
         this.mode = this.hlFinsReq.mode;
     }
-    
+
     @Override
     protected void parseHLTxt(final String hl_txt) throws HLException {
         if (!"FA".equals(this.getHeadCode())) {
@@ -62,7 +61,7 @@ public abstract class HLFinsResp extends HLMsgResp
         }
         this.parseFinsTxt(hl_txt);
     }
-    
+
     private void parseFinsTxt(final String hl_txt) throws HLException {
         short main;
         short sub;
@@ -77,8 +76,7 @@ public abstract class HLFinsResp extends HLMsgResp
             main = HLMsg.hex2byte(hl_txt.substring(12, 14));
             sub = HLMsg.hex2byte(hl_txt.substring(14, 16));
             fins_txt = hl_txt.substring(16);
-        }
-        else {
+        } else {
             this.icf = HLMsg.hex2byte(hl_txt.substring(0, 2));
             this.gct = HLMsg.hex2byte(hl_txt.substring(4, 6));
             this.dna = HLMsg.hex2byte(hl_txt.substring(6, 8));
@@ -99,14 +97,14 @@ public abstract class HLFinsResp extends HLMsgResp
             this.parseFinsRet(fins_txt);
         }
     }
-    
+
     public FinsEndCode getFinsEndCode() {
         return this.finsEndCode;
     }
-    
+
     public boolean isFinsEndOk() {
         return this.finsEndCode.isNormal();
     }
-    
+
     protected abstract void parseFinsRet(final String p0) throws HLException;
 }

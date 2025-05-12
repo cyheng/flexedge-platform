@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.recipe;
 
-public class RecipeDef
-{
-	
+public class RecipeDef {
+
 }

@@ -1,138 +1,124 @@
 package cn.doraro.flexedge.core.util.js;
 
-import com.ibm.icu.util.Calendar;
 import cn.doraro.flexedge.core.cxt.JSObMap;
 import cn.doraro.flexedge.core.cxt.JsDef;
 import cn.doraro.flexedge.core.util.Convert;
+import com.ibm.icu.util.Calendar;
 
 import java.util.Date;
 
-@JsDef(name="sys",title="System",desc="System",icon="icon_sys")
-public class GSys  extends JSObMap
-{
-	boolean bPrintOn = true;
-	
-	//UAPrj prj = null ;
-	
-	public GSys()//(UAPrj p)
-	{
-		//this.prj = p ;
-	}
+@JsDef(name = "sys", title = "System", desc = "System", icon = "icon_sys")
+public class GSys extends JSObMap {
+    boolean bPrintOn = true;
 
-	@JsDef
-	public void println(String s) throws Exception
-	{
-		if (bPrintOn)
-			System.out.println(s);
-	}
+    //UAPrj prj = null ;
 
-	@JsDef
-	public void print(String s) throws Exception
-	{
-		if (bPrintOn)
-			System.out.print(s);
-	}
+    public GSys()//(UAPrj p)
+    {
+        //this.prj = p ;
+    }
 
-	@JsDef
-	public void print_set(boolean b)
-	{
-		bPrintOn = b;
-	}
-	
-	@JsDef
-	public String get_date_str()
-	{
-		return Convert.toFullYMDHMS(new Date());
-	}
+    @JsDef
+    public void println(String s) throws Exception {
+        if (bPrintOn)
+            System.out.println(s);
+    }
 
-	@JsDef
-	public void log(String s) throws Exception
-	{
-		System.out.println(s);
-	}
-	
-	@JsDef
-	public int year()
-	{
-		return Calendar.getInstance().get(Calendar.YEAR) ;
-	}
-	
-	/**
-	 * 1-12
-	 * @return
-	 */
-	@JsDef
-	public int month()
-	{
-		return Calendar.getInstance().get(Calendar.MONTH)+1 ;
-	}
-	
-	@JsDef
-	public int day_of_month()
-	{
-		return Calendar.getInstance().get(Calendar.DAY_OF_MONTH) ;
-	}
-	
-	/**
-	 * 1-7
-	 * monday - sunday
-	 * @return
-	 */
-	@JsDef
-	public int day_of_week()
-	{
-		int v = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) ;
-		if(v==1)
-			return 7 ;
-		return v-1 ;
-	}
-	
-	/**
-	 * 0-24
-	 * @return
-	 */
-	@JsDef
-	public int hour_of_day()
-	{
-		return Calendar.getInstance().get(Calendar.HOUR_OF_DAY) ;
-	}
-	
-	@JsDef
-	public int minute()
-	{
-		return Calendar.getInstance().get(Calendar.MINUTE) ;
-	}
+    @JsDef
+    public void print(String s) throws Exception {
+        if (bPrintOn)
+            System.out.print(s);
+    }
 
-	
+    @JsDef
+    public void print_set(boolean b) {
+        bPrintOn = b;
+    }
 
-	@JsDef
-	public void sleep(long ms) throws Exception
-	{
-		Thread.sleep(ms);
-	}
-	
-	@JsDef
-	public long tick_ms()
-	{
-		return System.currentTimeMillis();
-	}
-	
-	@JsDef
-	public long tick_second()
-	{
-		return System.currentTimeMillis()/1000;
-	}
-	
-	@JsDef
-	public void alert(String title,boolean bvoice)
-	{
-		//this.prj.t
-		System.out.println("out alert="+title+" voice="+bvoice) ;
-	}
-	
-	
-	// depertted
-	
+    @JsDef
+    public String get_date_str() {
+        return Convert.toFullYMDHMS(new Date());
+    }
+
+    @JsDef
+    public void log(String s) throws Exception {
+        System.out.println(s);
+    }
+
+    @JsDef
+    public int year() {
+        return Calendar.getInstance().get(Calendar.YEAR);
+    }
+
+    /**
+     * 1-12
+     *
+     * @return
+     */
+    @JsDef
+    public int month() {
+        return Calendar.getInstance().get(Calendar.MONTH) + 1;
+    }
+
+    @JsDef
+    public int day_of_month() {
+        return Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+    }
+
+    /**
+     * 1-7
+     * monday - sunday
+     *
+     * @return
+     */
+    @JsDef
+    public int day_of_week() {
+        int v = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+        if (v == 1)
+            return 7;
+        return v - 1;
+    }
+
+    /**
+     * 0-24
+     *
+     * @return
+     */
+    @JsDef
+    public int hour_of_day() {
+        return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+    }
+
+    @JsDef
+    public int minute() {
+        return Calendar.getInstance().get(Calendar.MINUTE);
+    }
+
+
+    @JsDef
+    public void sleep(long ms) throws Exception {
+        Thread.sleep(ms);
+    }
+
+    @JsDef
+    public long tick_ms() {
+        return System.currentTimeMillis();
+    }
+
+    @JsDef
+    public long tick_second() {
+        return System.currentTimeMillis() / 1000;
+    }
+
+    @JsDef
+    public void alert(String title, boolean bvoice) {
+        //this.prj.t
+        System.out.println("out alert=" + title + " voice=" + bvoice);
+    }
+
+
+    // depertted
+
 //	/**
 //	 * 取小数位字符串
 //	 * 

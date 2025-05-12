@@ -4,21 +4,20 @@
 
 package cn.doraro.flexedge.driver.aromat.serial;
 
-import java.util.ArrayList;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
-public abstract class AMMsgReq extends AMMsg
-{
+public abstract class AMMsgReq extends AMMsg {
     private transient int readToCC;
-    
+
     public AMMsgReq() {
         this.readToCC = 0;
     }
-    
+
     public abstract String getCmdCode();
-    
+
     public final String packToStr() {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.head);
@@ -30,7 +29,7 @@ public abstract class AMMsgReq extends AMMsg
         sb.append(fcs).append("\r");
         return sb.toString();
     }
-    
+
     private String packAckStr() {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.head);
@@ -39,7 +38,7 @@ public abstract class AMMsgReq extends AMMsg
         sb.append(fcs).append("&\r");
         return sb.toString();
     }
-    
+
     public final String writeTo(final OutputStream outputs) throws IOException {
         final String str = this.packToStr();
         final byte[] bs = str.getBytes();
@@ -47,22 +46,22 @@ public abstract class AMMsgReq extends AMMsg
         outputs.flush();
         return str;
     }
-    
+
     protected abstract void packContent(final StringBuilder p0);
-    
+
     protected abstract AMMsgResp newRespInstance();
-    
+
     public AMMsgResp readRespFrom(final InputStream inputs, final OutputStream outputs, final long read_to, final int retry_c) throws Exception {
         final String txt = this.readFrom(inputs, outputs, read_to, retry_c);
         return this.parseFromTxt(txt);
     }
-    
+
     AMMsgResp parseFromTxt(final String txt) throws Exception {
         final AMMsgResp ret = this.newRespInstance();
         ret.parseFrom(txt);
         return ret;
     }
-    
+
     private String readFrom(final InputStream inputs, final OutputStream outputs, final long read_to, final int retry_c) throws Exception {
         final String firstpk = this.readRespPk(true, inputs, read_to, retry_c);
         if (!firstpk.endsWith("&")) {
@@ -72,8 +71,7 @@ public abstract class AMMsgReq extends AMMsg
                 return null;
             }
             return firstpk.substring(0, len - 2);
-        }
-        else {
+        } else {
             final byte[] ackpk = this.packAckStr().getBytes();
             final ArrayList<String> more_pks = new ArrayList<String>();
             more_pks.add(firstpk);
@@ -104,7 +102,7 @@ public abstract class AMMsgReq extends AMMsg
             return sb.toString();
         }
     }
-    
+
     private int readTo(final InputStream inputs, final long timeout, final int retry_c) throws AMException, IOException {
         final long st = System.currentTimeMillis();
         while (inputs.available() <= 0) {
@@ -115,18 +113,17 @@ public abstract class AMMsgReq extends AMMsg
                     throw new AMException(2, "time out " + timeout + "ms. may be this value is too small!");
                 }
                 throw new AMException(1, "time out " + timeout + "ms. may be this value is too small!");
-            }
-            else {
+            } else {
                 try {
                     Thread.sleep(1L);
+                } catch (final Exception ex) {
                 }
-                catch (final Exception ex) {}
             }
         }
         this.readToCC = 0;
         return inputs.read();
     }
-    
+
     private String readRespPk(final boolean bfirst, final InputStream inputs, final long timeout, final int retry_c) throws Exception {
         boolean in_pk = !bfirst;
         int max_len = 2048;
@@ -138,15 +135,14 @@ public abstract class AMMsgReq extends AMMsg
                     continue;
                 }
                 in_pk = true;
-                final char tmph = (char)c;
+                final char tmph = (char) c;
                 max_len = ((tmph == '%') ? 118 : 2048);
-                sb.append((char)c);
-            }
-            else {
+                sb.append((char) c);
+            } else {
                 if (c == 13) {
                     return sb.toString();
                 }
-                sb.append((char)c);
+                sb.append((char) c);
                 if (sb.length() > max_len) {
                     throw new IOException("read txt len >" + max_len);
                 }

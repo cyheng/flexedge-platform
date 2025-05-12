@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.opc;
 
-public class OpcDAClientDrv
-{
+public class OpcDAClientDrv {
 }

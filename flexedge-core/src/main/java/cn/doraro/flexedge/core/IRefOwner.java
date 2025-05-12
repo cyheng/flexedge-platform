@@ -2,14 +2,14 @@ package cn.doraro.flexedge.core;
 
 /**
  * node implements this will reference other branch.
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public interface IRefOwner
-{
-	/**
-	 * get branch to be refered
-	 * @return
-	 */
-	public IRefBranch getRefBranch() ;
+public interface IRefOwner {
+    /**
+     * get branch to be refered
+     *
+     * @return
+     */
+    public IRefBranch getRefBranch();
 }

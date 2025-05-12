@@ -4,15 +4,14 @@
 
 package cn.doraro.flexedge.driver.common.modbus.sniffer;
 
+import cn.doraro.flexedge.core.UAVal;
 import cn.doraro.flexedge.core.basic.ByteOrder;
 import cn.doraro.flexedge.core.util.xmldata.DataUtil;
-import cn.doraro.flexedge.core.UAVal;
 import cn.doraro.flexedge.driver.common.ModbusAddr;
 import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
 import cn.doraro.flexedge.driver.common.modbus.ModbusCmdRead;
 
-public class SnifferCmd
-{
+public class SnifferCmd {
     int devId;
     int fc;
     int regPos;
@@ -20,11 +19,7 @@ public class SnifferCmd
     ModbusCmdRead findedCmd;
     byte[] findedData;
     long findedDT;
-    
-    public static String createUniqueId(final int devid, final int fc, final int regpos, final int regnum) {
-        return devid + "_" + fc + "_" + regpos + "_" + regnum;
-    }
-    
+
     public SnifferCmd(final ModbusCmdRead mc) {
         this.devId = -1;
         this.fc = -1;
@@ -39,30 +34,34 @@ public class SnifferCmd
         this.regNum = mc.getRegNum();
         this.findedCmd = mc;
     }
-    
+
+    public static String createUniqueId(final int devid, final int fc, final int regpos, final int regnum) {
+        return devid + "_" + fc + "_" + regpos + "_" + regnum;
+    }
+
     public String getUniqueId() {
         return createUniqueId(this.devId, this.fc, this.regPos, this.regNum);
     }
-    
+
     public int getDevId() {
         return this.devId;
     }
-    
+
     public int getFC() {
         return this.fc;
     }
-    
+
     public ModbusCmdRead getFindedCmd() {
         return this.findedCmd;
     }
-    
+
     public int getRespLen() {
         if (this.findedCmd == null) {
             return -1;
         }
         return this.findedCmd.calRespLenRTU();
     }
-    
+
     public boolean parseResp(final byte[] respbs) {
         final int devid = respbs[0] & 0xFF;
         if (devid != this.findedCmd.getDevAddr()) {
@@ -73,22 +72,22 @@ public class SnifferCmd
         }
         final int len = respbs.length;
         final int crc = ModbusCmd.modbus_crc16_check(respbs, len - 2);
-        if (respbs[len - 2] != (byte)(crc >> 8 & 0xFF) || respbs[len - 1] != (byte)(crc & 0xFF)) {
+        if (respbs[len - 2] != (byte) (crc >> 8 & 0xFF) || respbs[len - 1] != (byte) (crc & 0xFF)) {
             return false;
         }
         System.arraycopy(respbs, 3, this.findedData = new byte[len - 5], 0, len - 5);
         this.findedDT = System.currentTimeMillis();
         return true;
     }
-    
+
     public byte[] getFindedData() {
         return this.findedData;
     }
-    
+
     public long getFindedDT() {
         return this.findedDT;
     }
-    
+
     public Object getValByAddr(final ModbusAddr ma) {
         final UAVal.ValTP vt = ma.getValTP();
         if (vt == null) {
@@ -107,8 +106,7 @@ public class SnifferCmd
             final byte b = this.findedData[idx];
             final boolean r = (b & 2 << byte_ps % 8) > 0;
             return r;
-        }
-        else {
+        } else {
             final int regp = ma.getRegPos();
             if (regp < this.regPos) {
                 return null;
@@ -133,7 +131,7 @@ public class SnifferCmd
                     }
                     final int intv = DataUtil.bytesToInt(this.findedData, idx2, ByteOrder.ModbusWord);
                     if (vt == UAVal.ValTP.vt_uint32) {
-                        return (long)intv & -1L;
+                        return (long) intv & -1L;
                     }
                     return intv;
                 }
@@ -161,7 +159,7 @@ public class SnifferCmd
             }
         }
     }
-    
+
     @Override
     public String toString() {
         return this.devId + " fc=" + this.fc + " regnum=" + this.regNum;

@@ -4,11 +4,10 @@
 
 package cn.doraro.flexedge.driver.gb.szy;
 
-public class DFTermAlertST extends DataField
-{
+public class DFTermAlertST extends DataField {
     int alert;
     int term;
-    
+
     public DFTermAlertST(final byte[] bs) {
         if (bs.length != 4) {
             throw new IllegalArgumentException("alert st bs len=4");
@@ -20,11 +19,11 @@ public class DFTermAlertST extends DataField
         this.term <<= 8;
         this.term += (bs[2] & 0xFF);
     }
-    
+
     public int getAlertInf() {
         return this.alert;
     }
-    
+
     public int getTermInf() {
         return this.term;
     }

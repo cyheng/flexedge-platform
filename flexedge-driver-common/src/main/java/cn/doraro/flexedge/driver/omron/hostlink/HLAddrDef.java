@@ -4,40 +4,39 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink;
 
-import java.util.Collection;
-import cn.doraro.flexedge.core.util.Convert;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.List;
-import java.util.ArrayList;
-import cn.doraro.flexedge.core.util.ILang;
 import cn.doraro.flexedge.core.DevAddr;
+import cn.doraro.flexedge.core.UAVal;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.ILang;
 
-public class HLAddrDef implements DevAddr.IAddrDef, ILang
-{
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class HLAddrDef implements DevAddr.IAddrDef, ILang {
     String prefix;
     ArrayList<HLAddrSeg> segs;
-    
+
     public HLAddrDef(final String prefix) {
         this.prefix = null;
         this.segs = new ArrayList<HLAddrSeg>();
         this.prefix = prefix;
     }
-    
+
     public HLAddrDef asValTpSeg(final HLAddrSeg seg) {
         seg.belongTo = this;
         this.segs.add(seg);
         return this;
     }
-    
+
     public String getPrefix() {
         return this.prefix;
     }
-    
+
     public List<HLAddrSeg> getSegs() {
         return this.segs;
     }
-    
+
     public List<HLAddrSeg> findSegs(final UAVal.ValTP vtp) {
         final ArrayList<HLAddrSeg> rets = new ArrayList<HLAddrSeg>();
         for (final HLAddrSeg seg : this.segs) {
@@ -47,7 +46,7 @@ public class HLAddrDef implements DevAddr.IAddrDef, ILang
         }
         return rets;
     }
-    
+
     public HLAddrSeg findSeg(final UAVal.ValTP vtp, String addr) {
         final int k = addr.indexOf(46);
         String bit_str = null;
@@ -67,7 +66,7 @@ public class HLAddrDef implements DevAddr.IAddrDef, ILang
         }
         return null;
     }
-    
+
     public HLAddrSeg findSeg(final HLAddr fxaddr) {
         final UAVal.ValTP vtp = fxaddr.getValTP();
         if (vtp == null) {
@@ -80,17 +79,17 @@ public class HLAddrDef implements DevAddr.IAddrDef, ILang
         }
         return null;
     }
-    
+
     public String getDefTypeForDoc() {
         return this.g("deftp_" + this.prefix);
     }
-    
+
     public List<DevAddr.IAddrDefSeg> getSegsForDoc() {
         final ArrayList<DevAddr.IAddrDefSeg> rets = new ArrayList<DevAddr.IAddrDefSeg>();
-        rets.addAll((Collection<? extends DevAddr.IAddrDefSeg>)this.segs);
+        rets.addAll((Collection<? extends DevAddr.IAddrDefSeg>) this.segs);
         for (final HLAddrSeg seg : this.segs) {
             if (seg.isHasBit()) {
-                rets.add((DevAddr.IAddrDefSeg)new HLAddrSegSubBit(seg));
+                rets.add((DevAddr.IAddrDefSeg) new HLAddrSegSubBit(seg));
             }
         }
         return rets;

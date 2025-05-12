@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.task;
 
-public class TaskCond
-{
+public class TaskCond {
 
 }

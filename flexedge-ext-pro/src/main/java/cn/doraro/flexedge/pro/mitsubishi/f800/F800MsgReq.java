@@ -4,33 +4,13 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.f800;
 
-public class F800MsgReq extends F800Msg
-{
+public class F800MsgReq extends F800Msg {
     int cmdCode;
-    
+
     public F800MsgReq() {
         this.cmdCode = 0;
     }
-    
-    public F800MsgReq asCmdCode(final int cc) {
-        this.cmdCode = cc;
-        return this;
-    }
-    
-    public int getCmdCode() {
-        return this.cmdCode;
-    }
-    
-    public byte[] packTo() {
-        final byte[] rets = new byte[7];
-        rets[0] = 5;
-        F800Msg.toAsciiHexBytes(this.getStationNo(), rets, 1, 2);
-        F800Msg.toAsciiHexBytes(this.getCmdCode(), rets, 3, 2);
-        final int crc = F800Msg.calCRC(rets, 1, 4);
-        F800Msg.toAsciiHexBytes(crc, rets, 5, 2);
-        return rets;
-    }
-    
+
     public static F800MsgReq parseFrom(final byte[] bs) {
         if (bs.length != 7) {
             return null;
@@ -47,5 +27,24 @@ public class F800MsgReq extends F800Msg
         ret.stationNo = F800Msg.fromAsciiHexBytes(bs, 1, 2);
         ret.cmdCode = F800Msg.fromAsciiHexBytes(bs, 3, 2);
         return ret;
+    }
+
+    public F800MsgReq asCmdCode(final int cc) {
+        this.cmdCode = cc;
+        return this;
+    }
+
+    public int getCmdCode() {
+        return this.cmdCode;
+    }
+
+    public byte[] packTo() {
+        final byte[] rets = new byte[7];
+        rets[0] = 5;
+        F800Msg.toAsciiHexBytes(this.getStationNo(), rets, 1, 2);
+        F800Msg.toAsciiHexBytes(this.getCmdCode(), rets, 3, 2);
+        final int crc = F800Msg.calCRC(rets, 1, 4);
+        F800Msg.toAsciiHexBytes(crc, rets, 5, 2);
+        return rets;
     }
 }

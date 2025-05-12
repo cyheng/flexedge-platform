@@ -4,12 +4,10 @@ import cn.doraro.flexedge.core.UANodeOCTagsGCxt;
 
 /**
  * Container Filter
- * 
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public interface ICFilter
-{
-	public boolean acceptNodeCxt(UANodeOCTagsGCxt nodecxt) ;
-	
+public interface ICFilter {
+    public boolean acceptNodeCxt(UANodeOCTagsGCxt nodecxt);
+
 }

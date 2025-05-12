@@ -7,44 +7,49 @@ package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class MCMsg3EResp extends MCMsg3E
-{
+public class MCMsg3EResp extends MCMsg3E {
+    private static int RESP_ERR_LEN_ASCII;
+    private static int RESP_ERR_LEN_BIN;
+
+    static {
+        MCMsg3EResp.RESP_ERR_LEN_ASCII = 22;
+        MCMsg3EResp.RESP_ERR_LEN_BIN = 8;
+    }
+
     private int respLenAscii;
     private int respLenBin;
     private int endCode;
     private RespErr respErr;
-    private static int RESP_ERR_LEN_ASCII;
-    private static int RESP_ERR_LEN_BIN;
-    
+
     public MCMsg3EResp() {
         this.respLenAscii = -1;
         this.respLenBin = -1;
         this.endCode = -1;
         this.respErr = null;
     }
-    
+
     public MCMsg3EResp asRespLen(final int resp_len_bin, final int resp_len_ascii) {
         this.respLenAscii = resp_len_ascii;
         this.respLenBin = resp_len_bin;
         return this;
     }
-    
+
     public MCMsg3EResp asRespLen(final MCMsg3EReq req) {
         return this.asRespLen(req.calRespLenBin(), req.calRespLenAscii());
     }
-    
+
     public int getEndCode() {
         return this.endCode;
     }
-    
+
     public boolean isRespErr() {
         return this.endCode != 0;
     }
-    
+
     public RespErr getRespErr() {
         return this.respErr;
     }
-    
+
     @Override
     protected boolean readFromAscii(final InputStream inputs, final long timeout, final StringBuilder failedr) throws IOException {
         if (!super.readFromAscii(inputs, timeout, failedr)) {
@@ -67,7 +72,7 @@ public class MCMsg3EResp extends MCMsg3E
         failedr.append("end code err=" + Integer.toHexString(this.endCode));
         return false;
     }
-    
+
     @Override
     protected boolean readFromBin(final InputStream inputs, final long timeout, final StringBuilder failedr) throws IOException {
         if (!super.readFromBin(inputs, timeout, failedr)) {
@@ -94,28 +99,22 @@ public class MCMsg3EResp extends MCMsg3E
         failedr.append("end code err=" + Integer.toHexString(this.endCode));
         return false;
     }
-    
+
     protected final void parseErrAscii(final byte[] bs) {
     }
-    
+
     protected final void parseErrBin(final byte[] bs) {
     }
-    
+
     protected boolean parseRespDataBin(final byte[] bs) {
         return true;
     }
-    
+
     protected boolean parseRespDataAscii(final byte[] bs) {
         return true;
     }
-    
-    static {
-        MCMsg3EResp.RESP_ERR_LEN_ASCII = 22;
-        MCMsg3EResp.RESP_ERR_LEN_BIN = 8;
-    }
-    
-    public static class RespErr
-    {
+
+    public static class RespErr {
         int netCode;
         int plcCode;
         int moduleIO_No;

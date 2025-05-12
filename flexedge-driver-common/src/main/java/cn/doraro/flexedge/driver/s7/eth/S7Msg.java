@@ -4,13 +4,12 @@
 
 package cn.doraro.flexedge.driver.s7.eth;
 
-import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import java.io.IOException;
 import cn.doraro.flexedge.core.util.logger.ILogger;
+import cn.doraro.flexedge.core.util.logger.LoggerManager;
 
-public abstract class S7Msg
-{
-    static final ILogger log;
+import java.io.IOException;
+
+public abstract class S7Msg {
     public static final int RESULT_ADDRESS_OUT_OF_RANGE = 5;
     public static final int RESULT_CANNOT_EVALUATE_PDU = -123;
     public static final int RESULT_CPU_RETURNED_NO_DATA = -124;
@@ -36,16 +35,23 @@ public abstract class S7Msg
     protected static final byte WL_TIMER = 29;
     protected static final byte[] RW35;
     protected static final int RW_LEN = 35;
+    static final ILogger log;
+
+    static {
+        log = LoggerManager.getLogger((Class) S7Msg.class);
+        RW35 = new byte[]{3, 0, 0, 31, 2, -16, -128, 50, 1, 0, 0, 5, 0, 0, 14, 0, 0, 4, 1, 18, 10, 16, 2, 0, 0, 0, 0, -124, 0, 0, 0, 0, 4, 0, 0};
+    }
+
     protected S7EthDriver driver;
     protected long scanIntervalMS;
     private transient long lastRunT;
-    
+
     public S7Msg() {
         this.driver = null;
         this.scanIntervalMS = 100L;
         this.lastRunT = -1L;
     }
-    
+
     public static String getResultDesc(final int code) {
         switch (code) {
             case 0: {
@@ -170,7 +176,7 @@ public abstract class S7Msg
             }
         }
     }
-    
+
     protected static int recvIsoPacket(final S7TcpConn conn) throws IOException, S7Exception {
         int size = 0;
         while (true) {
@@ -189,18 +195,18 @@ public abstract class S7Msg
         conn.recv(conn.PDU, 7, size - 7);
         return size;
     }
-    
+
     public abstract void processByConn(final S7TcpConn p0) throws S7Exception, IOException;
-    
+
     void init(final S7EthDriver drv) {
         this.driver = drv;
     }
-    
+
     public S7Msg withScanIntervalMS(final long ms) {
         this.scanIntervalMS = ms;
         return this;
     }
-    
+
     public boolean tickCanRun() {
         final long ct = System.currentTimeMillis();
         if (ct - this.lastRunT > this.scanIntervalMS) {
@@ -208,10 +214,5 @@ public abstract class S7Msg
             return true;
         }
         return false;
-    }
-    
-    static {
-        log = LoggerManager.getLogger((Class)S7Msg.class);
-        RW35 = new byte[] { 3, 0, 0, 31, 2, -16, -128, 50, 1, 0, 0, 5, 0, 0, 14, 0, 0, 4, 1, 18, 10, 16, 2, 0, 0, 0, 0, -124, 0, 0, 0, 0, 4, 0, 0 };
     }
 }

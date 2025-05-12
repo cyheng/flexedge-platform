@@ -4,12 +4,12 @@
 
 package cn.doraro.flexedge.driver.gb.szy;
 
-import java.util.ArrayList;
-import java.util.List;
 import cn.doraro.flexedge.core.util.Convert;
 
-public class SZYFrame extends SZYMsg
-{
+import java.util.ArrayList;
+import java.util.List;
+
+public class SZYFrame extends SZYMsg {
     public static final short FC_CMD = 0;
     public static final short FC_RAIN = 1;
     public static final short FC_WATER_LVL = 2;
@@ -34,7 +34,7 @@ public class SZYFrame extends SZYMsg
     FC fc;
     byte[] a;
     UserData userData;
-    
+
     public SZYFrame(final byte[] data) {
         super(data);
         this.dir = true;
@@ -45,34 +45,34 @@ public class SZYFrame extends SZYMsg
         this.a = new byte[5];
         this.userData = null;
     }
-    
+
     public boolean getDir() {
         return this.dir;
     }
-    
+
     public boolean isDiv() {
         return this.div;
     }
-    
+
     public short getFCB() {
         return this.fcb;
     }
-    
+
     public FC getFuncCode() {
         return this.fc;
     }
-    
+
     public byte[] getAddr() {
         return this.a;
     }
-    
+
     public int getAddrA1() {
         if (this.a == null || this.a.length < 3) {
             return -1;
         }
         return Integer.parseInt(SZYMsg.transBCD2Str(this.a, 0, 3));
     }
-    
+
     public int getAddrA2() {
         if (this.a == null || this.a.length < 5) {
             return -1;
@@ -82,20 +82,20 @@ public class SZYFrame extends SZYMsg
         r += (this.a[4] & 0xFF);
         return r;
     }
-    
+
     public String getAddrHex() {
         return Convert.byteArray2HexStr(this.a);
     }
-    
+
     boolean parseData() {
         final byte[] bs = this.getData();
         if (bs.length < 6) {
             return false;
         }
-        this.c = (short)(bs[0] & 0xFF);
+        this.c = (short) (bs[0] & 0xFF);
         this.dir = ((this.c & 0x80) > 0);
         this.div = ((this.c & 0x40) > 0);
-        this.fcb = (short)((this.c & 0x30) >> 4);
+        this.fcb = (short) ((this.c & 0x30) >> 4);
         this.fc = FC.valueOf(this.c & 0xF);
         System.arraycopy(bs, 1, this.a, 0, 5);
         final byte[] ud = new byte[bs.length - 6];
@@ -103,7 +103,7 @@ public class SZYFrame extends SZYMsg
         this.userData = this.parseUserData(ud);
         return this.userData != null;
     }
-    
+
     private UserData parseUserData(final byte[] ud) {
         UDTermUpFlow ret = null;
         final int afn = ud[0] & 0xFF;
@@ -120,42 +120,29 @@ public class SZYFrame extends SZYMsg
             }
         }
     }
-    
+
     public UserData getUserData() {
         return this.userData;
     }
-    
-    public enum FC
-    {
-        cmd(0, "CMD", "CMD"), 
-        rain(1, "RN", "RAIN"), 
-        water_lvl(2, "WL", "WATER_LVL"), 
-        flow(3, "FL", "FLOW"), 
-        flow_rate(4, "FR", "FLOW Rate"), 
+
+    public enum FC {
+        cmd(0, "CMD", "CMD"),
+        rain(1, "RN", "RAIN"),
+        water_lvl(2, "WL", "WATER_LVL"),
+        flow(3, "FL", "FLOW"),
+        flow_rate(4, "FR", "FLOW Rate"),
         gate_pos(5, "GP", "Gate Pos");
-        
+
         private final int val;
         private final String mk;
         private final String title;
-        
+
         private FC(final int v, final String mk, final String tt) {
             this.val = v;
             this.mk = mk;
             this.title = tt;
         }
-        
-        public int getValue() {
-            return this.val;
-        }
-        
-        public String getMark() {
-            return this.mk;
-        }
-        
-        public String getTitle() {
-            return this.title;
-        }
-        
+
         public static FC valueOf(final int v) {
             for (final FC f : values()) {
                 if (f.val == v) {
@@ -164,7 +151,7 @@ public class SZYFrame extends SZYMsg
             }
             return null;
         }
-        
+
         public static FC fromMk(final String mk) {
             for (final FC f : values()) {
                 if (f.mk.equals(mk)) {
@@ -173,31 +160,41 @@ public class SZYFrame extends SZYMsg
             }
             return null;
         }
+
+        public int getValue() {
+            return this.val;
+        }
+
+        public String getMark() {
+            return this.mk;
+        }
+
+        public String getTitle() {
+            return this.title;
+        }
     }
-    
-    public static class UserData
-    {
+
+    public static class UserData {
         byte[] userBS;
         short afn;
         long createDT;
-        
+
         UserData(final byte[] ud) {
             this.userBS = null;
             this.createDT = System.currentTimeMillis();
             this.userBS = ud;
-            this.afn = (short)(ud[0] & 0xFF);
+            this.afn = (short) (ud[0] & 0xFF);
         }
-        
+
         public long getCreateDT() {
             return this.createDT;
         }
     }
-    
-    public abstract static class UDTerminalUp extends UserData
-    {
+
+    public abstract static class UDTerminalUp extends UserData {
         DFTermAlertST termAlertST;
         byte[] df;
-        
+
         public UDTerminalUp(final byte[] ud) {
             super(ud);
             this.termAlertST = null;
@@ -216,19 +213,18 @@ public class SZYFrame extends SZYMsg
             }
             System.arraycopy(ud, 1, this.df = new byte[dlen - 5], 0, dlen - 5);
         }
-        
+
         protected abstract boolean parseDataField();
     }
-    
-    public static class UDTermUpFlow extends UDTerminalUp
-    {
+
+    public static class UDTermUpFlow extends UDTerminalUp {
         List<Float> vals;
-        
+
         public UDTermUpFlow(final byte[] ud) {
             super(ud);
             this.vals = null;
         }
-        
+
         @Override
         protected boolean parseDataField() {
             final byte[] bs = this.df;
@@ -243,7 +239,7 @@ public class SZYFrame extends SZYMsg
             }
             return true;
         }
-        
+
         float transByte5BCDToFloat(final byte[] bs, final int offset) {
             final StringBuilder sb = new StringBuilder();
             int b = bs[offset + 4] & 0xFF;
@@ -257,24 +253,24 @@ public class SZYFrame extends SZYMsg
             }
             return Float.parseFloat(sb.toString()) / 1000.0f;
         }
-        
+
         public Float getFlow() {
             if (this.vals == null || this.vals.size() < 1) {
                 return null;
             }
             return this.vals.get(1);
         }
-        
+
         public Float getFlowT() {
             if (this.vals == null || this.vals.size() < 2) {
                 return null;
             }
             return this.vals.get(0);
         }
-        
+
         @Override
         public String toString() {
-            return "flow " + Convert.combineWith((List)this.vals, ' ');
+            return "flow " + Convert.combineWith((List) this.vals, ' ');
         }
     }
 }

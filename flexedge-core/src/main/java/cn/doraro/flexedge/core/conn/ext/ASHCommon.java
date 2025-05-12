@@ -12,73 +12,63 @@ import java.util.HashMap;
 /**
  * using timeout and read first data in accepted socket connection
  * then transfer to string directly
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public class ASHCommon implements ConnProTcpServer.AcceptedSockHandler
-{
+public class ASHCommon implements ConnProTcpServer.AcceptedSockHandler {
 
-	@Override
-	public String getName()
-	{
-		return "common";
-	}
-	
-	public String getTitle()
-	{
-		return "Common" ;
-	}
+    @Override
+    public String getName() {
+        return "common";
+    }
 
-	@Override
-	public String checkSockConnId(Socket sock) throws Exception
-	{
-		InputStreamTimeouter isto = new InputStreamTimeouter(sock.getInputStream(), 1000, 1024) ;
-		int cc = 0 ;
-		do
-		{
-			byte[] bs = isto.readNext() ;
-			if(bs!=null)
-				return new String(bs).trim() ;
-			
-			Thread.sleep(5);
-			
-			cc ++ ;
-			if(cc>200*30)
-				return null ;
-		}
-		while(true) ;
-	}
+    public String getTitle() {
+        return "Common";
+    }
 
-	@Override
-	public int getRecvTimeout()
-	{
-		return 0;
-	}
+    @Override
+    public String checkSockConnId(Socket sock) throws Exception {
+        InputStreamTimeouter isto = new InputStreamTimeouter(sock.getInputStream(), 1000, 1024);
+        int cc = 0;
+        do {
+            byte[] bs = isto.readNext();
+            if (bs != null)
+                return new String(bs).trim();
 
-	@Override
-	public int getRecvEndTimeout()
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
+            Thread.sleep(5);
 
-	@Override
-	public NameTitleVal[] getParamDefs()
-	{
-		return null;//need no param
-	}
-	
+            cc++;
+            if (cc > 200 * 30)
+                return null;
+        }
+        while (true);
+    }
 
-	@Override
-	public XmlData chkAndCreateParams(HashMap<String, String> pn2strv, StringBuilder failedr)
-	{
-		return new XmlData(); //return empty
-	}
+    @Override
+    public int getRecvTimeout() {
+        return 0;
+    }
 
-	@Override
-	public void setParams(XmlData xd)
-	{
-		//do nothing
-	}
+    @Override
+    public int getRecvEndTimeout() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public NameTitleVal[] getParamDefs() {
+        return null;//need no param
+    }
+
+
+    @Override
+    public XmlData chkAndCreateParams(HashMap<String, String> pn2strv, StringBuilder failedr) {
+        return new XmlData(); //return empty
+    }
+
+    @Override
+    public void setParams(XmlData xd) {
+        //do nothing
+    }
 
 }

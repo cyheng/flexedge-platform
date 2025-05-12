@@ -6,60 +6,18 @@ package cn.doraro.flexedge.driver.s7.ppi;
 
 import cn.doraro.flexedge.core.UAVal;
 
-public enum PPIMemValTp
-{
-    BIT(1), 
-    B(2), 
-    W(4), 
+public enum PPIMemValTp {
+    BIT(1),
+    B(2),
+    W(4),
     D(6);
-    
+
     private final short val;
-    
+
     private PPIMemValTp(final int v) {
-        this.val = (short)v;
+        this.val = (short) v;
     }
-    
-    public short getVal() {
-        return this.val;
-    }
-    
-    public int getByteNum() {
-        switch (this.val) {
-            case 2: {
-                return 1;
-            }
-            case 4: {
-                return 2;
-            }
-            case 6: {
-                return 4;
-            }
-            default: {
-                return 1;
-            }
-        }
-    }
-    
-    public int getBitNum() {
-        switch (this.val) {
-            case 1: {
-                return 1;
-            }
-            case 2: {
-                return 8;
-            }
-            case 4: {
-                return 16;
-            }
-            case 6: {
-                return 32;
-            }
-            default: {
-                return 8;
-            }
-        }
-    }
-    
+
     public static PPIMemValTp valOf(final char c) {
         switch (c) {
             case 'B': {
@@ -76,7 +34,7 @@ public enum PPIMemValTp
             }
         }
     }
-    
+
     public static PPIMemValTp valOf(final short v) {
         switch (v) {
             case 2: {
@@ -93,7 +51,7 @@ public enum PPIMemValTp
             }
         }
     }
-    
+
     public static PPIMemValTp transFromValTp(final UAVal.ValTP vtp) {
         switch (vtp) {
             case vt_bool: {
@@ -114,6 +72,47 @@ public enum PPIMemValTp
             }
             default: {
                 return null;
+            }
+        }
+    }
+
+    public short getVal() {
+        return this.val;
+    }
+
+    public int getByteNum() {
+        switch (this.val) {
+            case 2: {
+                return 1;
+            }
+            case 4: {
+                return 2;
+            }
+            case 6: {
+                return 4;
+            }
+            default: {
+                return 1;
+            }
+        }
+    }
+
+    public int getBitNum() {
+        switch (this.val) {
+            case 1: {
+                return 1;
+            }
+            case 2: {
+                return 8;
+            }
+            case 4: {
+                return 16;
+            }
+            case 6: {
+                return 32;
+            }
+            default: {
+                return 8;
             }
         }
     }

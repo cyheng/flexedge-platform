@@ -4,24 +4,28 @@
 
 package cn.doraro.flexedge.driver.mitsubishi.fxnet;
 
-public class FxNetMsgWR extends FxNetMsg
-{
+public class FxNetMsgWR extends FxNetMsg {
     static byte[] CMD_BS2;
+
+    static {
+        FxNetMsgWR.CMD_BS2 = new byte[]{87, 82};
+    }
+
     short readNum;
-    
+
     public FxNetMsgWR() {
         this.readNum = -1;
     }
-    
+
     public FxNetMsgWR asReadNum(final short rn) {
         this.readNum = rn;
         return this;
     }
-    
+
     public byte[] getCmdBS2() {
         return FxNetMsgWR.CMD_BS2;
     }
-    
+
     @Override
     public byte[] toBytes() {
         final byte[] bs = new byte[17];
@@ -41,9 +45,5 @@ public class FxNetMsgWR extends FxNetMsg
         final int crc = FxNetMsg.calCRC(bs, 1, 14);
         FxNetMsg.toAsciiHexBytes(crc, bs, 15, 2);
         return bs;
-    }
-    
-    static {
-        FxNetMsgWR.CMD_BS2 = new byte[] { 87, 82 };
     }
 }

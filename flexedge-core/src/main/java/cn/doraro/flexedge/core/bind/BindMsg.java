@@ -2,11 +2,9 @@ package cn.doraro.flexedge.core.bind;
 
 /**
  * send from client
- * 
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public class BindMsg
-{
+public class BindMsg {
 
 }

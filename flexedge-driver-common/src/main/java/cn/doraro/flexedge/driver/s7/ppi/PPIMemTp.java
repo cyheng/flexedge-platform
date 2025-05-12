@@ -6,48 +6,31 @@ package cn.doraro.flexedge.driver.s7.ppi;
 
 import cn.doraro.flexedge.core.UAVal;
 
-public enum PPIMemTp
-{
-    S(4, true, true, PPITp2ValTP.VTP_NOR), 
-    SM(5, true, true, PPITp2ValTP.VTP_NOR), 
-    AI(6, false, false, PPITp2ValTP.VTP_W_S), 
-    AQ(7, false, true, PPITp2ValTP.VTP_W_S), 
-    C(30, false, true, PPITp2ValTP.VTP_W_S), 
-    HC(32, false, false, PPITp2ValTP.VTP_DW_L), 
-    T(31, false, true, PPITp2ValTP.VTP_DW_L), 
-    I(129, true, true, PPITp2ValTP.VTP_NOR), 
-    Q(130, true, true, PPITp2ValTP.VTP_NOR), 
-    M(131, true, true, PPITp2ValTP.VTP_NOR), 
+public enum PPIMemTp {
+    S(4, true, true, PPITp2ValTP.VTP_NOR),
+    SM(5, true, true, PPITp2ValTP.VTP_NOR),
+    AI(6, false, false, PPITp2ValTP.VTP_W_S),
+    AQ(7, false, true, PPITp2ValTP.VTP_W_S),
+    C(30, false, true, PPITp2ValTP.VTP_W_S),
+    HC(32, false, false, PPITp2ValTP.VTP_DW_L),
+    T(31, false, true, PPITp2ValTP.VTP_DW_L),
+    I(129, true, true, PPITp2ValTP.VTP_NOR),
+    Q(130, true, true, PPITp2ValTP.VTP_NOR),
+    M(131, true, true, PPITp2ValTP.VTP_NOR),
     V(132, true, true, PPITp2ValTP.VTP_NOR);
-    
+
     private final short val;
     private final boolean canBit;
     private final boolean bWrite;
     private final UAVal.ValTP[] valTPs;
-    
+
     private PPIMemTp(final int v, final boolean hasbit, final boolean bwrite, final UAVal.ValTP[] vtps) {
-        this.val = (short)v;
+        this.val = (short) v;
         this.canBit = hasbit;
         this.bWrite = bwrite;
         this.valTPs = vtps;
     }
-    
-    public short getVal() {
-        return this.val;
-    }
-    
-    public boolean hasBit() {
-        return this.canBit;
-    }
-    
-    public boolean canWrite() {
-        return this.bWrite;
-    }
-    
-    public UAVal.ValTP[] getFitValTPs() {
-        return this.valTPs;
-    }
-    
+
     public static PPIMemTp valOf(final String ss) {
         switch (ss) {
             case "S": {
@@ -88,7 +71,7 @@ public enum PPIMemTp
             }
         }
     }
-    
+
     public static PPIMemTp valOf(final short v) {
         switch (v) {
             case 4: {
@@ -128,5 +111,21 @@ public enum PPIMemTp
                 throw new IllegalArgumentException("invalid PPI Mem Tp val=" + v);
             }
         }
+    }
+
+    public short getVal() {
+        return this.val;
+    }
+
+    public boolean hasBit() {
+        return this.canBit;
+    }
+
+    public boolean canWrite() {
+        return this.bWrite;
+    }
+
+    public UAVal.ValTP[] getFitValTPs() {
+        return this.valTPs;
     }
 }

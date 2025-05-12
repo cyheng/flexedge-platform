@@ -6,8 +6,7 @@ package cn.doraro.flexedge.driver.omron.fins;
 
 import cn.doraro.flexedge.core.UAVal;
 
-class FinsMode_CV extends FinsMode
-{
+class FinsMode_CV extends FinsMode {
     protected FinsMode_CV() {
         this.setAreaCode(new AreaCode("CIO", "CIO Bit Area", UAVal.ValTP.vt_bool, 0));
         this.setAreaCode(new AreaCode("A", "Auxiliary Bit Area", UAVal.ValTP.vt_bool, 0));

@@ -4,53 +4,26 @@
 
 package cn.doraro.flexedge.driver.nbiot.msg;
 
-import java.io.InputStream;
 import cn.doraro.flexedge.core.util.Convert;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
-public abstract class WMMsg
-{
+public abstract class WMMsg {
     byte[] meterAddr;
     byte[] func;
     private transient long parseReadTO;
-    
+
     public WMMsg() {
         this.meterAddr = null;
         this.func = null;
         this.parseReadTO = 1000L;
     }
-    
-    public void setParseReadTimeout(final long toms) {
-        this.parseReadTO = toms;
-    }
-    
-    public void setMeterAddr(final byte[] addr) {
-        if (addr.length != 8) {
-            throw new IllegalArgumentException("invalid addr info");
-        }
-        this.meterAddr = addr;
-    }
-    
-    public void setMsgFunc(final byte[] func) {
-        if (func.length != 2) {
-            throw new IllegalArgumentException("invalid func info");
-        }
-        this.func = func;
-    }
-    
-    public byte[] getMeterAddr() {
-        return this.meterAddr;
-    }
-    
-    public byte[] getFuncCode() {
-        return this.func;
-    }
-    
+
     protected static final int checkSum(final byte[] addr, final byte[] func, final List<byte[]> body_bs) {
         int r = 104;
         for (int i = 0; i < 8; ++i) {
@@ -68,67 +41,15 @@ public abstract class WMMsg
         }
         return r;
     }
-    
-    private void writeOutInner(final OutputStream outputs) throws IOException {
-        final byte[] bs01 = { -95, 104 };
-        final ArrayList<byte[]> bss = this.getMsgBody();
-        final int chksum = checkSum(this.meterAddr, this.func, bss) & 0xFF;
-        outputs.write(bs01);
-        outputs.write(this.meterAddr);
-        outputs.write(this.func);
-        if (bss != null) {
-            for (final byte[] bs2 : bss) {
-                outputs.write(bs2);
-            }
-        }
-        outputs.write(chksum);
-        outputs.write(22);
-    }
-    
-    public byte[] toWriteOutBytes() throws IOException {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        this.writeOutInner(baos);
-        return baos.toByteArray();
-    }
-    
-    public String toWriteOutHexStr() throws IOException {
-        final byte[] bs = this.toWriteOutBytes();
-        return Convert.byteArray2HexStr(bs);
-    }
-    
-    public final void writeOut(final OutputStream outputs) throws IOException {
-        final byte[] bs = this.toWriteOutBytes();
-        outputs.write(bs);
-    }
-    
-    final int bcd2int(final byte b) {
-        final String s = Integer.toHexString(b & 0xFF);
-        return Integer.parseInt(s);
-    }
-    
-    final byte int2bcd(final int v) {
-        return Byte.parseByte("" + v, 16);
-    }
-    
-    final long bcd2long(final byte[] bs, final int offset, final int len) {
-        String tmps = "";
-        for (int i = 0; i < len; ++i) {
-            final int vh = bs[i + offset] >> 4 & 0xF;
-            final int vl = bs[i + offset] & 0xF;
-            tmps += vh;
-            tmps += vl;
-        }
-        return Long.parseLong(tmps);
-    }
-    
+
     protected static final byte[] readLenTimeout(final InputStream inputs, final int rlen, final long to_ms) throws IOException {
         final byte[] ret = new byte[rlen];
         final long st = System.currentTimeMillis();
         while (inputs.available() < rlen) {
             try {
                 Thread.sleep(1L);
+            } catch (final Exception ex) {
             }
-            catch (final Exception ex) {}
             if (System.currentTimeMillis() - st >= to_ms) {
                 break;
             }
@@ -140,17 +61,7 @@ public abstract class WMMsg
         }
         throw new IOException("time out");
     }
-    
-    protected final byte[] readLenTimeout(final InputStream inputs, final int rlen) throws IOException {
-        return readLenTimeout(inputs, rlen, this.parseReadTO);
-    }
-    
-    protected ArrayList<byte[]> getMsgBody() {
-        return new ArrayList<byte[]>();
-    }
-    
-    protected abstract ArrayList<byte[]> parseMsgBody(final InputStream p0) throws IOException;
-    
+
     public static WMMsg parseMsg(final InputStream inputs) throws IOException {
         byte[] addr = null;
         byte[] func = null;
@@ -197,8 +108,7 @@ public abstract class WMMsg
                         msg = new WMMsgReport();
                         msg.setMeterAddr(addr);
                         msg.setMsgFunc(func);
-                    }
-                    else {
+                    } else {
                         if (f1 != 130 || f2 != 2) {
                             return null;
                         }
@@ -231,7 +141,95 @@ public abstract class WMMsg
             }
         }
     }
-    
+
+    public void setParseReadTimeout(final long toms) {
+        this.parseReadTO = toms;
+    }
+
+    public void setMsgFunc(final byte[] func) {
+        if (func.length != 2) {
+            throw new IllegalArgumentException("invalid func info");
+        }
+        this.func = func;
+    }
+
+    public byte[] getMeterAddr() {
+        return this.meterAddr;
+    }
+
+    public void setMeterAddr(final byte[] addr) {
+        if (addr.length != 8) {
+            throw new IllegalArgumentException("invalid addr info");
+        }
+        this.meterAddr = addr;
+    }
+
+    public byte[] getFuncCode() {
+        return this.func;
+    }
+
+    private void writeOutInner(final OutputStream outputs) throws IOException {
+        final byte[] bs01 = {-95, 104};
+        final ArrayList<byte[]> bss = this.getMsgBody();
+        final int chksum = checkSum(this.meterAddr, this.func, bss) & 0xFF;
+        outputs.write(bs01);
+        outputs.write(this.meterAddr);
+        outputs.write(this.func);
+        if (bss != null) {
+            for (final byte[] bs2 : bss) {
+                outputs.write(bs2);
+            }
+        }
+        outputs.write(chksum);
+        outputs.write(22);
+    }
+
+    public byte[] toWriteOutBytes() throws IOException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        this.writeOutInner(baos);
+        return baos.toByteArray();
+    }
+
+    public String toWriteOutHexStr() throws IOException {
+        final byte[] bs = this.toWriteOutBytes();
+        return Convert.byteArray2HexStr(bs);
+    }
+
+    public final void writeOut(final OutputStream outputs) throws IOException {
+        final byte[] bs = this.toWriteOutBytes();
+        outputs.write(bs);
+    }
+
+    final int bcd2int(final byte b) {
+        final String s = Integer.toHexString(b & 0xFF);
+        return Integer.parseInt(s);
+    }
+
+    final byte int2bcd(final int v) {
+        return Byte.parseByte("" + v, 16);
+    }
+
+    final long bcd2long(final byte[] bs, final int offset, final int len) {
+        String tmps = "";
+        for (int i = 0; i < len; ++i) {
+            final int vh = bs[i + offset] >> 4 & 0xF;
+            final int vl = bs[i + offset] & 0xF;
+            tmps += vh;
+            tmps += vl;
+        }
+        return Long.parseLong(tmps);
+    }
+
+    protected final byte[] readLenTimeout(final InputStream inputs, final int rlen) throws IOException {
+        return readLenTimeout(inputs, rlen, this.parseReadTO);
+    }
+
+    protected ArrayList<byte[]> getMsgBody() {
+        return new ArrayList<byte[]>();
+    }
+
+    protected abstract ArrayList<byte[]> parseMsgBody(final InputStream p0) throws IOException;
+
     @Override
     public String toString() {
         String ret = "addr=" + Convert.byteArray2HexStr(this.meterAddr);

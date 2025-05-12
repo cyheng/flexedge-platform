@@ -4,37 +4,29 @@
 
 package cn.doraro.flexedge.driver.common.modbus.slave;
 
-import java.util.StringTokenizer;
-import java.io.Reader;
+import cn.doraro.flexedge.core.Config;
+import cn.doraro.flexedge.core.util.Convert;
+import org.w3c.dom.Element;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import org.w3c.dom.Element;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.Config;
-import java.util.List;
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
-public class MSlaveManager
-{
+public class MSlaveManager {
     static Object locker;
     static MSlaveManager slaveMgr;
+
+    static {
+        MSlaveManager.locker = new Object();
+        MSlaveManager.slaveMgr = null;
+    }
+
     ArrayList<MSlave> slaves;
     Thread monThread;
     Runnable monRunner;
-    
-    public static MSlaveManager getInstance() {
-        if (MSlaveManager.slaveMgr != null) {
-            return MSlaveManager.slaveMgr;
-        }
-        synchronized (MSlaveManager.locker) {
-            if (MSlaveManager.slaveMgr != null) {
-                return MSlaveManager.slaveMgr;
-            }
-            return MSlaveManager.slaveMgr = new MSlaveManager();
-        }
-    }
-    
+
     private MSlaveManager() {
         this.slaves = new ArrayList<MSlave>();
         this.monThread = null;
@@ -58,8 +50,8 @@ public class MSlaveManager
                     }
                     try {
                         Thread.sleep(50L);
+                    } catch (final Exception ex) {
                     }
-                    catch (final Exception ex) {}
                 }
             }
         };
@@ -75,9 +67,9 @@ public class MSlaveManager
             }
             if ("tcp_server".equals(t)) {
                 ms = new MSlaveTcpServer();
-            }
-            else if (!"tcp_client".equals(t)) {
-                if ("com".equalsIgnoreCase(t)) {}
+            } else if (!"tcp_client".equals(t)) {
+                if ("com".equalsIgnoreCase(t)) {
+                }
             }
             if (ms != null) {
                 ms.init(sele);
@@ -85,25 +77,19 @@ public class MSlaveManager
             }
         }
     }
-    
-    public void start() {
-        for (final MSlave ms : this.slaves) {
-            ms.start();
+
+    public static MSlaveManager getInstance() {
+        if (MSlaveManager.slaveMgr != null) {
+            return MSlaveManager.slaveMgr;
         }
-        (this.monThread = new Thread(this.monRunner, "mslave_mon")).start();
-    }
-    
-    public void stop() {
-        for (final MSlave ms : this.slaves) {
-            ms.stop();
-        }
-        final Thread st = this.monThread;
-        if (st != null) {
-            st.interrupt();
-            this.monThread = null;
+        synchronized (MSlaveManager.locker) {
+            if (MSlaveManager.slaveMgr != null) {
+                return MSlaveManager.slaveMgr;
+            }
+            return MSlaveManager.slaveMgr = new MSlaveManager();
         }
     }
-    
+
     public static void main(final String[] args) throws Exception {
         final MSlaveManager pm = new MSlaveManager();
         final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -122,26 +108,21 @@ public class MSlaveManager
                 }
                 if ("start".equals(cmds[0])) {
                     pm.start();
-                }
-                else if ("stop".equals(cmds[0])) {
+                } else if ("stop".equals(cmds[0])) {
                     pm.stop();
-                }
-                else if ("ls".equals(cmds[0])) {
+                } else if ("ls".equals(cmds[0])) {
                     for (final MSlave pp : pm.slaves) {
                         System.out.println(pp);
                     }
-                }
-                else {
+                } else {
                     if ("exit".equals(cmds[0])) {
                         break;
                     }
                     continue;
                 }
-            }
-            catch (final Exception _e) {
+            } catch (final Exception _e) {
                 _e.printStackTrace();
-            }
-            finally {
+            } finally {
                 if (sDevId != null) {
                     System.out.print(sDevId);
                 }
@@ -150,9 +131,22 @@ public class MSlaveManager
         }
         System.exit(0);
     }
-    
-    static {
-        MSlaveManager.locker = new Object();
-        MSlaveManager.slaveMgr = null;
+
+    public void start() {
+        for (final MSlave ms : this.slaves) {
+            ms.start();
+        }
+        (this.monThread = new Thread(this.monRunner, "mslave_mon")).start();
+    }
+
+    public void stop() {
+        for (final MSlave ms : this.slaves) {
+            ms.stop();
+        }
+        final Thread st = this.monThread;
+        if (st != null) {
+            st.interrupt();
+            this.monThread = null;
+        }
     }
 }

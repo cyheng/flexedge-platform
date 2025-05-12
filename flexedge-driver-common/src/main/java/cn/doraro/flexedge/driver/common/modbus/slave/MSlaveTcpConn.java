@@ -4,70 +4,37 @@
 
 package cn.doraro.flexedge.driver.common.modbus.slave;
 
+import cn.doraro.flexedge.core.util.logger.ILogger;
 import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import java.util.Iterator;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadWords;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadBits;
 import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
-import java.util.Collection;
-import java.util.List;
-import java.io.OutputStream;
+import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadBits;
+import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadWords;
+
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import cn.doraro.flexedge.core.util.logger.ILogger;
+import java.util.List;
 
-public class MSlaveTcpConn implements Runnable
-{
+public class MSlaveTcpConn implements Runnable {
+    static final int BUF_LEN = 255;
     static ILogger log;
     static Object lockObj;
     static ArrayList<MSlaveTcpConn> ALL_CONNS;
+
+    static {
+        MSlaveTcpConn.log = LoggerManager.getLogger((Class) MSlaveTcpConn.class);
+        MSlaveTcpConn.lockObj = new Object();
+        MSlaveTcpConn.ALL_CONNS = new ArrayList<MSlaveTcpConn>();
+    }
+
     Socket socket;
     InputStream serInputs;
     OutputStream serOutputs;
     Thread thread;
     boolean bRun;
     MSlave belongTo;
-    static final int BUF_LEN = 255;
-    
-    private static void increaseCount(final MSlaveTcpConn c) {
-        synchronized (MSlaveTcpConn.lockObj) {
-            MSlaveTcpConn.ALL_CONNS.add(c);
-        }
-    }
-    
-    private static void decreaseCount(final MSlaveTcpConn c) {
-        synchronized (MSlaveTcpConn.lockObj) {
-            MSlaveTcpConn.ALL_CONNS.remove(c);
-        }
-    }
-    
-    public static int getConnCount() {
-        return MSlaveTcpConn.ALL_CONNS.size();
-    }
-    
-    public static MSlaveTcpConn[] getAllConns() {
-        synchronized (MSlaveTcpConn.lockObj) {
-            final MSlaveTcpConn[] rets = new MSlaveTcpConn[MSlaveTcpConn.ALL_CONNS.size()];
-            MSlaveTcpConn.ALL_CONNS.toArray(rets);
-            return rets;
-        }
-    }
-    
-    public static void closeAllConns() {
-        for (final MSlaveTcpConn pcf : getAllConns()) {
-            pcf.stopForce();
-        }
-    }
-    
-    public static List<MSlaveTcpConn> getAllClientsList() {
-        synchronized (MSlaveTcpConn.lockObj) {
-            final List<MSlaveTcpConn> rets = new ArrayList<MSlaveTcpConn>();
-            rets.addAll(MSlaveTcpConn.ALL_CONNS);
-            return rets;
-        }
-    }
-    
+
     public MSlaveTcpConn(final MSlave ms, final Socket socket) throws Exception {
         this.socket = null;
         this.serInputs = null;
@@ -81,56 +48,93 @@ public class MSlaveTcpConn implements Runnable
         this.serOutputs = socket.getOutputStream();
         increaseCount(this);
     }
-    
+
+    private static void increaseCount(final MSlaveTcpConn c) {
+        synchronized (MSlaveTcpConn.lockObj) {
+            MSlaveTcpConn.ALL_CONNS.add(c);
+        }
+    }
+
+    private static void decreaseCount(final MSlaveTcpConn c) {
+        synchronized (MSlaveTcpConn.lockObj) {
+            MSlaveTcpConn.ALL_CONNS.remove(c);
+        }
+    }
+
+    public static int getConnCount() {
+        return MSlaveTcpConn.ALL_CONNS.size();
+    }
+
+    public static MSlaveTcpConn[] getAllConns() {
+        synchronized (MSlaveTcpConn.lockObj) {
+            final MSlaveTcpConn[] rets = new MSlaveTcpConn[MSlaveTcpConn.ALL_CONNS.size()];
+            MSlaveTcpConn.ALL_CONNS.toArray(rets);
+            return rets;
+        }
+    }
+
+    public static void closeAllConns() {
+        for (final MSlaveTcpConn pcf : getAllConns()) {
+            pcf.stopForce();
+        }
+    }
+
+    public static List<MSlaveTcpConn> getAllClientsList() {
+        synchronized (MSlaveTcpConn.lockObj) {
+            final List<MSlaveTcpConn> rets = new ArrayList<MSlaveTcpConn>();
+            rets.addAll(MSlaveTcpConn.ALL_CONNS);
+            return rets;
+        }
+    }
+
     void closeTcpConn() {
         try {
             if (this.serInputs != null) {
                 try {
                     this.serInputs.close();
+                } catch (final Exception ex) {
                 }
-                catch (final Exception ex) {}
             }
             if (this.serOutputs != null) {
                 try {
                     this.serOutputs.close();
+                } catch (final Exception ex2) {
                 }
-                catch (final Exception ex2) {}
             }
             if (this.socket != null) {
                 try {
                     this.socket.close();
+                } catch (final Exception ex3) {
                 }
-                catch (final Exception ex3) {}
             }
-        }
-        finally {
+        } finally {
             this.socket = null;
             decreaseCount(this);
         }
     }
-    
+
     private void delay(final int ms) {
         try {
             Thread.sleep(ms);
+        } catch (final Exception ex) {
         }
-        catch (final Exception ex) {}
     }
-    
+
     private byte[] onReadReqAndResp(final byte[] reqbs, final int[] parseleft) {
         final ModbusCmd mc = ModbusCmd.parseRequest(reqbs, parseleft);
         if (mc == null) {
             return null;
         }
         if (mc instanceof ModbusCmdReadBits) {
-            final ModbusCmdReadBits mcb = (ModbusCmdReadBits)mc;
+            final ModbusCmdReadBits mcb = (ModbusCmdReadBits) mc;
             return this.onReqAndRespBits(mcb);
         }
         if (mc instanceof ModbusCmdReadWords) {
-            return this.onReqAndRespWords((ModbusCmdReadWords)mc);
+            return this.onReqAndRespWords((ModbusCmdReadWords) mc);
         }
         return null;
     }
-    
+
     private byte[] onReqAndRespBits(final ModbusCmdReadBits mcb) {
         final short devid = mcb.getDevAddr();
         final int req_idx = mcb.getRegAddr();
@@ -158,7 +162,7 @@ public class MSlaveTcpConn implements Runnable
             if (!(sd instanceof MSlaveDataProvider.BoolDatas)) {
                 continue;
             }
-            final MSlaveDataProvider.BoolDatas msb = (MSlaveDataProvider.BoolDatas)sd;
+            final MSlaveDataProvider.BoolDatas msb = (MSlaveDataProvider.BoolDatas) sd;
             final boolean[] bs = msb.getBoolUsingDatas();
             if (bs == null) {
                 continue;
@@ -166,21 +170,18 @@ public class MSlaveTcpConn implements Runnable
             if (req_idx < dp_regidx) {
                 if (req_idx + req_num < dp_regidx + bs.length) {
                     System.arraycopy(bs, 0, resp, dp_regidx - req_idx, req_num - (dp_regidx - req_idx));
-                }
-                else {
+                } else {
                     System.arraycopy(bs, 0, resp, dp_regidx - req_idx, bs.length);
                 }
-            }
-            else if (req_idx + req_num < dp_regidx + bs.length) {
+            } else if (req_idx + req_num < dp_regidx + bs.length) {
                 System.arraycopy(bs, req_idx - dp_regidx, resp, 0, req_num);
-            }
-            else {
+            } else {
                 System.arraycopy(bs, req_idx - dp_regidx, resp, 0, bs.length - (req_idx - dp_regidx));
             }
         }
         return ModbusCmdReadBits.createResp(mcb, devid, mcb.getFC(), resp);
     }
-    
+
     private byte[] onReqAndRespWords(final ModbusCmdReadWords mcb) {
         final short devid = mcb.getDevAddr();
         final int req_idx = mcb.getRegAddr();
@@ -208,7 +209,7 @@ public class MSlaveTcpConn implements Runnable
             if (!(sd instanceof MSlaveDataProvider.SlaveDataWord)) {
                 continue;
             }
-            final MSlaveDataProvider.SlaveDataWord msb = (MSlaveDataProvider.SlaveDataWord)sd;
+            final MSlaveDataProvider.SlaveDataWord msb = (MSlaveDataProvider.SlaveDataWord) sd;
             final short[] bs = msb.getInt16UsingDatas();
             if (bs == null) {
                 continue;
@@ -216,21 +217,18 @@ public class MSlaveTcpConn implements Runnable
             if (req_idx < dp_regidx) {
                 if (req_idx + req_num < dp_regidx + bs.length) {
                     System.arraycopy(bs, 0, resp, dp_regidx - req_idx, req_num - (dp_regidx - req_idx));
-                }
-                else {
+                } else {
                     System.arraycopy(bs, 0, resp, dp_regidx - req_idx, bs.length);
                 }
-            }
-            else if (req_idx + req_num < dp_regidx + bs.length) {
+            } else if (req_idx + req_num < dp_regidx + bs.length) {
                 System.arraycopy(bs, req_idx - dp_regidx, resp, 0, req_num);
-            }
-            else {
+            } else {
                 System.arraycopy(bs, req_idx - dp_regidx, resp, 0, bs.length - (req_idx - dp_regidx));
             }
         }
         return ModbusCmdReadWords.createResp(mcb, devid, mcb.getFC(), resp);
     }
-    
+
     @Override
     public void run() {
         try {
@@ -240,7 +238,7 @@ public class MSlaveTcpConn implements Runnable
             long last_no_dt = System.currentTimeMillis();
             final byte[] buf = new byte[255];
             final int len = 0;
-        Label_0343_Outer:
+            Label_0343_Outer:
             while (this.bRun) {
                 this.delay(1);
                 if (last_dlen == 0) {
@@ -251,17 +249,14 @@ public class MSlaveTcpConn implements Runnable
                         }
                         last_no_dt = System.currentTimeMillis();
                         this.socket.sendUrgentData(0);
-                    }
-                    else {
+                    } else {
                         last_dlen = this.serInputs.available();
                         last_dt = System.currentTimeMillis();
                     }
-                }
-                else if (this.serInputs.available() > last_dlen) {
+                } else if (this.serInputs.available() > last_dlen) {
                     last_dlen = this.serInputs.available();
                     last_dt = System.currentTimeMillis();
-                }
-                else {
+                } else {
                     if (System.currentTimeMillis() - last_dt < 10L) {
                         continue Label_0343_Outer;
                     }
@@ -271,15 +266,14 @@ public class MSlaveTcpConn implements Runnable
                             this.serInputs.skip(last_dlen);
                             continue Label_0343_Outer;
                         }
-                    }
-                    finally {
+                    } finally {
                         last_dlen = 0;
                         last_dt = 0L;
                     }
                     byte[] rdata = new byte[rlen];
                     this.serInputs.read(rdata);
                     final long st = System.currentTimeMillis();
-                    final int[] pl = { 0 };
+                    final int[] pl = {0};
                     while (true) {
                         while (pl[0] >= 0) {
                             if (pl[0] > 0) {
@@ -300,17 +294,15 @@ public class MSlaveTcpConn implements Runnable
                     }
                 }
             }
-        }
-        catch (final Throwable e) {
+        } catch (final Throwable e) {
             MSlaveTcpConn.log.error("MSlaveTcpConn Broken:" + e.getMessage());
-        }
-        finally {
+        } finally {
             this.thread = null;
             this.bRun = false;
             this.onRunnerStopped();
         }
     }
-    
+
     synchronized void startRunner() {
         if (this.thread != null) {
             return;
@@ -318,11 +310,11 @@ public class MSlaveTcpConn implements Runnable
         this.bRun = true;
         (this.thread = new Thread(this, "MSlaveRunner")).start();
     }
-    
+
     public void start() throws Exception {
         this.startRunner();
     }
-    
+
     protected synchronized void stopRunner(final boolean interrupt) {
         final Thread th = this.thread;
         if (th == null) {
@@ -334,11 +326,11 @@ public class MSlaveTcpConn implements Runnable
         }
         this.onRunnerStopped();
     }
-    
+
     public void stopForce() {
         this.stopRunner(true);
     }
-    
+
     protected boolean checkEnd(final boolean bhalt) {
         if (this.socket.isClosed()) {
             return true;
@@ -346,44 +338,37 @@ public class MSlaveTcpConn implements Runnable
         if (bhalt) {
             try {
                 this.socket.sendUrgentData(255);
-            }
-            catch (final Exception ex) {
+            } catch (final Exception ex) {
                 try {
                     this.socket.close();
+                } catch (final Exception ex2) {
                 }
-                catch (final Exception ex2) {}
                 return true;
             }
         }
         return false;
     }
-    
+
     protected InputStream getInputStream() {
         return this.serInputs;
     }
-    
+
     protected OutputStream getOutputStream() {
         return this.serOutputs;
     }
-    
+
     protected void onRunnerStopped() {
         this.closeTcpConn();
     }
-    
+
     public boolean isRunningOk() {
         return this.socket != null;
     }
-    
+
     public String getRunningInfo() {
         if (this.isRunningOk()) {
             return "ok";
         }
         return "tcp error";
-    }
-    
-    static {
-        MSlaveTcpConn.log = LoggerManager.getLogger((Class)MSlaveTcpConn.class);
-        MSlaveTcpConn.lockObj = new Object();
-        MSlaveTcpConn.ALL_CONNS = new ArrayList<MSlaveTcpConn>();
     }
 }

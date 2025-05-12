@@ -5,30 +5,34 @@
 package cn.doraro.flexedge.pro.modbuss;
 
 import cn.doraro.flexedge.core.UATag;
-import org.json.JSONObject;
+import cn.doraro.flexedge.core.UAVal;
+import cn.doraro.flexedge.core.basic.ByteOrder;
+import cn.doraro.flexedge.core.basic.MemSeg8;
+import cn.doraro.flexedge.core.util.CompressUUID;
 import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.xmldata.DataUtil;
-import cn.doraro.flexedge.core.basic.ByteOrder;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.util.CompressUUID;
-import java.util.ArrayList;
+import cn.doraro.flexedge.core.util.xmldata.data_class;
+import cn.doraro.flexedge.core.util.xmldata.data_obj;
+import cn.doraro.flexedge.core.util.xmldata.data_val;
+import org.json.JSONObject;
+
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
-import cn.doraro.flexedge.core.basic.MemSeg8;
-import cn.doraro.flexedge.core.util.xmldata.data_obj;
-import java.util.List;
-import cn.doraro.flexedge.core.util.xmldata.data_val;
 import java.util.LinkedHashMap;
-import cn.doraro.flexedge.core.util.xmldata.data_class;
+import java.util.List;
 
 @data_class
-public class SlaveDevSeg
-{
+public class SlaveDevSeg {
     public static final int MAX_SEG_REG_NUM = 1024;
     private static LinkedHashMap<Integer, String> fc2titles;
+
+    static {
+        SlaveDevSeg.fc2titles = null;
+    }
+
     @data_val
     String id;
     @data_val
@@ -50,11 +54,24 @@ public class SlaveDevSeg
     private HashMap<Integer, List<SlaveVar>> RT_idx2vars;
     private HashMap<Integer, SlaveBindTag> RT_idx2tag;
     private boolean RT_bValid;
-    
-    static {
-        SlaveDevSeg.fc2titles = null;
+
+    public SlaveDevSeg() {
+        this.id = null;
+        this.title = null;
+        this.fc = 1;
+        this.regIdx = 0;
+        this.regNum = 0;
+        this.vars = new ArrayList<SlaveVar>();
+        this.bind_tags = new ArrayList<SlaveBindTag>();
+        this.boolDatas = null;
+        this.numDatas = null;
+        this.RT_name2var = null;
+        this.RT_idx2vars = null;
+        this.RT_idx2tag = null;
+        this.RT_bValid = true;
+        this.id = CompressUUID.createNewId();
     }
-    
+
     static byte[] floatToByte(final float v) {
         final ByteBuffer bb = ByteBuffer.allocate(4);
         final byte[] ret = new byte[4];
@@ -63,13 +80,13 @@ public class SlaveDevSeg
         bb.get(ret);
         return ret;
     }
-    
+
     static float byteToFloat(final byte[] v) {
         final ByteBuffer bb = ByteBuffer.wrap(v);
         final FloatBuffer fb = bb.asFloatBuffer();
         return fb.get();
     }
-    
+
     static byte[] doubleToByte(final double v) {
         final ByteBuffer bb = ByteBuffer.allocate(8);
         final byte[] ret = new byte[8];
@@ -78,13 +95,13 @@ public class SlaveDevSeg
         bb.get(ret);
         return ret;
     }
-    
+
     static double byteToDouble(final byte[] v) {
         final ByteBuffer bb = ByteBuffer.wrap(v);
         final DoubleBuffer fb = bb.asDoubleBuffer();
         return fb.get();
     }
-    
+
     public static LinkedHashMap<Integer, String> listFCs() {
         if (SlaveDevSeg.fc2titles != null) {
             return SlaveDevSeg.fc2titles;
@@ -96,7 +113,7 @@ public class SlaveDevSeg
         f2t.put(4, "Input Register(R Word)");
         return SlaveDevSeg.fc2titles = f2t;
     }
-    
+
     public static String getAddressStr(final int fc, final int reg) {
         if (reg < 0 || reg > 65535) {
             throw new IllegalArgumentException("reg must be in 0-65535");
@@ -119,60 +136,43 @@ public class SlaveDevSeg
             }
         }
     }
-    
-    public SlaveDevSeg() {
-        this.id = null;
-        this.title = null;
-        this.fc = 1;
-        this.regIdx = 0;
-        this.regNum = 0;
-        this.vars = new ArrayList<SlaveVar>();
-        this.bind_tags = new ArrayList<SlaveBindTag>();
-        this.boolDatas = null;
-        this.numDatas = null;
-        this.RT_name2var = null;
-        this.RT_idx2vars = null;
-        this.RT_idx2tag = null;
-        this.RT_bValid = true;
-        this.id = CompressUUID.createNewId();
-    }
-    
+
     public String getId() {
         return this.id;
     }
-    
+
     public String getTitle() {
         return this.title;
     }
-    
+
     public int getFC() {
         return this.fc;
     }
-    
+
     public String getFCTitle() {
         return listFCs().get(this.fc);
     }
-    
+
     public int getRegIdx() {
         return this.regIdx;
     }
-    
+
     public int getRegNum() {
         return this.regNum;
     }
-    
+
     public String getAddressStr(final int reg) {
         return getAddressStr(this.fc, reg);
     }
-    
+
     public boolean canWriter() {
         return this.fc == 1 || this.fc == 3;
     }
-    
+
     public List<SlaveVar> getSlaveVars() {
         return this.vars;
     }
-    
+
     public SlaveVar getSlaveVar(final int regidx) {
         if (this.vars == null) {
             return null;
@@ -184,19 +184,18 @@ public class SlaveDevSeg
         }
         return null;
     }
-    
+
     public SlaveVar setSlaveVar(final int idx, final String name) {
         SlaveVar st = this.getSlaveVar(idx);
         if (st == null) {
             st = new SlaveVar(name, idx);
             this.vars.add(st);
-        }
-        else {
+        } else {
             st.asName(name);
         }
         return st;
     }
-    
+
     public SlaveVar removeSlaveVar(final int regidx) {
         if (this.vars == null) {
             return null;
@@ -209,15 +208,15 @@ public class SlaveDevSeg
         }
         return null;
     }
-    
+
     public boolean isBoolData() {
         return this.fc == 1 || this.fc == 2;
     }
-    
+
     public boolean[] getSlaveDataBool() {
         return this.boolDatas;
     }
-    
+
     public void setSlaveDataBool(final int reg, final boolean v, final boolean b_on_write) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
@@ -227,97 +226,93 @@ public class SlaveDevSeg
             this.RT_onRegIdxWriteBool_Int16(reg, v);
         }
     }
-    
+
     public short[] getSlaveDataInt16s() {
         final short[] rets = new short[this.regNum];
         for (int i = 0; i < this.regNum; ++i) {
-            rets[i] = (short)this.getSlaveDataBool_Int16(this.regIdx + i);
+            rets[i] = (short) this.getSlaveDataBool_Int16(this.regIdx + i);
         }
         return rets;
     }
-    
+
     public void setSlaveDataInt16(final int reg, final short v, final boolean b_on_write) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
-        this.numDatas.setValNumber(UAVal.ValTP.vt_int16, (long)(reg * 2), (Number)v, ByteOrder.ModbusWord);
+        this.numDatas.setValNumber(UAVal.ValTP.vt_int16, (long) (reg * 2), (Number) v, ByteOrder.ModbusWord);
         if (b_on_write) {
             this.RT_onRegIdxWriteBool_Int16(reg, v);
         }
     }
-    
+
     public void setSlaveDataInt16s(final int reg, final int[] vs, final boolean b_on_write) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
         for (int i = 0; i < vs.length; ++i) {
-            this.numDatas.setValNumber(UAVal.ValTP.vt_int16, (long)(reg * 2 + i * 2), (Number)vs[i], ByteOrder.ModbusWord);
+            this.numDatas.setValNumber(UAVal.ValTP.vt_int16, (long) (reg * 2 + i * 2), (Number) vs[i], ByteOrder.ModbusWord);
         }
         if (b_on_write) {
             this.RT_onRegIdxWriteInt16s(reg, vs);
         }
     }
-    
+
     public void setSlaveDataInt32(final int reg, final int v) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
-        this.numDatas.setValNumber(UAVal.ValTP.vt_int32, (long)(reg * 2), (Number)v, ByteOrder.ModbusWord);
+        this.numDatas.setValNumber(UAVal.ValTP.vt_int32, (long) (reg * 2), (Number) v, ByteOrder.ModbusWord);
     }
-    
+
     public void setSlaveDataInt64(final int reg, final long v) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
-        this.numDatas.setValNumber(UAVal.ValTP.vt_int64, (long)(reg * 2), (Number)v, ByteOrder.ModbusWord);
+        this.numDatas.setValNumber(UAVal.ValTP.vt_int64, (long) (reg * 2), (Number) v, ByteOrder.ModbusWord);
     }
-    
+
     public void setSlaveDataFloat(final int reg, final float v) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
         final byte[] bs = new byte[4];
         DataUtil.floatToBytes(v, bs, 0);
-        this.numDatas.setValNumber(UAVal.ValTP.vt_float, (long)(reg * 2), (Number)v, ByteOrder.ModbusWord);
+        this.numDatas.setValNumber(UAVal.ValTP.vt_float, (long) (reg * 2), (Number) v, ByteOrder.ModbusWord);
     }
-    
+
     public void setSlaveDataDouble(final int reg, final double v) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return;
         }
-        this.numDatas.setValNumber(UAVal.ValTP.vt_double, (long)(reg * 2), (Number)v, ByteOrder.ModbusWord);
+        this.numDatas.setValNumber(UAVal.ValTP.vt_double, (long) (reg * 2), (Number) v, ByteOrder.ModbusWord);
     }
-    
+
     public void setSlaveDataStr(final int reg, final String v) {
         if (this.isBoolData()) {
             final boolean bv = "true".equals(v) || "1".equals(v);
             this.setSlaveDataBool(reg, bv, false);
-        }
-        else {
-            final short tmpv = (short)Convert.parseToInt32(v, 0);
+        } else {
+            final short tmpv = (short) Convert.parseToInt32(v, 0);
             this.setSlaveDataInt16(reg, tmpv, false);
         }
     }
-    
+
     public boolean setSlaveDataObj(final int reg, final UAVal.ValTP vtp, final Object v) {
         if (this.isBoolData()) {
             boolean bv = false;
             if (v instanceof Boolean) {
-                bv = (boolean)v;
-            }
-            else if (v instanceof String) {
+                bv = (boolean) v;
+            } else if (v instanceof String) {
                 bv = ("true".equals(v) || "1".equals(v));
-            }
-            else if (v instanceof Number) {
-                bv = (((Number)v).intValue() > 0);
-            }
-            else {
+            } else if (v instanceof Number) {
+                bv = (((Number) v).intValue() > 0);
+            } else {
                 bv = ("true".equals(v) || "1".equals(v));
             }
             this.setSlaveDataBool(reg, bv, false);
             return true;
         }
-        final Number num = (Number)v;
+        final Number num = (Number) v;
         switch (vtp) {
             case vt_byte:
             case vt_char:
@@ -350,7 +345,7 @@ public class SlaveDevSeg
             }
         }
     }
-    
+
     public Object getSlaveDataBool_Int16(final int reg) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return null;
@@ -358,9 +353,9 @@ public class SlaveDevSeg
         if (this.isBoolData()) {
             return this.boolDatas[reg - this.regIdx];
         }
-        return this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long)(reg * 2), ByteOrder.ModbusWord);
+        return this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long) (reg * 2), ByteOrder.ModbusWord);
     }
-    
+
     public String getSlaveDataStr4Show(final int reg) {
         if (reg < this.regIdx || reg >= this.regIdx + this.regNum) {
             return null;
@@ -370,16 +365,15 @@ public class SlaveDevSeg
                 return "0";
             }
             return this.boolDatas[reg - this.regIdx] ? "1" : "0";
-        }
-        else {
+        } else {
             if (this.numDatas == null) {
                 return "0";
             }
-            final Number obv = this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long)(reg * 2), ByteOrder.ModbusWord);
+            final Number obv = this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long) (reg * 2), ByteOrder.ModbusWord);
             return obv.toString();
         }
     }
-    
+
     boolean RT_init() {
         switch (this.fc) {
             case 1:
@@ -392,7 +386,7 @@ public class SlaveDevSeg
             }
             case 3:
             case 4: {
-                this.numDatas = new MemSeg8((long)(this.regIdx * 2), this.regNum * 2);
+                this.numDatas = new MemSeg8((long) (this.regIdx * 2), this.regNum * 2);
                 break;
             }
         }
@@ -420,14 +414,13 @@ public class SlaveDevSeg
         this.RT_idx2tag = idx2tag;
         return true;
     }
-    
+
     private void RT_onRegIdxWriteBool_Int16(final int regidx, final Object ob) {
         if (this.isBoolData()) {
             if (!(ob instanceof Boolean)) {
                 return;
             }
-        }
-        else if (!(ob instanceof Short)) {
+        } else if (!(ob instanceof Short)) {
             return;
         }
         final List<SlaveVar> svs = this.RT_idx2vars.get(regidx);
@@ -450,7 +443,7 @@ public class SlaveDevSeg
             this.belongTo.belongTo.RT_onMasterWriteBindTag(this, bt, ob);
         }
     }
-    
+
     private void RT_onRegIdxWriteInt16s(final int regidx, final int[] regvs) {
         final int regn = regvs.length;
         if (regn <= 0) {
@@ -460,7 +453,7 @@ public class SlaveDevSeg
             this.RT_onRegIdxWriteInt16s(regidx, regvs, i);
         }
     }
-    
+
     private void RT_onRegIdxWriteInt16s(final int regidx, final int[] regvs, final int idx) {
         final List<SlaveVar> svs = this.RT_idx2vars.get(regidx + idx);
         if (svs != null && svs.size() > 0) {
@@ -488,21 +481,21 @@ public class SlaveDevSeg
                 final Object ob = this.getOrCombVal(tagvt, regvs, idx);
                 if (ob != null) {
                     final JSONObject jo2 = new JSONObject();
-                    jo2.put("tag", (Object)bt.getTagPath());
+                    jo2.put("tag", (Object) bt.getTagPath());
                     jo2.put("value", ob);
                     this.belongTo.belongTo.RT_onMasterWriteTag(this, jo2);
                 }
             }
         }
     }
-    
+
     private Object getOrCombVal(final UAVal.ValTP vt, final int[] regvs, final int idx) {
         if (vt == null) {
             return null;
         }
         switch (vt) {
             case vt_int16: {
-                return (short)regvs[idx];
+                return (short) regvs[idx];
             }
             case vt_uint16: {
                 return regvs[idx] & 0xFFFF;
@@ -514,8 +507,8 @@ public class SlaveDevSeg
                     return null;
                 }
                 final byte[] bs = new byte[4];
-                DataUtil.shortToBytes((short)regvs[idx], bs, 0);
-                DataUtil.shortToBytes((short)regvs[idx + 1], bs, 2);
+                DataUtil.shortToBytes((short) regvs[idx], bs, 0);
+                DataUtil.shortToBytes((short) regvs[idx + 1], bs, 2);
                 if (vt == UAVal.ValTP.vt_float) {
                     return DataUtil.bytesToFloat(bs, ByteOrder.ModbusWord);
                 }
@@ -523,7 +516,7 @@ public class SlaveDevSeg
                 if (vt == UAVal.ValTP.vt_int32) {
                     return intv;
                 }
-                return (long)intv & -1L;
+                return (long) intv & -1L;
             }
             case vt_int64:
             case vt_double: {
@@ -531,10 +524,10 @@ public class SlaveDevSeg
                     return null;
                 }
                 final byte[] bs = new byte[8];
-                DataUtil.shortToBytes((short)regvs[idx], bs, 0);
-                DataUtil.shortToBytes((short)regvs[idx + 1], bs, 2);
-                DataUtil.shortToBytes((short)regvs[idx + 2], bs, 4);
-                DataUtil.shortToBytes((short)regvs[idx + 3], bs, 6);
+                DataUtil.shortToBytes((short) regvs[idx], bs, 0);
+                DataUtil.shortToBytes((short) regvs[idx + 1], bs, 2);
+                DataUtil.shortToBytes((short) regvs[idx + 2], bs, 4);
+                DataUtil.shortToBytes((short) regvs[idx + 3], bs, 6);
                 if (vt == UAVal.ValTP.vt_double) {
                     return DataUtil.bytesToDouble(bs, 0, ByteOrder.ModbusWord);
                 }
@@ -545,10 +538,10 @@ public class SlaveDevSeg
             }
         }
     }
-    
+
     private void RT_onRegIdxWriteBits(final int regidx, final boolean[] regvs) {
     }
-    
+
     public String RT_getDataJsonArrStr() {
         final StringBuilder sb = new StringBuilder();
         switch (this.fc) {
@@ -558,8 +551,7 @@ public class SlaveDevSeg
                 for (int i = 0; i < this.boolDatas.length; ++i) {
                     if (i == 0) {
                         sb.append(this.boolDatas[i]);
-                    }
-                    else {
+                    } else {
                         sb.append(",").append(this.boolDatas[i]);
                     }
                 }
@@ -573,7 +565,7 @@ public class SlaveDevSeg
                     if (i > 0) {
                         sb.append(",");
                     }
-                    sb.append(this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long)((this.regIdx + i) * 2), ByteOrder.ModbusWord));
+                    sb.append(this.numDatas.getValNumber(UAVal.ValTP.vt_int16, (long) ((this.regIdx + i) * 2), ByteOrder.ModbusWord));
                 }
                 sb.append("]");
                 return sb.toString();
@@ -583,7 +575,7 @@ public class SlaveDevSeg
             }
         }
     }
-    
+
     public void RT_setVarVal(final String varn, final Object ob) {
         if (ob == null) {
             return;
@@ -595,15 +587,15 @@ public class SlaveDevSeg
         final UAVal.ValTP vtp = sv.getValueTp();
         this.setSlaveDataObj(sv.regIdx, vtp, ob);
     }
-    
+
     public void RT_setSegValid(final boolean b_valid) {
         this.RT_bValid = b_valid;
     }
-    
+
     public boolean RT_isSegValid() {
         return this.RT_bValid;
     }
-    
+
     void RT_readBindTags() {
         if (this.bind_tags == null) {
             return;
@@ -621,26 +613,24 @@ public class SlaveDevSeg
             this.setSlaveDataObj(bt.regIdx, tag.getValTp(), objv);
         }
     }
-    
-    public abstract static class SlaveData
-    {
+
+    public abstract static class SlaveData {
         int startIdx;
-        
+
         public SlaveData() {
             this.startIdx = -1;
         }
-        
+
         public final int getStartIdx() {
             return this.startIdx;
         }
-        
+
         public abstract int getDataLen();
     }
-    
-    public static class BoolDatas extends SlaveData
-    {
+
+    public static class BoolDatas extends SlaveData {
         boolean[] usingDatas;
-        
+
         public BoolDatas(final int len) {
             this.usingDatas = null;
             this.usingDatas = new boolean[len];
@@ -648,11 +638,11 @@ public class SlaveDevSeg
                 this.usingDatas[i] = false;
             }
         }
-        
+
         public boolean[] getBoolDatas() {
             return this.usingDatas;
         }
-        
+
         @Override
         public int getDataLen() {
             if (this.usingDatas == null) {
@@ -660,20 +650,19 @@ public class SlaveDevSeg
             }
             return this.usingDatas.length;
         }
-        
+
         public void setDataBool(final int idx, final boolean[] bs) {
             System.arraycopy(bs, 0, this.usingDatas, idx, bs.length);
         }
-        
+
         public void getDataBool(final int idx, final int len, final boolean[] buf, final int buf_offset) {
             System.arraycopy(this.usingDatas, idx, buf, buf_offset, len);
         }
     }
-    
-    public static class Int16Datas extends SlaveData
-    {
+
+    public static class Int16Datas extends SlaveData {
         short[] usingDatas;
-        
+
         public Int16Datas(final int len) {
             this.usingDatas = null;
             this.usingDatas = new short[len];
@@ -681,15 +670,15 @@ public class SlaveDevSeg
                 this.usingDatas[i] = 0;
             }
         }
-        
+
         public short[] getInt16Datas() {
             return this.usingDatas;
         }
-        
+
         public byte[] toModbusBytes() {
             return null;
         }
-        
+
         @Override
         public int getDataLen() {
             if (this.usingDatas == null) {

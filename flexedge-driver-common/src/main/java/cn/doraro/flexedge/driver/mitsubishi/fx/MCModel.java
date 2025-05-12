@@ -5,18 +5,12 @@
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
 import cn.doraro.flexedge.core.DevAddr;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashMap;
 import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.UAVal;
 
-public class MCModel extends DevDriver.Model
-{
+import java.util.*;
+
+public class MCModel extends DevDriver.Model {
     public static final int TP_X_START = 128;
     public static final int TP_S_START = 0;
     public static final int TP_Y_START = 160;
@@ -47,26 +41,26 @@ public class MCModel extends DevDriver.Model
     public static final int TP_D_SPEC_START = 3584;
     public static final int TP_D_START = 4096;
     private LinkedHashMap<String, FxAddrDef> prefix2addrdef;
-    
+
     public MCModel(final String name, final String t) {
         super(name, t);
         this.prefix2addrdef = new LinkedHashMap<String, FxAddrDef>();
     }
-    
+
     public void setAddrDef(final FxAddrDef addr_def) {
         this.prefix2addrdef.put(addr_def.prefix, addr_def);
     }
-    
+
     public List<String> listPrefix() {
         final ArrayList<String> rets = new ArrayList<String>();
         rets.addAll(this.prefix2addrdef.keySet());
         return rets;
     }
-    
+
     public FxAddrDef getAddrDef(final String prefix) {
         return this.prefix2addrdef.get(prefix);
     }
-    
+
     public FxAddr transAddr(final String prefix, final String num_str, UAVal.ValTP vtp, final StringBuilder failedr) {
         final FxAddrDef def = this.prefix2addrdef.get(prefix);
         if (def == null) {
@@ -90,8 +84,7 @@ public class MCModel extends DevDriver.Model
                 failedr.append("no AddrSeg match with ValTP=" + vtp.name());
                 return null;
             }
-        }
-        else {
+        } else {
             for (final FxAddrSeg seg : def.segs) {
                 iv = seg.matchAddr(num_str);
                 if (iv != null) {
@@ -113,7 +106,7 @@ public class MCModel extends DevDriver.Model
         ret.setWritable(addrseg.bWrite);
         return ret;
     }
-    
+
     public HashMap<FxAddrSeg, List<FxAddr>> filterAndSortAddrs(final String prefix, final List<FxAddr> addrs) {
         final FxAddrDef def = this.getAddrDef(prefix);
         if (def == null) {
@@ -140,10 +133,10 @@ public class MCModel extends DevDriver.Model
         }
         return rets;
     }
-    
+
     public List<DevAddr.IAddrDef> getAddrDefs() {
         final ArrayList<DevAddr.IAddrDef> rets = new ArrayList<DevAddr.IAddrDef>();
-        rets.addAll((Collection<? extends DevAddr.IAddrDef>)this.prefix2addrdef.values());
+        rets.addAll((Collection<? extends DevAddr.IAddrDef>) this.prefix2addrdef.values());
         return rets;
     }
 }

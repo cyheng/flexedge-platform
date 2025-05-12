@@ -4,39 +4,26 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import cn.doraro.flexedge.core.ConnPt;
-import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
-import cn.doraro.flexedge.core.UATag;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
-import org.json.JSONObject;
-import java.util.Iterator;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import cn.doraro.flexedge.core.UADev;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.DevAddr;
-import cn.doraro.flexedge.core.util.CompressUUID;
-import cn.doraro.flexedge.core.basic.PropItem;
-import cn.doraro.flexedge.core.util.Lan;
+import cn.doraro.flexedge.core.*;
 import cn.doraro.flexedge.core.basic.PropGroup;
-import java.util.List;
-import cn.doraro.flexedge.core.UACh;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import java.util.ArrayList;
-import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.basic.PropItem;
+import cn.doraro.flexedge.core.util.CompressUUID;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.Lan;
+import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONObject;
 
-public class MQTTClientDrv extends DevDriver
-{
+import java.util.ArrayList;
+import java.util.List;
+
+public class MQTTClientDrv extends DevDriver {
     String host;
     int port;
     ArrayList<String> topics;
     private MqttClient client;
     private MqttConnectOptions options;
-    
+
     public MQTTClientDrv() {
         this.host = null;
         this.port = 1883;
@@ -44,54 +31,54 @@ public class MQTTClientDrv extends DevDriver
         this.client = null;
         this.options = null;
     }
-    
+
     public DevDriver copyMe() {
         return new MQTTClientDrv();
     }
-    
+
     public String getName() {
         return "mqtt_client";
     }
-    
+
     public String getTitle() {
         return "MQTT Client";
     }
-    
+
     public List<PropGroup> getPropGroupsForCh(final UACh ch) {
-        final Lan lan = Lan.getPropLangInPk((Class)this.getClass());
+        final Lan lan = Lan.getPropLangInPk((Class) this.getClass());
         final PropGroup r = new PropGroup("mqtt_conn", lan);
-        r.addPropItem(new PropItem("server_host", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)"localhost"));
-        r.addPropItem(new PropItem("server_port", lan, PropItem.PValTP.vt_int, false, (String[])null, (Object[])null, (Object)1883));
-        r.addPropItem(new PropItem("clientid", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)CompressUUID.createNewId()));
-        r.addPropItem(new PropItem("username", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)""));
-        r.addPropItem(new PropItem("userpsw", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)""));
-        r.addPropItem(new PropItem("conn_to_sec", lan, PropItem.PValTP.vt_int, false, (String[])null, (Object[])null, (Object)10));
-        r.addPropItem(new PropItem("ka_int", lan, PropItem.PValTP.vt_int, false, (String[])null, (Object[])null, (Object)10));
+        r.addPropItem(new PropItem("server_host", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) "localhost"));
+        r.addPropItem(new PropItem("server_port", lan, PropItem.PValTP.vt_int, false, (String[]) null, (Object[]) null, (Object) 1883));
+        r.addPropItem(new PropItem("clientid", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) CompressUUID.createNewId()));
+        r.addPropItem(new PropItem("username", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) ""));
+        r.addPropItem(new PropItem("userpsw", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) ""));
+        r.addPropItem(new PropItem("conn_to_sec", lan, PropItem.PValTP.vt_int, false, (String[]) null, (Object[]) null, (Object) 10));
+        r.addPropItem(new PropItem("ka_int", lan, PropItem.PValTP.vt_int, false, (String[]) null, (Object[]) null, (Object) 10));
         final ArrayList<PropGroup> pgs = new ArrayList<PropGroup>();
         pgs.add(r);
         return pgs;
     }
-    
+
     public List<PropGroup> getPropGroupsForDev() {
-        final Lan lan = Lan.getPropLangInPk((Class)this.getClass());
+        final Lan lan = Lan.getPropLangInPk((Class) this.getClass());
         final PropGroup gp = new PropGroup("mqtt_tag", lan);
-        gp.addPropItem(new PropItem("topic", lan, PropItem.PValTP.vt_str, false, (String[])null, (Object[])null, (Object)""));
+        gp.addPropItem(new PropItem("topic", lan, PropItem.PValTP.vt_str, false, (String[]) null, (Object[]) null, (Object) ""));
         final List<PropGroup> pgs = new ArrayList<PropGroup>();
         pgs.add(gp);
         return pgs;
     }
-    
+
     public DevAddr getSupportAddr() {
         return new MQTTClientAddr();
     }
-    
+
     public boolean checkPropValue(final String groupn, final String itemn, final String strv, final StringBuilder failedr) {
         return true;
     }
-    
+
     protected boolean RT_initDriver(final StringBuilder failedr) throws Exception {
         final UACh ch = this.getBelongToCh();
-        this.host = ch.getOrDefaultPropValueStr("mqtt_conn", "server_host", (String)null);
+        this.host = ch.getOrDefaultPropValueStr("mqtt_conn", "server_host", (String) null);
         if (Convert.isNullOrEmpty(this.host)) {
             failedr.append("no server host set");
             return false;
@@ -111,7 +98,7 @@ public class MQTTClientDrv extends DevDriver
             return false;
         }
         for (final UADev dev : devs) {
-            final String topic = dev.getOrDefaultPropValueStr("mqtt_tag", "topic", (String)null);
+            final String topic = dev.getOrDefaultPropValueStr("mqtt_tag", "topic", (String) null);
             if (Convert.isNullOrEmpty(topic)) {
                 continue;
             }
@@ -121,40 +108,39 @@ public class MQTTClientDrv extends DevDriver
             failedr.append("no device mqtt topic found");
             return false;
         }
-        this.client = new MqttClient(serveruri, clientId, (MqttClientPersistence)new MemoryPersistence());
+        this.client = new MqttClient(serveruri, clientId, (MqttClientPersistence) new MemoryPersistence());
         (this.options = new MqttConnectOptions()).setCleanSession(true);
         this.options.setUserName(userName);
         this.options.setPassword(userPsw.toCharArray());
         this.options.setConnectionTimeout(connTimeout);
         this.options.setKeepAliveInterval(keepAliveInterval);
-        this.client.setCallback((MqttCallback)new MqttCallback() {
+        this.client.setCallback((MqttCallback) new MqttCallback() {
             public void connectionLost(final Throwable cause) {
             }
-            
+
             public void messageArrived(final String topic, final MqttMessage message) throws Exception {
                 final String cont = new String(message.getPayload());
                 MQTTClientDrv.this.onJsonMsgArrived(topic, cont);
             }
-            
+
             public void deliveryComplete(final IMqttDeliveryToken token) {
                 System.out.println("deliveryComplete---------" + token.isComplete());
             }
         });
         return true;
     }
-    
+
     private void onJsonMsgArrived(final String topic, final String jsonstr) {
         JSONObject jobj = null;
         try {
             jobj = new JSONObject(jsonstr);
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             System.out.println("invalid payload,it's not json {} format");
             return;
         }
         final UACh ch = this.getBelongToCh();
         for (final UADev uad : ch.getDevs()) {
-            final String topicfilter = uad.getOrDefaultPropValueStr("mqtt_tag", "topic", (String)null);
+            final String topicfilter = uad.getOrDefaultPropValueStr("mqtt_tag", "topic", (String) null);
             if (Convert.isNullOrEmpty(topicfilter)) {
                 continue;
             }
@@ -164,7 +150,7 @@ public class MQTTClientDrv extends DevDriver
             final List<UATag> tags = uad.listTags();
             final StringBuilder failedr = new StringBuilder();
             for (final UATag tag : tags) {
-                final MQTTClientAddr da = (MQTTClientAddr)tag.getDevAddr(failedr);
+                final MQTTClientAddr da = (MQTTClientAddr) tag.getDevAddr(failedr);
                 if (da == null) {
                     continue;
                 }
@@ -197,7 +183,7 @@ public class MQTTClientDrv extends DevDriver
             }
         }
     }
-    
+
     protected void RT_runInLoop() throws Exception {
         if (this.client.isConnected()) {
             return;
@@ -208,16 +194,15 @@ public class MQTTClientDrv extends DevDriver
                 this.client.subscribe(topic, 1);
             }
             System.out.println(String.valueOf(this.getBelongToCh().getTitle()) + " MQTTClientDrv connect to " + this.host + ":" + this.port + " ok");
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     protected void RT_endDriver() throws Exception {
         this.client.disconnect();
     }
-    
+
     public void publish(final String topic, final int qos, final String message) throws Exception {
         final MqttTopic mt = this.client.getTopic(topic);
         final MqttMessage msg = new MqttMessage();
@@ -226,37 +211,37 @@ public class MQTTClientDrv extends DevDriver
         msg.setPayload(message.getBytes());
         final MqttDeliveryToken token = mt.publish(msg);
     }
-    
+
     public boolean supportDevFinder() {
         return false;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevDef() {
         return null;
     }
-    
+
     public Class<? extends ConnPt> supportConnPtClass() {
         return null;
     }
-    
+
     public List<PropGroup> getPropGroupsForDevInCh(final UADev d) {
         return null;
     }
-    
+
     protected void RT_onConnReady(final ConnPt cp, final UACh ch, final UADev dev) {
     }
-    
+
     protected void RT_onConnInvalid(final ConnPt cp, final UACh ch, final UADev dev) {
     }
-    
+
     protected boolean RT_runInLoop(final UACh ch, final UADev dev, final StringBuilder failedr) throws Exception {
         return false;
     }
-    
+
     public boolean RT_writeVal(final UACh ch, final UADev dev, final UATag tag, final DevAddr da, final Object v) {
         return false;
     }
-    
+
     public boolean RT_writeVals(final UACh ch, final UADev dev, final UATag[] tags, final DevAddr[] da, final Object[] v) {
         return false;
     }

@@ -4,25 +4,49 @@
 
 package cn.doraro.flexedge.driver.mitsubishi;
 
-import cn.doraro.flexedge.driver.mitsubishi.fx.FxAddrSeg;
-import cn.doraro.flexedge.driver.mitsubishi.fx.FxAddrDef;
-import cn.doraro.flexedge.driver.mitsubishi.fx.MCModel;
+import cn.doraro.flexedge.core.DevAddr;
 import cn.doraro.flexedge.core.UADev;
 import cn.doraro.flexedge.core.UAVal;
-import java.util.Arrays;
 import cn.doraro.flexedge.core.util.Convert;
-import java.util.List;
-import cn.doraro.flexedge.core.DevAddr;
+import cn.doraro.flexedge.driver.mitsubishi.fx.FxAddrDef;
+import cn.doraro.flexedge.driver.mitsubishi.fx.FxAddrSeg;
+import cn.doraro.flexedge.driver.mitsubishi.fx.MCModel;
 
-public abstract class Addr extends DevAddr implements Comparable<Addr>
-{
+import java.util.Arrays;
+import java.util.List;
+
+public abstract class Addr extends DevAddr implements Comparable<Addr> {
     protected String prefix;
     protected int addrNum;
     protected int digitNum;
     protected boolean bOct;
     protected boolean bValBit;
     protected boolean bWritable;
-    
+
+    public Addr() {
+        this.prefix = null;
+        this.addrNum = -1;
+        this.digitNum = 3;
+        this.bOct = false;
+        this.bValBit = false;
+        this.bWritable = false;
+    }
+
+    protected Addr(final String addr_str, final UAVal.ValTP vtp, final String prefix, final int addr_num, final boolean b_valbit, final int digit_num, final boolean b_oct) {
+        super(addr_str, vtp);
+        this.prefix = null;
+        this.addrNum = -1;
+        this.digitNum = 3;
+        this.bOct = false;
+        this.bValBit = false;
+        this.bWritable = false;
+        this.prefix = prefix;
+        this.addrNum = addr_num;
+        this.bValBit = b_valbit;
+        this.digitNum = digit_num;
+        this.bOct = b_oct;
+    }
+
     private static List<String> splitPrefixNum(String str, final StringBuilder failedr) {
         if (Convert.isNullOrTrimEmpty(str)) {
             failedr.append("addr cannot be empty");
@@ -48,77 +72,51 @@ public abstract class Addr extends DevAddr implements Comparable<Addr>
                     return null;
                 }
                 return Arrays.asList(prefix, num);
-            }
-            else {
+            } else {
                 ++i;
             }
         }
         failedr.append("addr no number");
         return null;
     }
-    
-    public Addr() {
-        this.prefix = null;
-        this.addrNum = -1;
-        this.digitNum = 3;
-        this.bOct = false;
-        this.bValBit = false;
-        this.bWritable = false;
-    }
-    
-    protected Addr(final String addr_str, final UAVal.ValTP vtp, final String prefix, final int addr_num, final boolean b_valbit, final int digit_num, final boolean b_oct) {
-        super(addr_str, vtp);
-        this.prefix = null;
-        this.addrNum = -1;
-        this.digitNum = 3;
-        this.bOct = false;
-        this.bValBit = false;
-        this.bWritable = false;
-        this.prefix = prefix;
-        this.addrNum = addr_num;
-        this.bValBit = b_valbit;
-        this.digitNum = digit_num;
-        this.bOct = b_oct;
-    }
-    
+
     public String getPrefix() {
         return this.prefix;
     }
-    
+
     public int getAddrNum() {
         return this.addrNum;
     }
-    
+
     public boolean isValBit() {
         return this.bValBit;
     }
-    
+
     public int getDigitNum() {
         return this.digitNum;
     }
-    
+
     public boolean isOctal() {
         return this.bOct;
     }
-    
+
     public abstract int getBytesInBase();
-    
+
     public void setWritable(final boolean bw) {
         this.bWritable = bw;
     }
-    
+
     public int getInBits() {
         return this.addrNum % 8;
     }
-    
+
     public String toCheckAdjStr() {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.prefix);
         String nstr = null;
         if (this.bOct) {
             nstr = Integer.toOctalString(this.addrNum);
-        }
-        else {
+        } else {
             nstr = Integer.toString(this.addrNum);
         }
         final int dn = this.digitNum - nstr.length();
@@ -130,16 +128,16 @@ public abstract class Addr extends DevAddr implements Comparable<Addr>
         sb.append(nstr);
         return sb.toString();
     }
-    
+
     public String toString() {
         return this.toCheckAdjStr();
     }
-    
+
     public DevAddr parseAddr(final UADev dev, final String str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         if (dev == null) {
             throw new IllegalArgumentException("no UADev");
         }
-        final MCModel fx_m = (MCModel)dev.getDrvDevModel();
+        final MCModel fx_m = (MCModel) dev.getDrvDevModel();
         if (fx_m == null) {
             throw new IllegalArgumentException("no FxModel");
         }
@@ -150,14 +148,14 @@ public abstract class Addr extends DevAddr implements Comparable<Addr>
         final String prefix = ss.get(0);
         return fx_m.transAddr(prefix, ss.get(1), vtp, failedr);
     }
-    
+
     public DevAddr.ChkRes checkAddr(final UADev dev, final String addr, final UAVal.ValTP vtp) {
         final StringBuilder failedr = new StringBuilder();
         final List<String> ss = splitPrefixNum(addr, failedr);
         if (ss == null) {
             return new DevAddr.ChkRes(-1, addr, vtp, "Invalid FxAddr=" + addr);
         }
-        final MCModel fxm = (MCModel)dev.getDrvDevModel();
+        final MCModel fxm = (MCModel) dev.getDrvDevModel();
         final FxAddrDef addrdef = fxm.getAddrDef(ss.get(0));
         if (addrdef == null) {
             return new DevAddr.ChkRes(-1, addr, vtp, "Invalid FxAddr no address def found");
@@ -168,16 +166,16 @@ public abstract class Addr extends DevAddr implements Comparable<Addr>
         }
         return Addr.CHK_RES_OK;
     }
-    
+
     public boolean isSupportGuessAddr() {
         return true;
     }
-    
+
     public DevAddr guessAddr(final UADev dev, final String str, final UAVal.ValTP vtp) {
         if (dev == null) {
             return null;
         }
-        final MCModel fx_m = (MCModel)dev.getDrvDevModel();
+        final MCModel fx_m = (MCModel) dev.getDrvDevModel();
         if (fx_m == null) {
             return null;
         }
@@ -189,23 +187,23 @@ public abstract class Addr extends DevAddr implements Comparable<Addr>
         final String prefix = ss.get(0);
         return fx_m.transAddr(prefix, ss.get(1), vtp, failedr);
     }
-    
+
     public List<String> listAddrHelpers() {
         return null;
     }
-    
+
     public UAVal.ValTP[] getSupportValTPs() {
         return null;
     }
-    
+
     public boolean canRead() {
         return true;
     }
-    
+
     public boolean canWrite() {
         return this.bWritable;
     }
-    
+
     public int compareTo(final Addr o) {
         return this.addrNum - o.addrNum;
     }

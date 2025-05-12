@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.station;
 
-public class PSCmdFileDownAck
-{
+public class PSCmdFileDownAck {
 
 }

@@ -4,25 +4,22 @@
 
 package cn.doraro.flexedge.driver.common.modbus.sim;
 
-import java.util.Collections;
 import cn.doraro.flexedge.core.UATag;
-import cn.doraro.flexedge.core.util.Convert;
-import java.util.Collection;
+import cn.doraro.flexedge.core.sim.SimDev;
 import cn.doraro.flexedge.core.sim.SimTag;
-import java.util.Iterator;
-import java.util.ArrayList;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.xmldata.data_class;
 import cn.doraro.flexedge.core.util.xmldata.data_obj;
 import cn.doraro.flexedge.core.util.xmldata.data_val;
-import cn.doraro.flexedge.driver.common.modbus.ModbusBlock;
 import cn.doraro.flexedge.driver.common.ModbusAddr;
+import cn.doraro.flexedge.driver.common.modbus.ModbusBlock;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import cn.doraro.flexedge.core.util.xmldata.data_class;
-import cn.doraro.flexedge.core.sim.SimDev;
 
 @data_class
-public class SlaveDev extends SimDev
-{
-    private transient List<ModbusAddr> maddrs;
+public class SlaveDev extends SimDev {
     ModbusBlock mbCoilIn;
     ModbusBlock mbCoilOut;
     ModbusBlock mbRegIn;
@@ -31,7 +28,8 @@ public class SlaveDev extends SimDev
     int devAddr;
     @data_obj(obj_c = SlaveDevSeg.class, param_name = "segs")
     List<SlaveDevSeg> segs;
-    
+    private transient List<ModbusAddr> maddrs;
+
     public SlaveDev() {
         this.maddrs = new ArrayList<ModbusAddr>();
         this.mbCoilIn = null;
@@ -41,19 +39,19 @@ public class SlaveDev extends SimDev
         this.devAddr = 1;
         this.segs = new ArrayList<SlaveDevSeg>();
     }
-    
+
     public String getDevTitle() {
         return "Addr=" + this.devAddr + " Seg Num=" + this.segs.size();
     }
-    
+
     public int getDevAddr() {
         return this.devAddr;
     }
-    
+
     public List<SlaveDevSeg> getSegs() {
         return this.segs;
     }
-    
+
     public SlaveDevSeg getSegById(final String id) {
         for (final SlaveDevSeg seg : this.segs) {
             if (seg.getId().equals(id)) {
@@ -62,7 +60,7 @@ public class SlaveDev extends SimDev
         }
         return null;
     }
-    
+
     protected List<SimTag> listSimTagsInner() {
         final ArrayList<SimTag> rets = new ArrayList<SimTag>();
         for (final SlaveDevSeg seg : this.segs) {
@@ -71,14 +69,14 @@ public class SlaveDev extends SimDev
                 continue;
             }
             for (final SimTag t : tags) {
-                final SlaveTag st = (SlaveTag)t;
+                final SlaveTag st = (SlaveTag) t;
                 st.relatedSeg = seg;
             }
             rets.addAll(tags);
         }
         return rets;
     }
-    
+
     public SlaveTag findTagBySegIdx(final String segid, final int segidx) {
         for (final SlaveDevSeg seg : this.segs) {
             if (seg.getId().equals(segid)) {
@@ -95,7 +93,7 @@ public class SlaveDev extends SimDev
         }
         return null;
     }
-    
+
     public SlaveTag setTag(final String segid, final int regidx, final String name) throws Exception {
         final SlaveDevSeg seg = this.getSegById(segid);
         if (seg == null) {
@@ -108,7 +106,7 @@ public class SlaveDev extends SimDev
         if (!Convert.checkVarName(name, true, failedr)) {
             throw new Exception(failedr.toString());
         }
-        SlaveTag st = (SlaveTag)this.getSimTagByName(name);
+        SlaveTag st = (SlaveTag) this.getSimTagByName(name);
         if (st == null) {
             st = seg.setSlaveTag(regidx, name);
             this.clearBuffer();
@@ -121,22 +119,23 @@ public class SlaveDev extends SimDev
         this.clearBuffer();
         return st;
     }
-    
+
     public SimDev asDevTags(final List<UATag> tags) {
-        for (UATag uaTag : tags) {}
+        for (UATag uaTag : tags) {
+        }
         return this;
     }
-    
+
     public void init() {
         for (final SlaveDevSeg seg : this.segs) {
             seg.init();
         }
     }
-    
+
     public boolean RT_init(final StringBuilder failedr) {
         return true;
     }
-    
+
     private List<ModbusAddr> filterAndSortAddrs(final short addrtp) {
         final ArrayList<ModbusAddr> r = new ArrayList<ModbusAddr>();
         for (final ModbusAddr ma : this.maddrs) {

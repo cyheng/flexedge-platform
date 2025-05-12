@@ -4,8 +4,7 @@
 
 package cn.doraro.flexedge.driver.common.modbus;
 
-public class ModbusCRCTest
-{
+public class ModbusCRCTest {
     public static String byteArray2HexStr(final byte[] bs, final int offset, final int len) {
         if (bs == null) {
             return null;
@@ -25,7 +24,7 @@ public class ModbusCRCTest
         }
         return sb.toString().toUpperCase();
     }
-    
+
     public static void main(final String[] args) throws Exception {
         System.out.println("********** \u8baf\u6e90\u79d1\u6280 Modbus CRC Creator ***********");
         if (args.length <= 0) {
@@ -36,7 +35,7 @@ public class ModbusCRCTest
         final String[] ss = args[0].split(" ");
         final byte[] bs = new byte[ss.length + 3];
         for (int i = 0; i < ss.length; ++i) {
-            bs[i] = (byte)Integer.parseInt(ss[i], 16);
+            bs[i] = (byte) Integer.parseInt(ss[i], 16);
         }
         System.out.println("\u4f60\u7684\u8f93\u5165\u503c:" + byteArray2HexStr(bs, 0, ss.length));
         ModbusCmd.addCRC(bs, ss.length);

@@ -4,17 +4,12 @@
 
 package cn.doraro.flexedge.ext.conn;
 
-import java.awt.image.BufferedImage;
-import java.awt.Dimension;
-import java.awt.image.RenderedImage;
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.Robot;
 
-public class DesktopEye
-{
+public class DesktopEye {
     public void capScreen() throws Exception {
         final Robot robot = new Robot();
         for (int i = 0; i < 10; ++i) {

@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.pro.bacnet;
 
-public class BACnetDevice_M
-{
+public class BACnetDevice_M {
 }

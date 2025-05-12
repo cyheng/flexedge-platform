@@ -4,12 +4,11 @@
 
 package cn.doraro.flexedge.driver.opc.opcua;
 
+import cn.doraro.flexedge.core.UAVal;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import cn.doraro.flexedge.core.UAVal;
 
-public class UaHelper
-{
+public class UaHelper {
     public static NodeId transValTp2UaTp(final UAVal.ValTP vt) {
         switch (vt) {
             case vt_bool: {

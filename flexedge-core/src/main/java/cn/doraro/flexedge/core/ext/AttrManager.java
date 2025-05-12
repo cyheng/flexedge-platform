@@ -8,62 +8,51 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class AttrManager
-{
-	private static AttrManager instance = null ;
-	
-	public static AttrManager getInstance()
-	{
-		if(instance!=null)
-			return instance ;
-		
-		synchronized(AttrManager.class)
-		{
-			if(instance!=null)
-				return instance ;
-			
-			instance = new AttrManager() ;
-			return instance ;
-		}
-	}
-	
+public class AttrManager {
+    private static AttrManager instance = null;
+    private HashMap<String, List<AttrItem>> prj2props = new HashMap<>();
 
-	private HashMap<String,List<AttrItem>> prj2props = new HashMap<>();
-	
-	
-	
-	private AttrManager()
-	{}
-	
-	public List<AttrItem> getPropItems(String prjid)
-	{
-		List<AttrItem> ts = prj2props.get(prjid) ;
-		if(ts!=null)
-			return ts ;
-		
-		synchronized(AttrItem.class)
-		{
-			ts = prj2props.get(prjid) ;
-			if(ts!=null)
-				return ts ;
-			
-			try
-			{
-				ts =  loadPropItems(prjid) ;
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-			
-			if(ts==null)
-				ts = new ArrayList<>(0);
-			prj2props.put(prjid, ts);
-			return ts ;
-		}
-		
-	}
-	
+
+    private AttrManager() {
+    }
+
+    public static AttrManager getInstance() {
+        if (instance != null)
+            return instance;
+
+        synchronized (AttrManager.class) {
+            if (instance != null)
+                return instance;
+
+            instance = new AttrManager();
+            return instance;
+        }
+    }
+
+    public List<AttrItem> getPropItems(String prjid) {
+        List<AttrItem> ts = prj2props.get(prjid);
+        if (ts != null)
+            return ts;
+
+        synchronized (AttrItem.class) {
+            ts = prj2props.get(prjid);
+            if (ts != null)
+                return ts;
+
+            try {
+                ts = loadPropItems(prjid);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (ts == null)
+                ts = new ArrayList<>(0);
+            prj2props.put(prjid, ts);
+            return ts;
+        }
+
+    }
+
 //	public Task getTask(String prjid,String id)
 //	{
 //		List<Task> ts = getTasks(prjid);
@@ -76,27 +65,26 @@ public class AttrManager
 //		}
 //		return null ;
 //	}
-	
-	
-	private List<AttrItem> loadPropItems(String prjid) throws Exception
-	{
-		 File  prjdir = UAManager.getPrjFileSubDir(prjid);
-		 if(!prjdir.exists())
-			 return null ;
-		 File[] tfs = prjdir.listFiles(new FileFilter() {
 
-			@Override
-			public boolean accept(File f)
-			{
-				if(f.isDirectory())
-					return false;
-				String fn = f.getName().toLowerCase() ;
-				return fn.startsWith("task_")&&fn.endsWith(".xml") ;
-			}}) ;
-		 if(tfs==null||tfs.length<=0)
-			 return null ;
-		 
-		 ArrayList<AttrItem> rets = new ArrayList<>() ;
+
+    private List<AttrItem> loadPropItems(String prjid) throws Exception {
+        File prjdir = UAManager.getPrjFileSubDir(prjid);
+        if (!prjdir.exists())
+            return null;
+        File[] tfs = prjdir.listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File f) {
+                if (f.isDirectory())
+                    return false;
+                String fn = f.getName().toLowerCase();
+                return fn.startsWith("task_") && fn.endsWith(".xml");
+            }
+        });
+        if (tfs == null || tfs.length <= 0)
+            return null;
+
+        ArrayList<AttrItem> rets = new ArrayList<>();
 //		 for(File tf:tfs)
 //		 {
 //			 XmlData xd = XmlData.readFromFile(tf);
@@ -107,6 +95,6 @@ public class AttrManager
 //				 continue;
 //			 rets.add(jst);
 //		 }
-		 return rets;
-	}
+        return rets;
+    }
 }

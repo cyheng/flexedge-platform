@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.store;
 
-public class MapItem
-{
-	String mapId = null ;
+public class MapItem {
+    String mapId = null;
 }

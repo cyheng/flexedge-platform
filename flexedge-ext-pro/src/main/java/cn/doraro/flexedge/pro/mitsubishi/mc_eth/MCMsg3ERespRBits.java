@@ -4,18 +4,17 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 
-public class MCMsg3ERespRBits extends MCMsg3EResp
-{
+public class MCMsg3ERespRBits extends MCMsg3EResp {
     private boolean[] respBits;
-    
+
     public MCMsg3ERespRBits() {
         this.respBits = null;
     }
-    
+
     public boolean[] getRespBits() {
         return this.respBits;
     }
-    
+
     @Override
     protected boolean parseRespDataBin(final byte[] bs) {
         final int wn = (bs.length - 2) * 2;
@@ -29,7 +28,7 @@ public class MCMsg3ERespRBits extends MCMsg3EResp
         }
         return true;
     }
-    
+
     @Override
     protected boolean parseRespDataAscii(final byte[] bs) {
         final int wn = bs.length - 4;

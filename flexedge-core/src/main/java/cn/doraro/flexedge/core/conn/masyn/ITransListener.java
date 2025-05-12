@@ -3,14 +3,13 @@ package cn.doraro.flexedge.core.conn.masyn;
 /**
  * ��������еļ�����
  * ����֧�ַ��ͻ���ܹ����еĽ��ȸ���
- * @author zzj
  *
+ * @author zzj
  */
-public interface ITransListener
-{
-	void onTransStarted(long total_len) ;
-	
-	void onTransProcess(long trans_len) ;
-	
-	void onTransEnd() ;
+public interface ITransListener {
+    void onTransStarted(long total_len);
+
+    void onTransProcess(long trans_len);
+
+    void onTransEnd();
 }

@@ -4,11 +4,10 @@
 
 package cn.doraro.flexedge.driver.aromat.serial;
 
-public class AMMsgReqRCP extends AMMsgReqRC
-{
+public class AMMsgReqRCP extends AMMsgReqRC {
     char contactC;
     int contanctN;
-    
+
     public AMMsgReqRCP asContactCode(final char cc, final int num) {
         if (num > 9999) {
             throw new IllegalArgumentException("num is too big");
@@ -17,14 +16,14 @@ public class AMMsgReqRCP extends AMMsgReqRC
         this.contanctN = num;
         return this;
     }
-    
+
     @Override
     protected void packContent(final StringBuilder sb) {
         sb.append('S');
         sb.append(this.contactC);
         sb.append(AMMsg.byte_to_bcd4(this.contanctN));
     }
-    
+
     @Override
     protected AMMsgResp newRespInstance() {
         return new AMMsgRespRCS(this);

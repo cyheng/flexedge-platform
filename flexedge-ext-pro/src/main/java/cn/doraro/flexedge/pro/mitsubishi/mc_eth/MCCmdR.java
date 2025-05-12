@@ -4,19 +4,19 @@
 
 package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 
-import java.io.OutputStream;
-import java.io.InputStream;
 import cn.doraro.flexedge.core.conn.ConnPtStream;
 
-public class MCCmdR extends MCCmd
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class MCCmdR extends MCCmd {
     private MCCode code;
     private int readNum;
     private int startAddr;
     private boolean bFmtAscii;
     private transient MCMsg3EReqRWords req;
     private transient MCMsg3ERespRWords resp;
-    
+
     public MCCmdR(final MCCode code, final int startaddr, final int readnum, final boolean b_fmt_ascii) {
         this.bFmtAscii = false;
         this.req = null;
@@ -26,20 +26,20 @@ public class MCCmdR extends MCCmd
         this.readNum = readnum;
         this.bFmtAscii = b_fmt_ascii;
     }
-    
+
     public int getStartAddr() {
         return this.startAddr;
     }
-    
+
     public int getReadNum() {
         return this.readNum;
     }
-    
+
     @Override
     void initCmd(final MCEthDriver drv) {
         super.initCmd(drv);
         final MCMsg3EReqRWords reqr = new MCMsg3EReqRWords();
-        int t250ms = (int)(this.getRecvTimeout() / 250L);
+        int t250ms = (int) (this.getRecvTimeout() / 250L);
         if (t250ms <= 0) {
             t250ms = 1;
         }
@@ -47,7 +47,7 @@ public class MCCmdR extends MCCmd
         reqr.asReadPM(this.code, this.startAddr, this.readNum);
         this.req = reqr;
     }
-    
+
     @Override
     public boolean doCmd(final ConnPtStream cpt, final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.drv.getCmdInterval());
@@ -55,8 +55,7 @@ public class MCCmdR extends MCCmd
         byte[] bs1 = null;
         if (this.bFmtAscii) {
             bs1 = this.req.toBytesAscii();
-        }
-        else {
+        } else {
             bs1 = this.req.toBytesBin();
         }
         final MCMsg3ERespRWords resp = new MCMsg3ERespRWords();
@@ -66,8 +65,7 @@ public class MCCmdR extends MCCmd
         outputs.flush();
         if (this.bFmtAscii) {
             resp.readFromStreamAscii(cpt, inputs, this.recvTimeout);
-        }
-        else {
+        } else {
             resp.readFromStreamBin(cpt, inputs, this.recvTimeout);
         }
         this.resp = resp;
@@ -79,20 +77,20 @@ public class MCCmdR extends MCCmd
         }
         return true;
     }
-    
+
     public MCMsg3EReqRWords getReq() {
         return this.req;
     }
-    
+
     public MCMsg3ERespRWords getResp() {
         return this.resp;
     }
-    
+
     @Override
     public boolean isRespOk() {
         return this.resp != null;
     }
-    
+
     @Override
     public String toString() {
         return "CmdR " + this.startAddr + " " + this.getReadNum();

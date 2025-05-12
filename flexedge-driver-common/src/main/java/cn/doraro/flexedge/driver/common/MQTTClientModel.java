@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.common;
 
-public class MQTTClientModel
-{
+public class MQTTClientModel {
 }

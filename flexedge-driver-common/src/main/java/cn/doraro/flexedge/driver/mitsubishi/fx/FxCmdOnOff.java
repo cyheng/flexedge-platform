@@ -5,17 +5,17 @@
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
 import cn.doraro.flexedge.core.util.Convert;
-import java.io.OutputStream;
-import java.io.InputStream;
 
-public class FxCmdOnOff extends FxCmd
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class FxCmdOnOff extends FxCmd {
     private int baseAddr;
     private boolean bOn;
     private int startAddr;
     private transient FxMsgReqOnOff req;
     private transient boolean bAck;
-    
+
     public FxCmdOnOff(final int base_addr, final int startaddr, final boolean b_on) {
         this.req = null;
         this.bAck = false;
@@ -23,23 +23,23 @@ public class FxCmdOnOff extends FxCmd
         this.startAddr = startaddr;
         this.bOn = b_on;
     }
-    
+
     public int getBaseAddr() {
         return this.baseAddr;
     }
-    
+
     public int getStartAddr() {
         return this.startAddr;
     }
-    
+
     public boolean isOn() {
         return this.bOn;
     }
-    
+
     public boolean isOff() {
         return !this.bOn;
     }
-    
+
     @Override
     void initCmd(final FxDriver drv, final boolean b_ext) {
         super.initCmd(drv, b_ext);
@@ -47,7 +47,7 @@ public class FxCmdOnOff extends FxCmd
         reqr.asStartAddr(this.baseAddr, this.startAddr).asOnOrOff(this.bOn).asExt(b_ext);
         this.req = reqr;
     }
-    
+
     @Override
     public boolean doCmd(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.drv.getCmdInterval());
@@ -61,11 +61,11 @@ public class FxCmdOnOff extends FxCmd
         System.out.println(" FxCmdOnOff - " + this.bAck);
         return true;
     }
-    
+
     public boolean isAck() {
         return this.bAck;
     }
-    
+
     public FxMsgReqOnOff getReq() {
         return this.req;
     }

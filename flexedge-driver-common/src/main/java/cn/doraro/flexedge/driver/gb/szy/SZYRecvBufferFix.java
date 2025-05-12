@@ -4,13 +4,12 @@
 
 package cn.doraro.flexedge.driver.gb.szy;
 
-public class SZYRecvBufferFix
-{
+public class SZYRecvBufferFix {
     private transient int bufLen;
     private transient byte[] dataBuf;
     private transient int firstPos;
     private transient int lastPos;
-    
+
     public SZYRecvBufferFix(final int buflen) {
         this.bufLen = 1024;
         this.dataBuf = null;
@@ -19,7 +18,7 @@ public class SZYRecvBufferFix
         this.bufLen = buflen;
         this.dataBuf = new byte[this.bufLen];
     }
-    
+
     public void addData(final byte[] bs) throws Exception {
         if (bs == null || bs.length <= 0) {
             return;
@@ -33,13 +32,11 @@ public class SZYRecvBufferFix
                 final int flowlen = this.bufLen - this.lastPos;
                 if (bs.length <= flowlen) {
                     System.arraycopy(bs, 0, this.dataBuf, this.lastPos, bs.length);
-                }
-                else {
+                } else {
                     System.arraycopy(bs, 0, this.dataBuf, this.lastPos, flowlen);
                     System.arraycopy(bs, flowlen, this.dataBuf, 0, bs.length - flowlen);
                 }
-            }
-            else {
+            } else {
                 System.arraycopy(bs, 0, this.dataBuf, this.lastPos, bs.length);
             }
             this.lastPos += bs.length;
@@ -48,11 +45,11 @@ public class SZYRecvBufferFix
             }
         }
     }
-    
+
     private int getBufEmptyLen() {
         return this.bufLen - this.getBufLen() - 1;
     }
-    
+
     public int getBufLen() {
         final int r = this.lastPos - this.firstPos;
         if (r >= 0) {
@@ -60,7 +57,7 @@ public class SZYRecvBufferFix
         }
         return this.bufLen + r;
     }
-    
+
     private boolean readData(final byte[] buf, final int offset, final int len, final boolean remove_readed) {
         final int buflen = this.getBufLen();
         if (buflen < len) {
@@ -69,13 +66,11 @@ public class SZYRecvBufferFix
         synchronized (this) {
             if (this.firstPos < this.lastPos) {
                 System.arraycopy(this.dataBuf, this.firstPos, buf, offset, len);
-            }
-            else {
+            } else {
                 final int flowlen = this.bufLen - this.firstPos;
                 if (flowlen >= len) {
                     System.arraycopy(this.dataBuf, this.firstPos, buf, offset, len);
-                }
-                else {
+                } else {
                     System.arraycopy(this.dataBuf, this.firstPos, buf, offset, flowlen);
                     System.arraycopy(this.dataBuf, 0, buf, offset + flowlen, len - flowlen);
                 }
@@ -89,11 +84,11 @@ public class SZYRecvBufferFix
         }
         return true;
     }
-    
+
     public boolean readData(final byte[] buf, final int offset, final int len) {
         return this.readData(buf, offset, len, true);
     }
-    
+
     public synchronized boolean skipLen(final int len) {
         final int buflen = this.getBufLen();
         if (buflen < len) {
@@ -105,7 +100,7 @@ public class SZYRecvBufferFix
         }
         return true;
     }
-    
+
     public synchronized int readNextChar() {
         if (this.firstPos == this.lastPos) {
             return -1;
@@ -117,7 +112,7 @@ public class SZYRecvBufferFix
         }
         return r;
     }
-    
+
     public boolean peekData(final byte[] buf, final int offset, final int len) {
         return this.readData(buf, offset, len, false);
     }

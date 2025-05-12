@@ -1,6 +1,5 @@
 package cn.doraro.flexedge.core.ext;
 
-public class AttrBindItem
-{
+public class AttrBindItem {
 
 }

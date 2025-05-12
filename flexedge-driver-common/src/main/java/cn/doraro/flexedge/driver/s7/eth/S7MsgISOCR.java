@@ -6,11 +6,15 @@ package cn.doraro.flexedge.driver.s7.eth;
 
 import java.io.IOException;
 
-public class S7MsgISOCR extends S7Msg
-{
-    private static byte[] ISO_CR;
+public class S7MsgISOCR extends S7Msg {
     private static final byte[] S7_PN;
-    
+    private static byte[] ISO_CR;
+
+    static {
+        S7MsgISOCR.ISO_CR = new byte[]{3, 0, 0, 22, 17, -32, 0, 0, 0, 1, 0, -64, 1, 10, -63, 2, 1, 0, -62, 2, 1, 2};
+        S7_PN = new byte[]{3, 0, 0, 25, 2, -16, -128, 50, 1, 0, 0, 4, 0, 0, 8, 0, 0, -16, 0, 0, 1, 0, 1, 0, 30};
+    }
+
     private int recvPduLength(final S7TcpConn conn) throws IOException, S7Exception {
         S7Util.setUInt16(S7MsgISOCR.S7_PN, 23, 480);
         conn.send(S7MsgISOCR.S7_PN);
@@ -24,7 +28,7 @@ public class S7MsgISOCR extends S7Msg
         }
         return conn.pduLen;
     }
-    
+
     @Override
     public void processByConn(final S7TcpConn conn) throws S7Exception, IOException {
         S7MsgISOCR.ISO_CR[16] = conn.tsapLocalHI;
@@ -40,10 +44,5 @@ public class S7MsgISOCR extends S7Msg
             throw new S7Exception("ISO Connected failed");
         }
         this.recvPduLength(conn);
-    }
-    
-    static {
-        S7MsgISOCR.ISO_CR = new byte[] { 3, 0, 0, 22, 17, -32, 0, 0, 0, 1, 0, -64, 1, 10, -63, 2, 1, 0, -62, 2, 1, 2 };
-        S7_PN = new byte[] { 3, 0, 0, 25, 2, -16, -128, 50, 1, 0, 0, 4, 0, 0, 8, 0, 0, -16, 0, 0, 1, 0, 1, 0, 30 };
     }
 }

@@ -5,17 +5,17 @@
 package cn.doraro.flexedge.driver.s7.ppi;
 
 import cn.doraro.flexedge.core.util.Convert;
-import java.io.OutputStream;
-import java.io.InputStream;
 
-public class PPICmdR extends PPICmd
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class PPICmdR extends PPICmd {
     private int readNum;
     private int offsetBytes;
     private transient PPIMsgReq req;
     private transient PPIMsgReqConfirm reqc;
     private transient PPIMsgResp resp;
-    
+
     public PPICmdR(final short dev_addr, final PPIMemTp ppi_mtp, final int offset, final int readnum) {
         super(dev_addr, ppi_mtp);
         this.req = null;
@@ -24,15 +24,15 @@ public class PPICmdR extends PPICmd
         this.offsetBytes = offset;
         this.readNum = readnum;
     }
-    
+
     public int getOffsetBytes() {
         return this.offsetBytes;
     }
-    
+
     public int getReadNum() {
         return this.readNum;
     }
-    
+
     @Override
     void initCmd(final PPIDriver drv) {
         super.initCmd(drv);
@@ -43,15 +43,13 @@ public class PPICmdR extends PPICmd
             if (this.ppiMemTp == PPIMemTp.T) {
                 offset = this.offsetBytes / 4;
                 rc = this.readNum / 4;
-            }
-            else {
+            } else {
                 offset = this.offsetBytes / 2;
                 rc = this.readNum / 2;
             }
-            reqr.withMemTp(this.ppiMemTp).withTick(offset, (short)rc).withSorAddr(this.ppiDrv.getMasterID()).withDestAddr(this.devAddr);
+            reqr.withMemTp(this.ppiMemTp).withTick(offset, (short) rc).withSorAddr(this.ppiDrv.getMasterID()).withDestAddr(this.devAddr);
             this.req = reqr;
-        }
-        else {
+        } else {
             final PPIMsgReqR reqr2 = new PPIMsgReqR();
             reqr2.withAddrByte(this.ppiMemTp, this.offsetBytes, -1, this.readNum).withSorAddr(this.ppiDrv.getMasterID()).withDestAddr(this.devAddr);
             this.req = reqr2;
@@ -59,7 +57,7 @@ public class PPICmdR extends PPICmd
         this.reqc = new PPIMsgReqConfirm();
         this.reqc.withSorAddr(this.ppiDrv.getMasterID()).withDestAddr(this.devAddr);
     }
-    
+
     @Override
     public boolean doCmd(final InputStream inputs, final OutputStream outputs) throws Exception {
         if (this.ppiMemTp == PPIMemTp.C || this.ppiMemTp == PPIMemTp.T) {
@@ -67,7 +65,7 @@ public class PPICmdR extends PPICmd
         }
         return this.doCmdNor(inputs, outputs);
     }
-    
+
     private boolean doCmdNor(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.ppiDrv.getCmdInterval());
         this.resp = null;
@@ -91,14 +89,14 @@ public class PPICmdR extends PPICmd
         final PPIMsgRespR resp = PPIMsgRespR.parseFromStream(inputs, this.ppiDrv.getReadTimeout(), failedr);
         if (resp == null) {
             if (PPIMsg.log.isDebugEnabled()) {
-                PPIMsg.log.debug(" failed=" + (Object)failedr);
+                PPIMsg.log.debug(" failed=" + (Object) failedr);
             }
             return false;
         }
         this.onResp(resp);
         return true;
     }
-    
+
     public boolean doCmdTC(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.ppiDrv.getCmdInterval());
         this.resp = null;
@@ -120,35 +118,35 @@ public class PPICmdR extends PPICmd
         final PPIMsgRespRTC resp = PPIMsgRespRTC.parseFromStream(this.ppiMemTp, inputs, this.ppiDrv.getReadTimeout(), failedr);
         if (resp == null) {
             if (PPIMsg.log.isDebugEnabled()) {
-                PPIMsg.log.debug(" failed=" + (Object)failedr);
+                PPIMsg.log.debug(" failed=" + (Object) failedr);
             }
             return false;
         }
         this.onResp(resp);
         return true;
     }
-    
+
     private void onResp(final PPIMsgRespR resp) {
         this.resp = resp;
     }
-    
+
     public PPIMsgReq getReq() {
         return this.req;
     }
-    
+
     private void onResp(final PPIMsgRespRTC resp) {
         this.resp = resp;
     }
-    
+
     public PPIMsgResp getResp() {
         return this.resp;
     }
-    
+
     public PPIMsgRespR getRespR() {
-        return (PPIMsgRespR)this.resp;
+        return (PPIMsgRespR) this.resp;
     }
-    
+
     public PPIMsgRespRTC getRespRTC() {
-        return (PPIMsgRespRTC)this.resp;
+        return (PPIMsgRespRTC) this.resp;
     }
 }

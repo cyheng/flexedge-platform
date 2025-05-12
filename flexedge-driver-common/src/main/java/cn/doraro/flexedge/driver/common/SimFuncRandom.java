@@ -4,30 +4,35 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import java.util.Arrays;
 import cn.doraro.flexedge.core.UAVal;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-class SimFuncRandom extends SimulatorFunc
-{
+class SimFuncRandom extends SimulatorFunc {
+    public static final String NAME = "random";
+    static List<UAVal.ValTP> VAL_TPS;
+
+    static {
+        SimFuncRandom.VAL_TPS = Arrays.asList(UAVal.ValTP.vt_int16, UAVal.ValTP.vt_int32, UAVal.ValTP.vt_float, UAVal.ValTP.vt_double);
+    }
+
     int rate;
     int lowLimit;
     int highLimit;
     Random rand;
-    public static final String NAME = "random";
-    static List<UAVal.ValTP> VAL_TPS;
-    
+
     SimFuncRandom() {
         this.rate = -1;
         this.rand = null;
     }
-    
+
     @Override
     public String getName() {
         return "random";
     }
-    
+
     @Override
     protected boolean setParams(final List<Object> parms, final StringBuilder failedr) {
         if (parms.size() < 3) {
@@ -52,17 +57,17 @@ class SimFuncRandom extends SimulatorFunc
         this.rand = new Random();
         return true;
     }
-    
+
     @Override
     public List<UAVal.ValTP> getFitValTps() {
         return SimFuncRandom.VAL_TPS;
     }
-    
+
     @Override
     public int getRunRate() {
         return this.rate;
     }
-    
+
     @Override
     protected Object calculateNextVal(final UAVal.ValTP vtp) {
         if (this.rand == null) {
@@ -70,7 +75,7 @@ class SimFuncRandom extends SimulatorFunc
         }
         switch (vtp) {
             case vt_int16: {
-                return (short)this.rand.nextInt(this.highLimit) % (this.highLimit - this.lowLimit + 1) + this.lowLimit;
+                return (short) this.rand.nextInt(this.highLimit) % (this.highLimit - this.lowLimit + 1) + this.lowLimit;
             }
             case vt_int32: {
                 return this.rand.nextInt(this.highLimit) % (this.highLimit - this.lowLimit + 1) + this.lowLimit;
@@ -93,9 +98,5 @@ class SimFuncRandom extends SimulatorFunc
                 return null;
             }
         }
-    }
-    
-    static {
-        SimFuncRandom.VAL_TPS = Arrays.asList(UAVal.ValTP.vt_int16, UAVal.ValTP.vt_int32, UAVal.ValTP.vt_float, UAVal.ValTP.vt_double);
     }
 }

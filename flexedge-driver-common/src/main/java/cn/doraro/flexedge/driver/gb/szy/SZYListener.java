@@ -6,28 +6,26 @@ package cn.doraro.flexedge.driver.gb.szy;
 
 import java.util.ArrayList;
 
-public class SZYListener
-{
+public class SZYListener {
     private SZYFrame curSingleF;
     private ArrayList<SZYFrame> curMultiFs;
     private SZYRecvBufferFix sniBuf;
     private int curFrameL;
-    
+
     public SZYListener() {
         this.curSingleF = null;
         this.curMultiFs = null;
         this.sniBuf = new SZYRecvBufferFix(256);
         this.curFrameL = -1;
     }
-    
+
     public void onRecvedData(final byte[] bs, final IRecvCallback cb) {
         if (bs == null || bs.length <= 0) {
             return;
         }
         try {
             this.sniBuf.addData(bs);
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
         int buflen;
@@ -40,16 +38,13 @@ public class SZYListener
                 this.sniBuf.peekData(tmpbs, 0, 3);
                 if (tmpbs[0] != 104) {
                     this.sniBuf.readNextChar();
-                }
-                else if (tmpbs[2] != 104) {
+                } else if (tmpbs[2] != 104) {
                     this.sniBuf.readNextChar();
-                }
-                else {
+                } else {
                     this.curFrameL = (tmpbs[1] & 0xFF);
                     this.sniBuf.skipLen(3);
                 }
-            }
-            else {
+            } else {
                 if (buflen < this.curFrameL + 2) {
                     return;
                 }

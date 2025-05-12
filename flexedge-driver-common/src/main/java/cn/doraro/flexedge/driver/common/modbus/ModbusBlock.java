@@ -4,25 +4,29 @@
 
 package cn.doraro.flexedge.driver.common.modbus;
 
-import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import cn.doraro.flexedge.driver.common.modbus.sniffer.SnifferCmd;
-import cn.doraro.flexedge.core.basic.IConnEndPoint;
-import cn.doraro.flexedge.core.basic.ByteOrder;
 import cn.doraro.flexedge.core.UAVal;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.HashMap;
+import cn.doraro.flexedge.core.basic.ByteOrder;
+import cn.doraro.flexedge.core.basic.IConnEndPoint;
 import cn.doraro.flexedge.core.basic.MemSeg8;
 import cn.doraro.flexedge.core.basic.MemTable;
-import cn.doraro.flexedge.driver.common.ModbusAddr;
-import java.util.List;
 import cn.doraro.flexedge.core.util.logger.ILogger;
+import cn.doraro.flexedge.core.util.logger.LoggerManager;
+import cn.doraro.flexedge.driver.common.ModbusAddr;
+import cn.doraro.flexedge.driver.common.modbus.sniffer.SnifferCmd;
 
-public class ModbusBlock
-{
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
+public class ModbusBlock {
     public static final long MAX_Demotion_DELAY = 30000L;
     static ILogger log;
+
+    static {
+        ModbusBlock.log = LoggerManager.getLogger("Modbus_Lib");
+    }
+
     int devId;
     short addrTp;
     List<ModbusAddr> addrs;
@@ -30,25 +34,25 @@ public class ModbusBlock
     long scanInterMS;
     MemTable<MemSeg8> memTb;
     transient HashMap<ModbusCmd, List<ModbusAddr>> cmd2addr;
+    transient int failedCount;
+    transient ModbusCmd.Protocol modbusProtocal;
     private int failedSuccessive;
     private long reqTO;
     private long recvTO;
     private long interReqMs;
-    transient int failedCount;
     private boolean fw_low32;
-    transient ModbusCmd.Protocol modbusProtocal;
     private transient long lastFailedDT;
     private transient int lastFailedCC;
     private transient long lastReadOkDT;
     private LinkedList<ModbusCmd> writeCmds;
-    
+
     public ModbusBlock(final int devid, final short addrtp, final List<ModbusAddr> addrs, final int block_size, final long scan_inter_ms, final int failed_successive) {
         this.devId = 1;
         this.addrTp = -1;
         this.addrs = null;
         this.blockSize = 32;
         this.scanInterMS = 100L;
-        this.memTb = (MemTable<MemSeg8>)new MemTable(8, 131072L);
+        this.memTb = (MemTable<MemSeg8>) new MemTable(8, 131072L);
         this.cmd2addr = new HashMap<ModbusCmd, List<ModbusAddr>>();
         this.failedSuccessive = 3;
         this.reqTO = 1000L;
@@ -74,22 +78,22 @@ public class ModbusBlock
         this.scanInterMS = scan_inter_ms;
         this.failedSuccessive = failed_successive;
     }
-    
+
     public void setTimingParam(final long req_to, final long recv_to, final long inter_reqms) {
         this.reqTO = req_to;
         this.recvTO = recv_to;
         this.interReqMs = inter_reqms;
     }
-    
+
     public ModbusBlock asFirstWordLowIn32Bit(final boolean b) {
         this.fw_low32 = b;
         return this;
     }
-    
+
     public short getAddrTp() {
         return this.addrTp;
     }
-    
+
     private boolean isBitCmd() {
         switch (this.addrTp) {
             case 48:
@@ -101,7 +105,7 @@ public class ModbusBlock
             }
         }
     }
-    
+
     private short getFC() {
         switch (this.addrTp) {
             case 49: {
@@ -121,22 +125,22 @@ public class ModbusBlock
             }
         }
     }
-    
+
     public List<ModbusAddr> getAddrs() {
         return this.addrs;
     }
-    
+
     public MemTable<MemSeg8> getMemTable() {
         return this.memTb;
     }
-    
+
     public boolean initReadCmds() {
         if (this.isBitCmd()) {
             return this.initReadCmdsBit();
         }
         return this.initReadCmdsWord();
     }
-    
+
     private boolean initReadCmdsBit() {
         if (this.addrs == null || this.addrs.size() <= 0) {
             return false;
@@ -150,11 +154,9 @@ public class ModbusBlock
                 cur_reg = regp;
                 curaddrs = new ArrayList<ModbusAddr>();
                 curaddrs.add(ma);
-            }
-            else if (ma.getRegPos() <= cur_reg + this.blockSize) {
+            } else if (ma.getRegPos() <= cur_reg + this.blockSize) {
                 curaddrs.add(ma);
-            }
-            else {
+            } else {
                 final ModbusAddr lastma = curaddrs.get(curaddrs.size() - 1);
                 curcmd = new ModbusCmdReadBits(this.getFC(), this.scanInterMS, this.devId, cur_reg, lastma.getRegPos() - cur_reg + 1);
                 this.cmd2addr.put(curcmd, curaddrs);
@@ -177,7 +179,7 @@ public class ModbusBlock
         }
         return true;
     }
-    
+
     private boolean initReadCmdsWord() {
         if (this.addrs == null || this.addrs.size() <= 0) {
             return false;
@@ -191,13 +193,11 @@ public class ModbusBlock
                 cur_reg = regp;
                 curaddrs = new ArrayList<ModbusAddr>();
                 curaddrs.add(ma);
-            }
-            else {
+            } else {
                 final int bytelen = (regp - cur_reg) * 2 + 2;
                 if (bytelen <= this.blockSize) {
                     curaddrs.add(ma);
-                }
-                else {
+                } else {
                     final ModbusAddr lastma = curaddrs.get(curaddrs.size() - 1);
                     int regnum = (lastma.getRegPos() - cur_reg) * 2 + lastma.getValTP().getValByteLen();
                     regnum = regnum / 2 + regnum % 2;
@@ -225,7 +225,7 @@ public class ModbusBlock
         }
         return true;
     }
-    
+
     public void initAsSlave() {
         final boolean bbit = this.isBitCmd();
         for (final ModbusAddr ma : this.addrs) {
@@ -233,23 +233,22 @@ public class ModbusBlock
             final int endpos = ma.getRegEnd();
             final int n = (endpos - regpos) / 2;
             if (bbit) {
-                this.memTb.setValBool((long)(regpos / 8), regpos % 8, false);
-            }
-            else {
+                this.memTb.setValBool((long) (regpos / 8), regpos % 8, false);
+            } else {
                 for (int k = 0; k < n; ++k) {
-                    this.memTb.setValNumber(UAVal.ValTP.vt_int16, (long)((regpos + k) * 2), (Number)0);
+                    this.memTb.setValNumber(UAVal.ValTP.vt_int16, (long) ((regpos + k) * 2), (Number) 0);
                 }
             }
         }
     }
-    
+
     public void setModbusProtocal(final ModbusCmd.Protocol p) {
         this.modbusProtocal = p;
         for (final ModbusCmd mc : this.cmd2addr.keySet()) {
             mc.setProtocol(p);
         }
     }
-    
+
     private void setAddrError(final List<ModbusAddr> addrs) {
         if (addrs == null) {
             return;
@@ -258,7 +257,7 @@ public class ModbusBlock
             ma.RT_setValErr();
         }
     }
-    
+
     private Object getValByAddr(final ModbusAddr da) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -266,17 +265,17 @@ public class ModbusBlock
         }
         if (vt == UAVal.ValTP.vt_bool) {
             final int regp = da.getRegPos();
-            return this.memTb.getValBool((long)(regp / 8), regp % 8);
+            return this.memTb.getValBool((long) (regp / 8), regp % 8);
         }
         if (!vt.isNumberVT()) {
             return null;
         }
         if (this.fw_low32) {
-            return this.memTb.getValNumber(vt, (long)(da.getRegPos() * 2), ByteOrder.ModbusWord);
+            return this.memTb.getValNumber(vt, (long) (da.getRegPos() * 2), ByteOrder.ModbusWord);
         }
-        return this.memTb.getValNumber(vt, (long)(da.getRegPos() * 2), ByteOrder.LittleEndian);
+        return this.memTb.getValNumber(vt, (long) (da.getRegPos() * 2), ByteOrder.LittleEndian);
     }
-    
+
     public boolean setValByAddr(final ModbusAddr da, final Object v) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -285,15 +284,14 @@ public class ModbusBlock
         if (vt == UAVal.ValTP.vt_bool) {
             boolean bv = false;
             if (v instanceof Boolean) {
-                bv = (boolean)v;
-            }
-            else {
+                bv = (boolean) v;
+            } else {
                 if (!(v instanceof Number)) {
                     return false;
                 }
-                bv = (((Number)v).doubleValue() > 0.0);
+                bv = (((Number) v).doubleValue() > 0.0);
             }
-            this.memTb.setValBool((long)da.getRegPos(), da.getBitPos(), bv);
+            this.memTb.setValBool((long) da.getRegPos(), da.getBitPos(), bv);
             return true;
         }
         if (!vt.isNumberVT()) {
@@ -302,19 +300,19 @@ public class ModbusBlock
         if (!(v instanceof Number)) {
             return false;
         }
-        this.memTb.setValNumber(vt, (long)da.getRegPos(), (Number)v);
+        this.memTb.setValNumber(vt, (long) da.getRegPos(), (Number) v);
         return true;
     }
-    
+
     public boolean runCmds(final IConnEndPoint ep) throws Exception {
         this.runWriteCmdAndClear(ep);
         return this.runReadCmds(ep);
     }
-    
+
     public void runCmdsErr() {
         this.runReadCmdsErr();
     }
-    
+
     private void transMem2Addrs(final List<ModbusAddr> addrs) {
         for (final ModbusAddr ma : addrs) {
             final Object ov = this.getValByAddr(ma);
@@ -323,7 +321,7 @@ public class ModbusBlock
             }
         }
     }
-    
+
     private boolean chkSuccessiveFailed(final boolean bfailed) {
         if (!bfailed) {
             this.failedCount = 0;
@@ -343,7 +341,7 @@ public class ModbusBlock
         }
         return false;
     }
-    
+
     public boolean checkDemotionCanRun() {
         if (this.lastFailedCC <= 0) {
             return true;
@@ -354,7 +352,7 @@ public class ModbusBlock
         }
         return System.currentTimeMillis() - this.lastFailedDT >= dur_dt;
     }
-    
+
     public void onSnifferCmd(final SnifferCmd sc) {
         if (this.devId != sc.getDevId()) {
             return;
@@ -364,7 +362,7 @@ public class ModbusBlock
             this.onSnifferCmd(sc, mc, addrs);
         }
     }
-    
+
     private void onSnifferCmd(final SnifferCmd sc, final ModbusCmd mc, final List<ModbusAddr> addrs) {
         for (final ModbusAddr maddr : addrs) {
             final Object ov = sc.getValByAddr(maddr);
@@ -374,7 +372,7 @@ public class ModbusBlock
             maddr.RT_setVal(ov);
         }
     }
-    
+
     private boolean runReadCmds(final IConnEndPoint ep) throws Exception {
         boolean ret = true;
         for (final ModbusCmd mc : this.cmd2addr.keySet()) {
@@ -385,7 +383,7 @@ public class ModbusBlock
             final List<ModbusAddr> addrs = this.cmd2addr.get(mc);
             mc.doCmd(ep.getOutputStream(), ep.getInputStream());
             if (mc instanceof ModbusCmdReadBits) {
-                final ModbusCmdReadBits mcb = (ModbusCmdReadBits)mc;
+                final ModbusCmdReadBits mcb = (ModbusCmdReadBits) mc;
                 final boolean[] bvs = mcb.getRetVals();
                 if (bvs == null) {
                     if (!this.chkSuccessiveFailed(true)) {
@@ -393,23 +391,21 @@ public class ModbusBlock
                     }
                     this.setAddrError(addrs);
                     ret = false;
-                }
-                else {
+                } else {
                     final int regpos = mcb.getRegAddr();
                     for (int i = 0; i < bvs.length; ++i) {
                         final boolean bv = bvs[i];
-                        this.memTb.setValBool((long)((regpos + i) / 8), (regpos + i) % 8, bv);
+                        this.memTb.setValBool((long) ((regpos + i) / 8), (regpos + i) % 8, bv);
                     }
                     this.transMem2Addrs(addrs);
                     this.chkSuccessiveFailed(false);
                     this.lastReadOkDT = System.currentTimeMillis();
                 }
-            }
-            else {
+            } else {
                 if (!(mc instanceof ModbusCmdReadWords)) {
                     continue;
                 }
-                final ModbusCmdReadWords mcw = (ModbusCmdReadWords)mc;
+                final ModbusCmdReadWords mcw = (ModbusCmdReadWords) mc;
                 final int[] rvs = mcw.getRetVals();
                 if (rvs == null) {
                     if (!this.chkSuccessiveFailed(true)) {
@@ -417,12 +413,11 @@ public class ModbusBlock
                     }
                     this.setAddrError(addrs);
                     ret = false;
-                }
-                else {
+                } else {
                     final int regpos = mcw.getRegAddr();
                     for (int i = 0; i < rvs.length; ++i) {
                         final int rv = rvs[i];
-                        this.memTb.setValNumber(UAVal.ValTP.vt_int16, (long)((regpos + i) * 2), (Number)rv);
+                        this.memTb.setValNumber(UAVal.ValTP.vt_int16, (long) ((regpos + i) * 2), (Number) rv);
                     }
                     this.transMem2Addrs(addrs);
                     this.chkSuccessiveFailed(false);
@@ -432,11 +427,11 @@ public class ModbusBlock
         }
         return ret;
     }
-    
+
     public long getLastReadOkDT() {
         return this.lastReadOkDT;
     }
-    
+
     private boolean runReadCmdsErr() {
         final boolean ret = true;
         for (final ModbusCmd mc : this.cmd2addr.keySet()) {
@@ -445,7 +440,7 @@ public class ModbusBlock
         }
         return ret;
     }
-    
+
     private void runWriteCmdAndClear(final IConnEndPoint ep) throws Exception {
         final int s = this.writeCmds.size();
         if (s <= 0) {
@@ -464,13 +459,13 @@ public class ModbusBlock
             }
         }
     }
-    
+
     public boolean setWriteCmdAsyn(final ModbusAddr ma, final Object v) {
         ModbusCmd mc = null;
         switch (ma.getAddrTp()) {
             case 48: {
-                final boolean[] bvs = { (boolean)v };
-                mc = new ModbusCmdWriteBit(this.scanInterMS, this.devId, ma.getRegPos(), (boolean)v);
+                final boolean[] bvs = {(boolean) v};
+                mc = new ModbusCmdWriteBit(this.scanInterMS, this.devId, ma.getRegPos(), (boolean) v);
                 mc.setRecvTimeout(this.reqTO);
                 mc.setRecvEndTimeout(this.recvTO);
                 break;
@@ -479,7 +474,7 @@ public class ModbusBlock
                 if (!(v instanceof Number)) {
                     return false;
                 }
-                final Number nv = (Number)v;
+                final Number nv = (Number) v;
                 final UAVal.ValTP vt = ma.getValTP();
                 final int dlen = vt.getValByteLen() / 2;
                 if (dlen < 1) {
@@ -489,7 +484,7 @@ public class ModbusBlock
                 switch (vt) {
                     case vt_int16:
                     case vt_uint16: {
-                        vals = new int[] { nv.shortValue() };
+                        vals = new int[]{nv.shortValue()};
                         break;
                     }
                     case vt_int32:
@@ -504,10 +499,10 @@ public class ModbusBlock
                     case vt_uint64: {
                         vals = new int[4];
                         final long longv = nv.longValue();
-                        vals[3] = (int)(longv >> 48 & 0xFFFFL);
-                        vals[2] = (int)(longv >> 32 & 0xFFFFL);
-                        vals[1] = (int)(longv >> 16 & 0xFFFFL);
-                        vals[0] = (int)(longv & 0xFFFFL);
+                        vals[3] = (int) (longv >> 48 & 0xFFFFL);
+                        vals[2] = (int) (longv >> 32 & 0xFFFFL);
+                        vals[1] = (int) (longv >> 16 & 0xFFFFL);
+                        vals[0] = (int) (longv & 0xFFFFL);
                         break;
                     }
                     case vt_float: {
@@ -520,10 +515,10 @@ public class ModbusBlock
                     case vt_double: {
                         vals = new int[4];
                         final long longv = Double.doubleToLongBits(nv.doubleValue());
-                        vals[0] = (int)(longv >> 48 & 0xFFFFL);
-                        vals[1] = (int)(longv >> 32 & 0xFFFFL);
-                        vals[2] = (int)(longv >> 16 & 0xFFFFL);
-                        vals[3] = (int)(longv & 0xFFFFL);
+                        vals[0] = (int) (longv >> 48 & 0xFFFFL);
+                        vals[1] = (int) (longv >> 32 & 0xFFFFL);
+                        vals[2] = (int) (longv >> 16 & 0xFFFFL);
+                        vals[3] = (int) (longv & 0xFFFFL);
                         break;
                     }
                     default: {
@@ -532,8 +527,7 @@ public class ModbusBlock
                 }
                 if (vals.length == 1) {
                     mc = new ModbusCmdWriteWord(this.scanInterMS, this.devId, ma.getRegPos(), vals[0]);
-                }
-                else {
+                } else {
                     mc = new ModbusCmdWriteWords(this.scanInterMS, this.devId, ma.getRegPos(), vals);
                 }
                 mc.setRecvTimeout(this.reqTO);
@@ -549,9 +543,5 @@ public class ModbusBlock
             this.writeCmds.addLast(mc);
         }
         return true;
-    }
-    
-    static {
-        ModbusBlock.log = LoggerManager.getLogger("Modbus_Lib");
     }
 }

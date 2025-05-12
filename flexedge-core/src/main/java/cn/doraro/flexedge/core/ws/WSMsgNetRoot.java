@@ -13,106 +13,85 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class WSMsgNetRoot
-{
-	protected static class SessionItem
-	{
-		private final Session session;
-		private final IMNContainer container;
-		private final MNNet net;
-		EndpointConfig config = null;
-		private long lastDT = -1;
-		
-		IWSRight wsRight ;
+public class WSMsgNetRoot {
+    private static ConcurrentHashMap<Session, SessionItem> sess2item = new ConcurrentHashMap<>();
 
-		public SessionItem(Session s, IMNContainer cont, MNNet net, EndpointConfig config,IWSRight wsright)
-		{
-			this.session = s;
-			this.container = cont;
-			this.net = net;
-			this.config = config;
-			this.wsRight = wsright ;
-		}
+    public static synchronized void addSessionItem(SessionItem si) {
+        sess2item.put(si.getSession(), si);
 
-		public Session getSession()
-		{
-			return session;
-		}
+        // System.out.println(" add session ,num="+sess2item.size()) ;
+    }
 
-		public boolean checkRight()
-		{
-			HttpSession hs = WebSocketConfig.getHttpSession(config);
-			//return LoginUtil.checkAdminLogin(hs);
-			return wsRight.checkWSRight(hs) ;
-		}
+    public static synchronized void removeSessionItem(Session sess) {
+        sess2item.remove(sess);
 
-		public IMNContainer getContainer()
-		{
-			return container;
-		}
+        // System.out.println(" remove session ,num="+sess2item.size()) ;
+    }
 
-		public MNNet getNet()
-		{
-			return this.net ;
-		}
-		
-		public void sendTxt(String txt)
-		{
-			if (!checkRight())
-				return;
-			try
-			{
-				session.getBasicRemote().sendText(txt);
-			}
-			catch (Exception ioe)
-			{
-				CloseReason cr = new CloseReason(CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
-				try
-				{
-					session.close(cr);
-				}
-				catch ( IOException ioe2)
-				{
-					// Ignore
-				}
-			}
-		}
-	}
+    public static int getSessionNum() {
+        return sess2item.size();
+    }
 
-	private static ConcurrentHashMap<Session, SessionItem> sess2item = new ConcurrentHashMap<>();
+    public static Collection<SessionItem> getSessionItems() {
+        return Collections.unmodifiableCollection(sess2item.values());
+    }
 
-	public static synchronized void addSessionItem(SessionItem si)
-	{
-		sess2item.put(si.getSession(), si);
+    public static void pushToClient(String txt) {
+        for (SessionItem si : getSessionItems()) {
+            si.sendTxt(txt);
+        }
+    }
 
-		// System.out.println(" add session ,num="+sess2item.size()) ;
-	}
+    protected static class SessionItem {
+        private final Session session;
+        private final IMNContainer container;
+        private final MNNet net;
+        EndpointConfig config = null;
+        IWSRight wsRight;
+        private long lastDT = -1;
 
-	public static synchronized void removeSessionItem(Session sess)
-	{
-		sess2item.remove(sess);
+        public SessionItem(Session s, IMNContainer cont, MNNet net, EndpointConfig config, IWSRight wsright) {
+            this.session = s;
+            this.container = cont;
+            this.net = net;
+            this.config = config;
+            this.wsRight = wsright;
+        }
 
-		// System.out.println(" remove session ,num="+sess2item.size()) ;
-	}
+        public Session getSession() {
+            return session;
+        }
 
-	public static int getSessionNum()
-	{
-		return sess2item.size();
-	}
+        public boolean checkRight() {
+            HttpSession hs = WebSocketConfig.getHttpSession(config);
+            //return LoginUtil.checkAdminLogin(hs);
+            return wsRight.checkWSRight(hs);
+        }
 
-	public static Collection<SessionItem> getSessionItems()
-	{
-		return Collections.unmodifiableCollection(sess2item.values());
-	}
+        public IMNContainer getContainer() {
+            return container;
+        }
 
-	public static void pushToClient(String txt)
-	{
-		for (SessionItem si : getSessionItems())
-		{
-			si.sendTxt(txt);
-		}
-	}
-	
+        public MNNet getNet() {
+            return this.net;
+        }
+
+        public void sendTxt(String txt) {
+            if (!checkRight())
+                return;
+            try {
+                session.getBasicRemote().sendText(txt);
+            } catch (Exception ioe) {
+                CloseReason cr = new CloseReason(CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
+                try {
+                    session.close(cr);
+                } catch (IOException ioe2) {
+                    // Ignore
+                }
+            }
+        }
+    }
+
 //	// private static Timer timer = null;
 //
 //	private static final long TICK_DELAY = 100;

@@ -4,41 +4,21 @@
 
 package cn.doraro.flexedge.server;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.Frame;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.StringReader;
-import java.util.StringTokenizer;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.Color;
-import java.awt.LayoutManager;
-import java.io.InputStreamReader;
-import java.awt.Component;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.io.InputStream;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 import java.net.Socket;
-import java.awt.TextField;
-import java.awt.Button;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import java.awt.BorderLayout;
+import java.util.StringTokenizer;
 import java.util.Vector;
-import java.awt.Panel;
 
-public class ServerCtrlUI extends Panel
-{
+public class ServerCtrlUI extends Panel {
     static int DEFAULT_CTRL_PORT;
+
+    static {
+        ServerCtrlUI.DEFAULT_CTRL_PORT = 55311;
+    }
+
     int maxLineNum;
     Vector contBuffer;
     BorderLayout borderLayout1;
@@ -54,11 +34,7 @@ public class ServerCtrlUI extends Panel
     OutputStream outputs;
     PrintStream outPS;
     Runnable runner;
-    
-    static {
-        ServerCtrlUI.DEFAULT_CTRL_PORT = 55311;
-    }
-    
+
     public ServerCtrlUI() {
         this.maxLineNum = 100;
         this.contBuffer = new Vector();
@@ -88,13 +64,11 @@ public class ServerCtrlUI extends Panel
                         final String tmps = new String(buf, 0, i);
                         ServerCtrlUI.this.onRecvStr(tmps);
                     }
-                }
-                catch (final Exception ee) {
+                } catch (final Exception ee) {
                     ServerCtrlUI.this.onRecvStr(">>**>>read server error:" + ee.getMessage());
                     ServerCtrlUI.this.onRecvStr(">>**>>will disconnect from server!!");
                     return;
-                }
-                finally {
+                } finally {
                     ServerCtrlUI.this.disconnFromServer();
                 }
                 ServerCtrlUI.this.disconnFromServer();
@@ -103,12 +77,38 @@ public class ServerCtrlUI extends Panel
         try {
             this.jbInit();
             this.myInit();
-        }
-        catch (final Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
-    
+
+    public static void main(final String[] args) throws Throwable {
+        final Frame frame = new Frame();
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(final WindowEvent e) {
+                System.exit(0);
+            }
+        });
+        final ServerCtrlUI applet = new ServerCtrlUI();
+        final BorderLayout borderLayout1 = new BorderLayout();
+        final Panel panel1 = new Panel();
+        final Panel panel2 = new Panel();
+        final BorderLayout borderLayout2 = new BorderLayout();
+        frame.setLayout(borderLayout1);
+        panel1.setLayout(borderLayout2);
+        frame.add(panel1, "Center");
+        frame.add(panel2, "South");
+        panel1.add(applet, "Center");
+        frame.setTitle("Tomato Server Console");
+        frame.setLayout(new BorderLayout());
+        frame.add(applet, "Center");
+        frame.setSize(700, 620);
+        final Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        frame.setLocation((d.width - frame.getSize().width) / 2, (d.height - frame.getSize().height) / 2);
+        frame.setVisible(true);
+    }
+
     private void jbInit() throws Exception {
         this.setLayout(this.borderLayout1);
         this.contTextArea.setBackground(Color.black);
@@ -119,7 +119,7 @@ public class ServerCtrlUI extends Panel
         this.cmdPanel.add(this.btnSendCmd, "East");
         this.add(this.cmdPanel, "South");
     }
-    
+
     private void myInit() throws Exception {
         this.btnSendCmd.addActionListener(new ActionListener() {
             @Override
@@ -132,24 +132,22 @@ public class ServerCtrlUI extends Panel
             public void keyPressed(final KeyEvent e) {
                 if (e.getKeyChar() == '\r' || e.getKeyChar() == '\n') {
                     ServerCtrlUI.this.doSendCmd();
-                }
-                else {
+                } else {
                     super.keyPressed(e);
                 }
             }
         });
         this.tfCmdTxt.requestFocus();
     }
-    
+
     private void doSendCmd() {
         try {
             this.doSendCmdDo();
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             this.onRecvStr("XXX cmd error:" + ee.getMessage() + "\n");
         }
     }
-    
+
     private void doSendCmdDo() throws Exception {
         String cmd = this.tfCmdTxt.getText();
         if (cmd == null) {
@@ -187,15 +185,13 @@ public class ServerCtrlUI extends Panel
         st.nextToken();
         if (ct == 1) {
             this.connToServer("localhost", ServerCtrlUI.DEFAULT_CTRL_PORT);
-        }
-        else if (ct == 2) {
+        } else if (ct == 2) {
             this.connToServer(st.nextToken(), ServerCtrlUI.DEFAULT_CTRL_PORT);
-        }
-        else if (ct > 2) {
+        } else if (ct > 2) {
             this.connToServer(st.nextToken(), Integer.parseInt(st.nextToken()));
         }
     }
-    
+
     private void connToServer(final String ip, final int port) throws Exception {
         this.socket = new Socket(ip, port);
         this.inputs = this.socket.getInputStream();
@@ -203,33 +199,33 @@ public class ServerCtrlUI extends Panel
         this.outPS = new PrintStream(this.outputs, true, "UTF-8");
         (this.recvTh = new Thread(this.runner, "server_ctrl_ui_recv")).start();
     }
-    
+
     private void disconnFromServer() {
         if (this.inputs != null) {
             try {
                 this.inputs.close();
+            } catch (final Exception ex) {
             }
-            catch (final Exception ex) {}
             this.inputs = null;
         }
         if (this.outputs != null) {
             try {
                 this.outputs.close();
+            } catch (final Exception ex2) {
             }
-            catch (final Exception ex2) {}
             this.outputs = null;
         }
         if (this.socket != null) {
             try {
                 this.outputs.close();
+            } catch (final Exception ex3) {
             }
-            catch (final Exception ex3) {}
             this.socket = null;
         }
         this.recvTh = null;
         this.setDisLine(">>**>>disconnected from server,please reconnect!!");
     }
-    
+
     public void onRecvStr(final String str) {
         try {
             final BufferedReader br = new BufferedReader(new StringReader(str));
@@ -240,8 +236,7 @@ public class ServerCtrlUI extends Panel
             }
             if (this.contBuffer.size() > 0) {
                 this.contBuffer.setElementAt(this.contBuffer.elementAt(this.contBuffer.size() - 1) + line, this.contBuffer.size() - 1);
-            }
-            else {
+            } else {
                 this.contBuffer.addElement(line);
             }
             while ((line = br.readLine()) != null) {
@@ -255,8 +250,7 @@ public class ServerCtrlUI extends Panel
             for (int i = 0; i < s; ++i) {
                 if (i < s - 1) {
                     sb.append(this.contBuffer.elementAt(i)).append('\n');
-                }
-                else {
+                } else {
                     sb.append(this.contBuffer.elementAt(i));
                 }
             }
@@ -265,10 +259,10 @@ public class ServerCtrlUI extends Panel
             this.contTextArea.invalidate();
             this.contTextArea.requestFocus();
             this.tfCmdTxt.requestFocus();
+        } catch (final IOException ex) {
         }
-        catch (final IOException ex) {}
     }
-    
+
     public void setDisLine(final String str) {
         this.contBuffer.addElement(str);
         if (this.contBuffer.size() > this.maxLineNum) {
@@ -284,7 +278,7 @@ public class ServerCtrlUI extends Panel
         this.contTextArea.requestFocus();
         this.tfCmdTxt.requestFocus();
     }
-    
+
     public void setDisStr(final String str) {
         this.contBuffer.addElement(str);
         if (this.contBuffer.size() > this.maxLineNum) {
@@ -295,8 +289,7 @@ public class ServerCtrlUI extends Panel
         for (int i = 0; i < s; ++i) {
             if (i < s - 1) {
                 sb.append(this.contBuffer.elementAt(i)).append('\n');
-            }
-            else {
+            } else {
                 sb.append(this.contBuffer.elementAt(i));
             }
         }
@@ -305,43 +298,16 @@ public class ServerCtrlUI extends Panel
         this.contTextArea.requestFocus();
         this.tfCmdTxt.requestFocus();
     }
-    
+
     public void clear() {
         this.contBuffer.clear();
         this.contTextArea.setText("");
     }
-    
+
     public void setMaxLineNum(final int mdb) {
         if (mdb <= 0) {
             throw new IllegalArgumentException("Max line num cannot < 0 !");
         }
         this.maxLineNum = mdb;
-    }
-    
-    public static void main(final String[] args) throws Throwable {
-        final Frame frame = new Frame();
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(final WindowEvent e) {
-                System.exit(0);
-            }
-        });
-        final ServerCtrlUI applet = new ServerCtrlUI();
-        final BorderLayout borderLayout1 = new BorderLayout();
-        final Panel panel1 = new Panel();
-        final Panel panel2 = new Panel();
-        final BorderLayout borderLayout2 = new BorderLayout();
-        frame.setLayout(borderLayout1);
-        panel1.setLayout(borderLayout2);
-        frame.add(panel1, "Center");
-        frame.add(panel2, "South");
-        panel1.add(applet, "Center");
-        frame.setTitle("Tomato Server Console");
-        frame.setLayout(new BorderLayout());
-        frame.add(applet, "Center");
-        frame.setSize(700, 620);
-        final Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-        frame.setLocation((d.width - frame.getSize().width) / 2, (d.height - frame.getSize().height) / 2);
-        frame.setVisible(true);
     }
 }

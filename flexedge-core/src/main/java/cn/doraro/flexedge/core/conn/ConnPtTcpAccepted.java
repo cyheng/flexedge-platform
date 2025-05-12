@@ -11,205 +11,171 @@ import java.net.Socket;
 
 /**
  * for tcp server accepted socket connection
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public class ConnPtTcpAccepted extends ConnPtStream
-{
-	public static String TP = "tcp_accepted";
+public class ConnPtTcpAccepted extends ConnPtStream {
+    public static String TP = "tcp_accepted";
 
-	Socket sock = null;
+    Socket sock = null;
 
-	InputStream inputS = null;
+    InputStream inputS = null;
 
-	OutputStream outputS = null;
-	
-	/**
-	 * accepted tcp socket connnection must send first data which has it's id to identify itself
-	 * some accepted may has verification process.
-	 * 
-	 * different communication equipment may has different auth method.
-	 * so it may has inner auth driver to support.
-	 */
-	String sockConnId = null ;
+    OutputStream outputS = null;
 
-	public ConnPtTcpAccepted()
-	{
-	}
+    /**
+     * accepted tcp socket connnection must send first data which has it's id to identify itself
+     * some accepted may has verification process.
+     * <p>
+     * different communication equipment may has different auth method.
+     * so it may has inner auth driver to support.
+     */
+    String sockConnId = null;
+    private long lastChk = -1;
 
-	public ConnPtTcpAccepted(ConnProvider cp, String name, String title, String desc)
-	{
-		super(cp, name, title, desc);
-	}
-	
-	public String getConnType()
-	{
-		return "tcp_client" ;
-	}
+    public ConnPtTcpAccepted() {
+    }
 
-	@Override
-	public XmlData toXmlData()
-	{
-		XmlData xd = super.toXmlData();
-		
-		if(sockConnId!=null)
-			xd.setParamValue("sock_connid", sockConnId);
-		
-		return xd;
-	}
+    public ConnPtTcpAccepted(ConnProvider cp, String name, String title, String desc) {
+        super(cp, name, title, desc);
+    }
 
-	@Override
-	public boolean fromXmlData(XmlData xd, StringBuilder failedr)
-	{
-		boolean r = super.fromXmlData(xd, failedr);
-		this.sockConnId = xd.getParamValueStr("sock_connid");
-		return r;
-	}
-	
-	protected void injectByJson(JSONObject jo) throws Exception
-	{
-		super.injectByJson(jo);
-		this.sockConnId = jo.getString("sock_connid") ;
-	}
-	
-	public boolean setAcceptedSocket(Socket sock)// throws IOException
-	{
-		if(this.sock!=null)
-		{//
-			disconnect();
-			this.fireConnInvalid();
-		}
-		
-		try
-		{
-			this.sock = sock ;
-			inputS = sock.getInputStream();
-			outputS = sock.getOutputStream();
-	
-			this.fireConnReady();
-			return true ;
-		}
-		catch (Exception ee)
-		{
-			disconnect();
-			return false;
-		}
-	}
+    public String getConnType() {
+        return "tcp_client";
+    }
 
-	public String getSockConnId()
-	{
-		if(sockConnId==null)
-			return "" ;
-		return sockConnId;
-	}
+    @Override
+    public XmlData toXmlData() {
+        XmlData xd = super.toXmlData();
 
-	@Override
-	protected InputStream getInputStreamInner()
-	{
-		return inputS;
-	}
+        if (sockConnId != null)
+            xd.setParamValue("sock_connid", sockConnId);
 
-	@Override
-	protected OutputStream getOutputStreamInner()
-	{
-		return outputS;
-	}
+        return xd;
+    }
 
-	public String getStaticTxt()
-	{
-		return this.sockConnId;
-	}
-	
+    @Override
+    public boolean fromXmlData(XmlData xd, StringBuilder failedr) {
+        boolean r = super.fromXmlData(xd, failedr);
+        this.sockConnId = xd.getParamValueStr("sock_connid");
+        return r;
+    }
 
-	synchronized void disconnect() //throws IOException
-	{
-		if (sock == null)
-			return;
+    protected void injectByJson(JSONObject jo) throws Exception {
+        super.injectByJson(jo);
+        this.sockConnId = jo.getString("sock_connid");
+    }
 
-		try
-		{
-			try
-			{
-				if (inputS != null)
-					inputS.close();
-			} catch (Exception e)
-			{
-			}
+    public boolean setAcceptedSocket(Socket sock)// throws IOException
+    {
+        if (this.sock != null) {//
+            disconnect();
+            this.fireConnInvalid();
+        }
 
-			try
-			{
-				if (outputS != null)
-					outputS.close();
-			} catch (Exception e)
-			{
-			}
+        try {
+            this.sock = sock;
+            inputS = sock.getInputStream();
+            outputS = sock.getOutputStream();
 
-			try
-			{
-				if (sock != null)
-					sock.close();
-			} catch (Exception e)
-			{
-			}
-		} finally
-		{
-			inputS = null;
-			outputS = null;
-			sock = null;
-		}
-	}
-	
-	public void RT_checkConn()
-	{}
+            this.fireConnReady();
+            return true;
+        } catch (Exception ee) {
+            disconnect();
+            return false;
+        }
+    }
 
-	private long lastChk = -1;
+    public String getSockConnId() {
+        if (sockConnId == null)
+            return "";
+        return sockConnId;
+    }
 
-	void checkConn()
-	{
-		if(System.currentTimeMillis()-lastChk<5000)
-			return ;
-		
-		try
-		{
-			//connect();
-		}
-		finally
-		{
-			lastChk = System.currentTimeMillis() ;
-		}
-	}
+    @Override
+    protected InputStream getInputStreamInner() {
+        return inputS;
+    }
 
-	public String getDynTxt()
-	{
-		return "";
-	}
+    @Override
+    protected OutputStream getOutputStreamInner() {
+        return outputS;
+    }
 
-	@Override
-	public boolean isClosed()
-	{
-		if(sock==null)
-			return true ;
-		return sock.isClosed();
-	}
+    public String getStaticTxt() {
+        return this.sockConnId;
+    }
 
-	@Override
-	public boolean isConnReady()
-	{
-		return sock!=null;
-	}
-	
-	public String getConnErrInfo()
-	{
-		if(sock==null)
-			return "no connection" ;
-		else
-			return null ;
-	}
+    synchronized void disconnect() //throws IOException
+    {
+        if (sock == null)
+            return;
 
-	@Override
-	public void close() throws IOException
-	{
-		disconnect();
-	}
+        try {
+            try {
+                if (inputS != null)
+                    inputS.close();
+            } catch (Exception e) {
+            }
+
+            try {
+                if (outputS != null)
+                    outputS.close();
+            } catch (Exception e) {
+            }
+
+            try {
+                if (sock != null)
+                    sock.close();
+            } catch (Exception e) {
+            }
+        } finally {
+            inputS = null;
+            outputS = null;
+            sock = null;
+        }
+    }
+
+    public void RT_checkConn() {
+    }
+
+    void checkConn() {
+        if (System.currentTimeMillis() - lastChk < 5000)
+            return;
+
+        try {
+            //connect();
+        } finally {
+            lastChk = System.currentTimeMillis();
+        }
+    }
+
+    public String getDynTxt() {
+        return "";
+    }
+
+    @Override
+    public boolean isClosed() {
+        if (sock == null)
+            return true;
+        return sock.isClosed();
+    }
+
+    @Override
+    public boolean isConnReady() {
+        return sock != null;
+    }
+
+    public String getConnErrInfo() {
+        if (sock == null)
+            return "no connection";
+        else
+            return null;
+    }
+
+    @Override
+    public void close() throws IOException {
+        disconnect();
+    }
 
 }

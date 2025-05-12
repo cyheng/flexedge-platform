@@ -3,11 +3,10 @@ package cn.doraro.flexedge.core.conn.masyn;
 /**
  * when a connection is created with two endpoint node.
  * two nodes will has one master and another slave
- * master will control slave. 
- * @author jason.zhu
+ * master will control slave.
  *
+ * @author jason.zhu
  */
-public class MCmdAsynSlave
-{
+public class MCmdAsynSlave {
 
 }

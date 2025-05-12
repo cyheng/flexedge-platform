@@ -4,20 +4,20 @@
 
 package cn.doraro.flexedge.driver.common.modbus;
 
-import java.util.HashMap;
-import java.io.InputStream;
-import java.io.OutputStream;
 import kotlin.NotImplementedError;
 
-public class ModbusCmdReadBits extends ModbusCmdRead
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+
+public class ModbusCmdReadBits extends ModbusCmdRead {
     int regAddr;
     int regNum;
     boolean[] ret_vals;
     boolean ret_val_ok;
     Boolean[] last_vals;
     short fc;
-    
+
     ModbusCmdReadBits(final int dev_addr, final short fc) {
         super(1000L, dev_addr);
         this.regAddr = 0;
@@ -37,7 +37,7 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             }
         }
     }
-    
+
     public ModbusCmdReadBits(final short fc, final long scan_inter_ms, final int dev_addr, final int reg_addr, final int reg_num) {
         super(scan_inter_ms, dev_addr);
         this.regAddr = 0;
@@ -58,26 +58,21 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             }
         }
     }
-    
+
     public ModbusCmdReadBits(final short fc, final int s_addr, final int reg_addr, final int reg_num) {
         this(fc, -1L, s_addr, reg_addr, reg_num);
     }
-    
-    @Override
-    public short getFC() {
-        return this.fc;
-    }
-    
+
     static ModbusCmdReadBits createReqMC(final byte[] bs, final int[] pl) {
         if (bs.length < 8) {
             return null;
         }
         final int crc = ModbusCmd.modbus_crc16_check(bs, 6);
-        if (bs[6] != (byte)(crc >> 8 & 0xFF) || bs[7] != (byte)(crc & 0xFF)) {
+        if (bs[6] != (byte) (crc >> 8 & 0xFF) || bs[7] != (byte) (crc & 0xFF)) {
             return null;
         }
-        final short addr = (short)(bs[0] & 0xFF);
-        final short fc = (short)(bs[1] & 0xFF);
+        final short addr = (short) (bs[0] & 0xFF);
+        final short fc = (short) (bs[1] & 0xFF);
         int reg_addr = 0xFF & bs[2];
         reg_addr <<= 8;
         reg_addr += (0xFF & bs[3]);
@@ -86,20 +81,19 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         reg_num += (0xFF & bs[5]);
         if (bs.length > 8) {
             pl[0] = 8;
-        }
-        else {
+        } else {
             pl[0] = -1;
         }
         return new ModbusCmdReadBits(fc, -1L, addr, reg_addr, reg_num);
     }
-    
+
     public static int createRespErr(final byte[] data, final short addr, final short req_fc, final short err_code) {
-        data[0] = (byte)addr;
-        data[1] = (byte)(req_fc + 128);
-        data[2] = (byte)err_code;
+        data[0] = (byte) addr;
+        data[1] = (byte) (req_fc + 128);
+        data[2] = (byte) err_code;
         return 3;
     }
-    
+
     public static byte[] createResp(final ModbusCmd mc, final short addr, final short req_fc, final boolean[] bdata) {
         switch (mc.getProtocol()) {
             case tcp: {
@@ -113,14 +107,14 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             }
         }
     }
-    
+
     private static byte[] createRespRTU(final short addr, final short req_fc, final boolean[] bdata) {
         final int dlen = bdata.length / 8 + ((bdata.length % 8 > 0) ? 1 : 0);
         final int rlen = 5 + dlen;
         final byte[] data = new byte[rlen];
-        data[0] = (byte)addr;
-        data[1] = (byte)req_fc;
-        data[2] = (byte)dlen;
+        data[0] = (byte) addr;
+        data[1] = (byte) req_fc;
+        data[2] = (byte) dlen;
         for (int i = 0; i < dlen; ++i) {
             data[3 + i] = 0;
         }
@@ -130,15 +124,15 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             if (bdata[i]) {
                 final byte[] array = data;
                 final int n = k;
-                array[n] |= (byte)(1 << bk);
+                array[n] |= (byte) (1 << bk);
             }
         }
         final int crc = ModbusCmd.modbus_crc16_check(data, rlen - 2);
-        data[rlen - 2] = (byte)(crc >> 8 & 0xFF);
-        data[rlen - 1] = (byte)(crc & 0xFF);
+        data[rlen - 2] = (byte) (crc >> 8 & 0xFF);
+        data[rlen - 1] = (byte) (crc & 0xFF);
         return data;
     }
-    
+
     private static byte[] createRespTCP(final byte[] mbap, final short addr, final short req_fc, final boolean[] bdata) {
         final int dlen = bdata.length / 8 + ((bdata.length % 8 > 0) ? 1 : 0);
         int rlen = 9 + dlen;
@@ -148,11 +142,11 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         data[1] = mbap[1];
         data[2] = mbap[2];
         data[3] = mbap[3];
-        data[4] = (byte)(rlen >> 8);
-        data[5] = (byte)rlen;
-        data[6] = (byte)addr;
-        data[7] = (byte)req_fc;
-        data[8] = (byte)dlen;
+        data[4] = (byte) (rlen >> 8);
+        data[5] = (byte) rlen;
+        data[6] = (byte) addr;
+        data[7] = (byte) req_fc;
+        data[8] = (byte) dlen;
         for (int i = 0; i < dlen; ++i) {
             data[9 + i] = 0;
         }
@@ -162,12 +156,17 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             if (bdata[i]) {
                 final byte[] array = data;
                 final int n = k;
-                array[n] |= (byte)(1 << bk);
+                array[n] |= (byte) (1 << bk);
             }
         }
         return data;
     }
-    
+
+    @Override
+    public short getFC() {
+        return this.fc;
+    }
+
     private void setRegAddrNum(final int reg_addr, final int reg_num) {
         this.regAddr = reg_addr;
         this.regNum = reg_num;
@@ -177,22 +176,22 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             this.last_vals[i] = null;
         }
     }
-    
+
     @Override
     public int getRegAddr() {
         return this.regAddr;
     }
-    
+
     @Override
     public int getRegNum() {
         return this.regNum;
     }
-    
+
     @Override
     public boolean isReadCmd() {
         return true;
     }
-    
+
     public boolean[] getRetVals() {
         if (!this.ret_val_ok) {
             return null;
@@ -202,7 +201,7 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         }
         return this.ret_vals;
     }
-    
+
     @Override
     public Object[] getReadVals() {
         final boolean[] r = this.getRetVals();
@@ -215,17 +214,17 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         }
         return rs;
     }
-    
+
     @Override
     public int calRespLenRTU() {
         return 3 + this.regNum / 8 + ((this.regNum % 8 > 0) ? 1 : 0) + 2;
     }
-    
+
     protected int reqRespRTU1(final OutputStream ous, final InputStream ins) throws Exception {
-        final byte[] pdata = { (byte)this.slaveAddr, (byte)this.fc, (byte)(this.regAddr >> 8 & 0xFF), (byte)(this.regAddr & 0xFF), (byte)(this.regNum >> 8), (byte)(this.regNum & 0xFF), 0, 0 };
+        final byte[] pdata = {(byte) this.slaveAddr, (byte) this.fc, (byte) (this.regAddr >> 8 & 0xFF), (byte) (this.regAddr & 0xFF), (byte) (this.regNum >> 8), (byte) (this.regNum & 0xFF), 0, 0};
         final int crc = ModbusCmd.modbus_crc16_check(pdata, 6);
-        pdata[6] = (byte)(crc >> 8 & 0xFF);
-        pdata[7] = (byte)(crc & 0xFF);
+        pdata[6] = (byte) (crc >> 8 & 0xFF);
+        pdata[7] = (byte) (crc & 0xFF);
         this.clearInputStream(ins);
         ous.write(pdata);
         ous.flush();
@@ -238,7 +237,7 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         if (rr.isErrRet()) {
             return -4;
         }
-        final ModbusParserResp.RespRetReadBits rrrb = (ModbusParserResp.RespRetReadBits)rr;
+        final ModbusParserResp.RespRetReadBits rrrb = (ModbusParserResp.RespRetReadBits) rr;
         final boolean[] bvs = rrrb.getReadVals();
         final HashMap<Integer, Object> addr2val = new HashMap<Integer, Object>();
         for (int i = 0; i < this.regNum; ++i) {
@@ -255,13 +254,13 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         this.ret_val_ok = true;
         return this.regNum;
     }
-    
+
     @Override
     protected int reqRespRTU(final OutputStream ous, final InputStream ins) throws Exception {
-        final byte[] pdata = { (byte)this.slaveAddr, (byte)this.fc, (byte)(this.regAddr >> 8 & 0xFF), (byte)(this.regAddr & 0xFF), (byte)(this.regNum >> 8), (byte)(this.regNum & 0xFF), 0, 0 };
+        final byte[] pdata = {(byte) this.slaveAddr, (byte) this.fc, (byte) (this.regAddr >> 8 & 0xFF), (byte) (this.regAddr & 0xFF), (byte) (this.regNum >> 8), (byte) (this.regNum & 0xFF), 0, 0};
         int crc = ModbusCmd.modbus_crc16_check(pdata, 6);
-        pdata[6] = (byte)(crc >> 8 & 0xFF);
-        pdata[7] = (byte)(crc & 0xFF);
+        pdata[6] = (byte) (crc >> 8 & 0xFF);
+        pdata[7] = (byte) (crc & 0xFF);
         this.clearInputStream(ins);
         ous.write(pdata);
         ous.flush();
@@ -278,21 +277,19 @@ public class ModbusCmdReadBits extends ModbusCmdRead
                     break;
                 }
                 continue;
-            }
-            else {
-                if (this.mbuss_adu[0] != (byte)this.slaveAddr) {
+            } else {
+                if (this.mbuss_adu[0] != (byte) this.slaveAddr) {
                     break;
                 }
                 if (rlen < 3) {
                     continue;
                 }
-                if (this.mbuss_adu[1] != (byte)this.fc) {
-                    if (this.mbuss_adu[1] == (byte)(this.fc + 128)) {
+                if (this.mbuss_adu[1] != (byte) this.fc) {
+                    if (this.mbuss_adu[1] == (byte) (this.fc + 128)) {
                         break;
                     }
                     break;
-                }
-                else {
+                } else {
                     mayrlen = (this.mbuss_adu[2] & 0xFF) + 5;
                 }
             }
@@ -307,10 +304,9 @@ public class ModbusCmdReadBits extends ModbusCmdRead
                 return -2;
             }
             return 0;
-        }
-        else {
+        } else {
             crc = ModbusCmd.modbus_crc16_check(this.mbuss_adu, mayrlen - 2);
-            if ((byte)(crc >> 8) != this.mbuss_adu[mayrlen - 2] || (byte)(crc & 0xFF) != this.mbuss_adu[mayrlen - 1]) {
+            if ((byte) (crc >> 8) != this.mbuss_adu[mayrlen - 2] || (byte) (crc & 0xFF) != this.mbuss_adu[mayrlen - 1]) {
                 this.com_stream_end();
                 return -3;
             }
@@ -332,7 +328,7 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             return this.regNum;
         }
     }
-    
+
     @Override
     protected int reqRespTCP(final OutputStream ous, final InputStream ins) throws Exception {
         final byte[] pdata = new byte[12];
@@ -340,27 +336,28 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         if (this.lastTcpCC >= 65535) {
             this.lastTcpCC = 1;
         }
-        pdata[0] = (byte)(this.lastTcpCC >> 8 & 0xFF);
-        pdata[1] = (byte)(this.lastTcpCC & 0xFF);
+        pdata[0] = (byte) (this.lastTcpCC >> 8 & 0xFF);
+        pdata[1] = (byte) (this.lastTcpCC & 0xFF);
         pdata[2] = (pdata[3] = 0);
         pdata[4] = 0;
         pdata[5] = 6;
-        pdata[6] = (byte)this.slaveAddr;
-        pdata[7] = (byte)this.fc;
-        pdata[8] = (byte)(this.regAddr >> 8 & 0xFF);
-        pdata[9] = (byte)(this.regAddr & 0xFF);
-        pdata[10] = (byte)(this.regNum >> 8);
-        pdata[11] = (byte)(this.regNum & 0xFF);
+        pdata[6] = (byte) this.slaveAddr;
+        pdata[7] = (byte) this.fc;
+        pdata[8] = (byte) (this.regAddr >> 8 & 0xFF);
+        pdata[9] = (byte) (this.regAddr & 0xFF);
+        pdata[10] = (byte) (this.regNum >> 8);
+        pdata[11] = (byte) (this.regNum & 0xFF);
         this.clearInputStream(ins);
         ous.write(pdata);
         ous.flush();
         final byte[] read_mbap = new byte[6];
         do {
-            read_mbap[0] = (byte)ins.read();
+            read_mbap[0] = (byte) ins.read();
         } while (pdata[0] != read_mbap[0]);
         int rlen;
         int r;
-        for (rlen = 1; (r = ins.read(read_mbap, rlen, 6 - rlen)) > 0; rlen += r) {}
+        for (rlen = 1; (r = ins.read(read_mbap, rlen, 6 - rlen)) > 0; rlen += r) {
+        }
         if (rlen != 6) {
             this.ret_val_ok = false;
             return 0;
@@ -377,16 +374,17 @@ public class ModbusCmdReadBits extends ModbusCmdRead
             return 0;
         }
         byte[] recvpdu;
-        for (recvpdu = new byte[pdulen], rlen = 0; (r = ins.read(recvpdu, rlen, pdulen - rlen)) > 0; rlen += r) {}
+        for (recvpdu = new byte[pdulen], rlen = 0; (r = ins.read(recvpdu, rlen, pdulen - rlen)) > 0; rlen += r) {
+        }
         if (rlen != pdulen) {
             this.ret_val_ok = false;
             return 0;
         }
-        if (recvpdu[0] != (byte)this.slaveAddr) {
+        if (recvpdu[0] != (byte) this.slaveAddr) {
             this.ret_val_ok = false;
             return 0;
         }
-        if (recvpdu[1] != (byte)this.fc) {
+        if (recvpdu[1] != (byte) this.fc) {
             this.ret_val_ok = false;
             return 0;
         }
@@ -406,7 +404,7 @@ public class ModbusCmdReadBits extends ModbusCmdRead
         this.ret_val_ok = true;
         return this.regNum;
     }
-    
+
     @Override
     public String toString() {
         return super.toString() + "| bit dev_addr=" + this.getDevAddr() + " reg_addr=" + this.regAddr + " reg_num=" + this.regNum;

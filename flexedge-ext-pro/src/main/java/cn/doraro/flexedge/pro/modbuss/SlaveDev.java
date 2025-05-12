@@ -4,22 +4,19 @@
 
 package cn.doraro.flexedge.pro.modbuss;
 
-import java.util.Collections;
 import cn.doraro.flexedge.core.util.Convert;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ArrayList;
+import cn.doraro.flexedge.core.util.xmldata.data_class;
 import cn.doraro.flexedge.core.util.xmldata.data_obj;
 import cn.doraro.flexedge.core.util.xmldata.data_val;
-import cn.doraro.flexedge.driver.common.modbus.ModbusBlock;
 import cn.doraro.flexedge.driver.common.ModbusAddr;
+import cn.doraro.flexedge.driver.common.modbus.ModbusBlock;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import cn.doraro.flexedge.core.util.xmldata.data_class;
 
 @data_class
-public class SlaveDev extends SlaveNode
-{
-    private transient List<ModbusAddr> maddrs;
+public class SlaveDev extends SlaveNode {
     ModbusBlock mbCoilIn;
     ModbusBlock mbCoilOut;
     ModbusBlock mbRegIn;
@@ -29,9 +26,10 @@ public class SlaveDev extends SlaveNode
     @data_obj(obj_c = SlaveDevSeg.class, param_name = "segs")
     List<SlaveDevSeg> segs;
     transient MSBus_M belongTo;
+    private transient List<ModbusAddr> maddrs;
     private transient List<SlaveVar> simTags;
     private boolean RT_bValid;
-    
+
     public SlaveDev() {
         this.maddrs = new ArrayList<ModbusAddr>();
         this.mbCoilIn = null;
@@ -43,7 +41,7 @@ public class SlaveDev extends SlaveNode
         this.simTags = null;
         this.RT_bValid = true;
     }
-    
+
     public List<SlaveVar> getSimTags() {
         final List<SlaveVar> r = this.simTags;
         if (r != null) {
@@ -60,11 +58,11 @@ public class SlaveDev extends SlaveNode
             return this.simTags = rets;
         }
     }
-    
+
     protected void clearBuffer() {
         this.simTags = null;
     }
-    
+
     public SlaveVar getSimTagByName(final String n) {
         final List<SlaveVar> tags = this.getSimTags();
         if (tags == null) {
@@ -77,19 +75,19 @@ public class SlaveDev extends SlaveNode
         }
         return null;
     }
-    
+
     public String getDevTitle() {
         return "Addr=" + this.devAddr + " Seg Num=" + this.segs.size();
     }
-    
+
     public int getDevAddr() {
         return this.devAddr;
     }
-    
+
     public List<SlaveDevSeg> getSegs() {
         return this.segs;
     }
-    
+
     public SlaveDevSeg getSegById(final String id) {
         for (final SlaveDevSeg seg : this.segs) {
             if (seg.getId().equals(id)) {
@@ -98,7 +96,7 @@ public class SlaveDev extends SlaveNode
         }
         return null;
     }
-    
+
     protected List<SlaveVar> listSimTagsInner() {
         final ArrayList<SlaveVar> rets = new ArrayList<SlaveVar>();
         for (final SlaveDevSeg seg : this.segs) {
@@ -114,7 +112,7 @@ public class SlaveDev extends SlaveNode
         }
         return rets;
     }
-    
+
     public SlaveVar findTagBySegIdx(final String segid, final int segidx) {
         for (final SlaveDevSeg seg : this.segs) {
             if (seg.getId().equals(segid)) {
@@ -131,7 +129,7 @@ public class SlaveDev extends SlaveNode
         }
         return null;
     }
-    
+
     public SlaveVar setTag(final String segid, final int regidx, final String name) throws Exception {
         final SlaveDevSeg seg = this.getSegById(segid);
         if (seg == null) {
@@ -157,7 +155,7 @@ public class SlaveDev extends SlaveNode
         this.clearBuffer();
         return st;
     }
-    
+
     private List<ModbusAddr> filterAndSortAddrs(final short addrtp) {
         final ArrayList<ModbusAddr> r = new ArrayList<ModbusAddr>();
         for (final ModbusAddr ma : this.maddrs) {
@@ -168,30 +166,30 @@ public class SlaveDev extends SlaveNode
         Collections.sort(r);
         return r;
     }
-    
+
     public void RT_init() {
         for (final SlaveDevSeg seg : this.segs) {
             seg.belongTo = this;
             seg.RT_init();
         }
     }
-    
+
     public void RT_setVarVal(final String varn, final Object ob) {
         for (final SlaveDevSeg seg : this.segs) {
             seg.RT_setVarVal(varn, ob);
         }
     }
-    
+
     public void RT_readBindTags() {
         for (final SlaveDevSeg seg : this.segs) {
             seg.RT_readBindTags();
         }
     }
-    
+
     public void RT_setDevValid(final boolean b_valid) {
         this.RT_bValid = b_valid;
     }
-    
+
     public boolean RT_isDevValid() {
         return this.RT_bValid;
     }

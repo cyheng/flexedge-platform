@@ -4,19 +4,17 @@
 
 package cn.doraro.flexedge.driver.common.modbus.sniffer;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
-public class SnifferBuffer
-{
+public class SnifferBuffer {
     private transient LinkedList<byte[]> bsList;
     private transient int firstPos;
-    
+
     public SnifferBuffer() {
         this.bsList = new LinkedList<byte[]>();
         this.firstPos = 0;
     }
-    
+
     public void addData(final byte[] bs) {
         if (bs == null || bs.length <= 0) {
             return;
@@ -25,7 +23,7 @@ public class SnifferBuffer
             this.bsList.addLast(bs);
         }
     }
-    
+
     public int getBufLen() {
         int r = 0;
         for (final byte[] bs : this.bsList) {
@@ -33,7 +31,7 @@ public class SnifferBuffer
         }
         return r - this.firstPos;
     }
-    
+
     private boolean readData(final byte[] buf, int offset, int len, final boolean remove_readed) {
         final int buflen = this.getBufLen();
         if (buflen < len) {
@@ -72,15 +70,15 @@ public class SnifferBuffer
         }
         return true;
     }
-    
+
     public boolean readData(final byte[] buf, final int offset, final int len) {
         return this.readData(buf, offset, len, true);
     }
-    
+
     public boolean skipLen(final int len) {
         return this.readData(null, 0, len, true);
     }
-    
+
     public int readNextChar() {
         if (this.bsList.size() <= 0) {
             return -1;
@@ -96,7 +94,7 @@ public class SnifferBuffer
         }
         return b & 0xFF;
     }
-    
+
     public boolean peekData(final byte[] buf, final int offset, final int len) {
         return this.readData(buf, offset, len, false);
     }

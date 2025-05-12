@@ -5,17 +5,17 @@
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
 import cn.doraro.flexedge.core.util.Convert;
-import java.io.OutputStream;
-import java.io.InputStream;
 
-public class FxCmdW extends FxCmd
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class FxCmdW extends FxCmd {
     private int baseAddr;
     private byte[] wBytes;
     private int startAddr;
     private transient FxMsgReqW req;
     private transient boolean bAck;
-    
+
     public FxCmdW(final int base_addr, final int startaddr, final byte[] w_bytes) {
         this.req = null;
         this.bAck = false;
@@ -23,23 +23,23 @@ public class FxCmdW extends FxCmd
         this.startAddr = startaddr;
         this.wBytes = w_bytes;
     }
-    
+
     public int getBaseAddr() {
         return this.baseAddr;
     }
-    
+
     public int getStartAddr() {
         return this.startAddr;
     }
-    
+
     public byte[] getWriteBytes() {
         return this.wBytes;
     }
-    
+
     public boolean isAck() {
         return this.bAck;
     }
-    
+
     @Override
     void initCmd(final FxDriver drv, final boolean b_ext) {
         super.initCmd(drv, b_ext);
@@ -47,7 +47,7 @@ public class FxCmdW extends FxCmd
         reqw.asStartAddr(this.baseAddr, this.startAddr).asBytesVal(this.wBytes).asExt(b_ext);
         this.req = reqw;
     }
-    
+
     @Override
     public boolean doCmd(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.drv.getCmdInterval());
@@ -61,7 +61,7 @@ public class FxCmdW extends FxCmd
         this.bAck = (c == 6);
         return true;
     }
-    
+
     public FxMsgReqW getReq() {
         return this.req;
     }

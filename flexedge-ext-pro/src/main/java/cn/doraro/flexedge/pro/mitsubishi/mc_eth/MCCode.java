@@ -7,25 +7,15 @@ package cn.doraro.flexedge.pro.mitsubishi.mc_eth;
 import cn.doraro.flexedge.core.dict.DataNode;
 import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.Lan;
-import java.util.Iterator;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MCCode
-{
-    String title;
-    String symbol;
-    TP tp;
-    Sign sign;
-    String asciiVal_Q_L;
-    Integer binVal_Q_L;
-    String asciiVal_iQ_R;
-    Integer binVal_iQ_R;
-    boolean supportBit;
+public class MCCode {
     public static final List<String> SYMBOLS;
     private static HashMap<String, MCCode> SYM2CODE;
-    
+
     static {
         SYMBOLS = Arrays.asList("SM", "SD", "X", "Y", "M", "L", "F", "V", "B", "D", "W", "TS", "TC", "TN", "LTS", "LTC", "LTN", "STS", "STC", "STN", "LSTS", "LSTC", "LSTN", "CS", "CC", "CN", "LCS", "LCC", "LCN", "SB", "SW", "DX", "DY", "Z", "LZ", "R", "ZR", "D", "W", "RD");
         MCCode.SYM2CODE = new HashMap<String, MCCode>();
@@ -37,17 +27,23 @@ public class MCCode
             MCCode.SYM2CODE.put(sym, cc);
         }
     }
-    
+
+    String title;
+    String symbol;
+    TP tp;
+    Sign sign;
+    String asciiVal_Q_L;
+    Integer binVal_Q_L;
+    String asciiVal_iQ_R;
+    Integer binVal_iQ_R;
+    boolean supportBit;
+
     private MCCode() {
         this.supportBit = false;
     }
-    
-    public boolean isBitTp() {
-        return this.tp == TP.bit;
-    }
-    
+
     private static MCCode readCode(final String n) {
-        final Lan lan = Lan.getLangInPk((Class)MCCode.class);
+        final Lan lan = Lan.getLangInPk((Class) MCCode.class);
         final DataNode dn = lan.gn("deftp_" + n);
         if (dn == null) {
             return null;
@@ -74,30 +70,32 @@ public class MCCode
         ret.supportBit = "true".equals(dn.getAttr("bit_pos"));
         return ret;
     }
-    
+
     public static MCCode getCodeBySymbol(final String sym) {
         return MCCode.SYM2CODE.get(sym);
     }
-    
+
+    public boolean isBitTp() {
+        return this.tp == TP.bit;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(this.title) + " " + this.symbol + ":" + this.tp;
     }
-    
-    public enum Sign
-    {
-        dec("dec", 0), 
+
+    public enum Sign {
+        dec("dec", 0),
         hex("hex", 1);
-        
+
         private Sign(final String name, final int ordinal) {
         }
     }
-    
-    public enum TP
-    {
-        bit("bit", 0), 
+
+    public enum TP {
+        bit("bit", 0),
         word("word", 1);
-        
+
         private TP(final String name, final int ordinal) {
         }
     }

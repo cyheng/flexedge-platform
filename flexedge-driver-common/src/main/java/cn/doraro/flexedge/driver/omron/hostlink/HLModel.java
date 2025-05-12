@@ -4,49 +4,48 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink;
 
-import cn.doraro.flexedge.driver.omron.fins.FinsMode;
 import cn.doraro.flexedge.core.DevAddr;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.UAVal;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.driver.omron.fins.FinsMode;
 
-public abstract class HLModel extends DevDriver.Model
-{
-    private LinkedHashMap<String, HLAddrDef> prefix2addrdef;
+import java.util.*;
+
+public abstract class HLModel extends DevDriver.Model {
     static ArrayList<DevDriver.Model> models;
-    
+
     static {
         (HLModel.models = new ArrayList<DevDriver.Model>()).add(new HLModel_CS1());
         HLModel.models.add(new HLModel_CJ1());
         HLModel.models.add(new HLModel_CJ2());
     }
-    
+
+    private LinkedHashMap<String, HLAddrDef> prefix2addrdef;
+
     public HLModel(final String name, final String t) {
         super(name, t);
         this.prefix2addrdef = new LinkedHashMap<String, HLAddrDef>();
     }
-    
+
+    public static List<DevDriver.Model> getModelsAll() {
+        return HLModel.models;
+    }
+
     public void setAddrDef(final HLAddrDef addr_def) {
         this.prefix2addrdef.put(addr_def.prefix, addr_def);
     }
-    
+
     public List<String> listPrefix() {
         final ArrayList<String> rets = new ArrayList<String>();
         rets.addAll(this.prefix2addrdef.keySet());
         return rets;
     }
-    
+
     public HLAddrDef getAddrDef(final String prefix) {
         return this.prefix2addrdef.get(prefix);
     }
-    
+
     HLAddr transAddr(final String prefix, final String addr_str, final String bit_str, final UAVal.ValTP vtp, final StringBuilder failedr) {
         final int addr_n = Convert.parseToInt32(addr_str, -1);
         if (addr_n < 0) {
@@ -64,7 +63,7 @@ public abstract class HLModel extends DevDriver.Model
         }
         return this.transAddr(prefix, addr_n, bit_n, vtp, failedr);
     }
-    
+
     public HLAddr transAddr(final String prefix, final int addr_num, final int bit_num, UAVal.ValTP vtp, final StringBuilder failedr) {
         final HLAddrDef def = this.prefix2addrdef.get(prefix);
         if (def == null) {
@@ -83,8 +82,7 @@ public abstract class HLModel extends DevDriver.Model
                 failedr.append("no AddrSeg match with ValTP=" + vtp.name());
                 return null;
             }
-        }
-        else {
+        } else {
             for (final HLAddrSeg seg : def.segs) {
                 if (seg.matchAddr(addr_num, bit_num)) {
                     addrseg = seg;
@@ -101,7 +99,7 @@ public abstract class HLModel extends DevDriver.Model
         ret.setWritable(addrseg.bWrite);
         return ret;
     }
-    
+
     public HashMap<HLAddrSeg, List<HLAddr>> filterAndSortAddrs(final String prefix, final List<HLAddr> addrs) {
         final HLAddrDef def = this.getAddrDef(prefix);
         if (def == null) {
@@ -128,16 +126,12 @@ public abstract class HLModel extends DevDriver.Model
         }
         return rets;
     }
-    
+
     public List<DevAddr.IAddrDef> getAddrDefs() {
         final ArrayList<DevAddr.IAddrDef> rets = new ArrayList<DevAddr.IAddrDef>();
-        rets.addAll((Collection<? extends DevAddr.IAddrDef>)this.prefix2addrdef.values());
+        rets.addAll((Collection<? extends DevAddr.IAddrDef>) this.prefix2addrdef.values());
         return rets;
     }
-    
+
     public abstract FinsMode getFinsMode();
-    
-    public static List<DevDriver.Model> getModelsAll() {
-        return HLModel.models;
-    }
 }

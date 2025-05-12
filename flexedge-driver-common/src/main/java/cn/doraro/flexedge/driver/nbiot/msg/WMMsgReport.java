@@ -4,20 +4,19 @@
 
 package cn.doraro.flexedge.driver.nbiot.msg;
 
-import java.util.Date;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 
-public class WMMsgReport extends WMMsgDT
-{
+public class WMMsgReport extends WMMsgDT {
     long curMeterVal;
     byte meterUnit;
     byte[] fixStartDT;
     byte fixCollInt;
     int fixNum;
     long[] fixData;
-    
+
     public WMMsgReport() {
         this.curMeterVal = -1L;
         this.meterUnit = -1;
@@ -26,20 +25,20 @@ public class WMMsgReport extends WMMsgDT
         this.fixNum = -1;
         this.fixData = null;
     }
-    
+
     @Override
     protected ArrayList<byte[]> getMsgBody() {
         throw new RuntimeException("no impl");
     }
-    
+
     public long getCurMeterVal() {
         return this.curMeterVal;
     }
-    
+
     public byte getMeterUnit() {
         return this.meterUnit;
     }
-    
+
     public float getMeterUnitVal() {
         switch (this.meterUnit) {
             case 43: {
@@ -56,11 +55,11 @@ public class WMMsgReport extends WMMsgDT
             }
         }
     }
-    
+
     public boolean isTestReport() {
         return this.func[1] == 16;
     }
-    
+
     @Override
     protected ArrayList<byte[]> parseMsgBody(final InputStream inputs) throws IOException {
         final ArrayList<byte[]> bbs = super.parseMsgBody(inputs);
@@ -113,21 +112,20 @@ public class WMMsgReport extends WMMsgDT
         bbs.add(z43);
         return bbs;
     }
-    
+
     public WMMsgReceipt createReceipt(final boolean bcontinue) {
         final WMMsgReceipt receipt = new WMMsgReceipt();
         receipt.setMeterAddr(this.getMeterAddr());
         if (this.isTestReport()) {
             receipt.setReceiptTp(2);
-        }
-        else {
+        } else {
             receipt.setReceiptTp(0);
         }
         receipt.setContinue(bcontinue);
         receipt.setMsgDT(new Date());
         return receipt;
     }
-    
+
     @Override
     public String toString() {
         String ret = super.toString();

@@ -4,48 +4,46 @@
 
 package cn.doraro.flexedge.pro.modbuss;
 
-import java.util.Iterator;
-import org.json.JSONArray;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.msgnet.RTOut;
-import cn.doraro.flexedge.core.msgnet.MNMsg;
 import cn.doraro.flexedge.core.msgnet.MNConn;
-import org.json.JSONObject;
+import cn.doraro.flexedge.core.msgnet.MNMsg;
 import cn.doraro.flexedge.core.msgnet.MNNodeEnd;
+import cn.doraro.flexedge.core.msgnet.RTOut;
+import cn.doraro.flexedge.core.util.Convert;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-public class MSChgState_NE extends MNNodeEnd
-{
+public class MSChgState_NE extends MNNodeEnd {
     public String getTP() {
         return "ms_chg_state";
     }
-    
+
     public String getTPTitle() {
         return "Change Bus/Device State";
     }
-    
+
     public String getColor() {
         return "#24acf2";
     }
-    
+
     public String getIcon() {
         return "PK_bus";
     }
-    
+
     public boolean isParamReady(final StringBuilder failedr) {
         return true;
     }
-    
+
     public JSONObject getParamJO() {
         final JSONObject jo = new JSONObject();
         return jo;
     }
-    
+
     protected void setParamJO(final JSONObject jo) {
     }
-    
+
     protected RTOut RT_onMsgIn(final MNConn in_conn, final MNMsg msg) throws Exception {
-        final MSBus_M bus = (MSBus_M)this.getOwnRelatedModule();
-        final JSONObject jo = msg.getPayloadJO((JSONObject)null);
+        final MSBus_M bus = (MSBus_M) this.getOwnRelatedModule();
+        final JSONObject jo = msg.getPayloadJO((JSONObject) null);
         if (jo == null) {
             return null;
         }
@@ -71,9 +69,9 @@ public class MSChgState_NE extends MNNodeEnd
         }
         return null;
     }
-    
+
     public String RT_getInTitle() {
-        final MSBus_M bus = (MSBus_M)this.getOwnRelatedModule();
+        final MSBus_M bus = (MSBus_M) this.getOwnRelatedModule();
         final StringBuilder sb = new StringBuilder();
         sb.append("<pre>{");
         sb.append("\r\n  \"bus\":{\"valid\":bool},");
@@ -83,8 +81,7 @@ public class MSChgState_NE extends MNNodeEnd
             if (bfirst) {
                 bfirst = false;
                 sb.append("\r\n     {\"name\":\"" + dev.getName() + "\",\"valid\":bool}");
-            }
-            else {
+            } else {
                 sb.append("\r\n    ,{\"name\":\"" + dev.getName() + "\",\"valid\":bool}");
             }
         }

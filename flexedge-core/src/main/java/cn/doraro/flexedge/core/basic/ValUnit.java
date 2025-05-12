@@ -2,50 +2,47 @@ package cn.doraro.flexedge.core.basic;
 
 import cn.doraro.flexedge.core.util.Lan;
 
-public enum ValUnit
-{
+public enum ValUnit {
 
-	C, F, K,
+    C, F, K,
 
-	m, km, ft, in, yd, mi,
+    m, km, ft, in, yd, mi,
 
-	mps, kmph, mph,
+    mps, kmph, mph,
 
-	Pa, mb, mmHg, inHg, Bar, MPa, kPa,
+    Pa, mb, mmHg, inHg, Bar, MPa, kPa,
 
-	g, kg, t, oz, lb,
+    g, kg, t, oz, lb,
 
-	L, gal, m3, ft3,
+    L, gal, m3, ft3,
 
-	m3ps, m3ph, Lpmin, Lps, gpm, gph, cfm, cim,
+    m3ps, m3ph, Lpmin, Lps, gpm, gph, cfm, cim,
 
-	g_pm3, percent,
+    g_pm3, percent,
 
-	A, mA, uA, V, mV, uV, R, kR, MR, Fr, mFr, uFr, nFr, pFr, H, mH, uH, W, kW, MW,
+    A, mA, uA, V, mV, uV, R, kR, MR, Fr, mFr, uFr, nFr, pFr, H, mH, uH, W, kW, MW,
 
-	J, kJ, Wh, kWh,
+    J, kJ, Wh, kWh,
 
-	Hz, kHz, MHz, GHz,
+    Hz, kHz, MHz, GHz,
 
-	col, mcol, ucol,
+    col, mcol, ucol,
 
-	S, mS, uS,spm,mspcm,
-	
-	ntu,jtu,mgpl,  ppm,
-	
-	rpm,rps,rph,dps,radps,cpm,
+    S, mS, uS, spm, mspcm,
 
-	s, min, hr, d, wk, yr;
+    ntu, jtu, mgpl, ppm,
 
-	private static Lan lan = Lan.getLangInPk(ValUnit.class);
+    rpm, rps, rph, dps, radps, cpm,
 
-	public String getTitle()
-	{
-		return lan.g("vu_" + this.name());
-	}
+    s, min, hr, d, wk, yr;
 
-	public String getUnit()
-	{
-		return lan.gn("vu_" + this.name()).getAttr("unit");
-	}
+    private static Lan lan = Lan.getLangInPk(ValUnit.class);
+
+    public String getTitle() {
+        return lan.g("vu_" + this.name());
+    }
+
+    public String getUnit() {
+        return lan.gn("vu_" + this.name()).getAttr("unit");
+    }
 }

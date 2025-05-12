@@ -1,64 +1,54 @@
 package cn.doraro.flexedge.core.util.logger;
 
-public abstract class AbstractLogger implements ILogger
-{
+public abstract class AbstractLogger implements ILogger {
 
-	int currentLogLevel = -1;
-	
-	int ctrl = CTRL_DEFAULT ;
-	
+    int currentLogLevel = -1;
 
-    public final void setCurrentLogLevel(int loglvl)
-    {
-    	if(loglvl==LoggerManager.getDefaultLogLevel())
-    	{
-    		currentLogLevel = -1 ;
-    		return ;
-    	}
-    	
-    	currentLogLevel = loglvl ;
+    int ctrl = CTRL_DEFAULT;
+
+    public final int getCurrentLogLevel() {
+        if (currentLogLevel < 0)
+            return LoggerManager.getDefaultLogLevel();
+        return this.currentLogLevel;
     }
-    
-    public final int getCurrentLogLevel()
-    {
-    	if(currentLogLevel<0)
-    		return LoggerManager.getDefaultLogLevel();
-    	return this.currentLogLevel ;
-    }
-	
 
-	/**
-	 * @return
-	 */
-	public final int getCtrl()
-	{
-		return ctrl ;
-	}
-	
-	public String getCtrlTitle()
-	{
-		switch(ctrl)
-		{
-		
-		case CTRL_ENABLE:
-			return "enable all";
-		case CTRL_DISABLE:
-			return "disable all" ;
-		case CTRL_DEFAULT:
-		default:
-			return "level";
-		}
-	}
-	/**
-	 * @param c
-	 */
-	public final void setCtrl(int c)
-	{
-		ctrl = c ;
-	}
-	
-	
-	protected boolean isLevelEnabled(int loglvl) {
+    public final void setCurrentLogLevel(int loglvl) {
+        if (loglvl == LoggerManager.getDefaultLogLevel()) {
+            currentLogLevel = -1;
+            return;
+        }
+
+        currentLogLevel = loglvl;
+    }
+
+    /**
+     * @return
+     */
+    public final int getCtrl() {
+        return ctrl;
+    }
+
+    /**
+     * @param c
+     */
+    public final void setCtrl(int c) {
+        ctrl = c;
+    }
+
+    public String getCtrlTitle() {
+        switch (ctrl) {
+
+            case CTRL_ENABLE:
+                return "enable all";
+            case CTRL_DISABLE:
+                return "disable all";
+            case CTRL_DEFAULT:
+            default:
+                return "level";
+        }
+    }
+
+    protected boolean isLevelEnabled(int loglvl) {
 //		if(ctrl<0)
 //			return false;
 //		
@@ -67,30 +57,25 @@ public abstract class AbstractLogger implements ILogger
         return (loglvl >= getCurrentLogLevel());
     }
 
-	final public boolean isTraceEnabled()
-	{
-		return isLevelEnabled(LOG_LEVEL_TRACE);
-	}
+    final public boolean isTraceEnabled() {
+        return isLevelEnabled(LOG_LEVEL_TRACE);
+    }
 
-	final public boolean isDebugEnabled()
-	{
-		return isLevelEnabled(LOG_LEVEL_DEBUG);
-	}
+    final public boolean isDebugEnabled() {
+        return isLevelEnabled(LOG_LEVEL_DEBUG);
+    }
 
-	final public boolean isInfoEnabled()
-	{
-		return isLevelEnabled(LOG_LEVEL_INFO);
-	}
+    final public boolean isInfoEnabled() {
+        return isLevelEnabled(LOG_LEVEL_INFO);
+    }
 
-	final public boolean isWarnEnabled()
-	{
-		return isLevelEnabled(LOG_LEVEL_WARN);
-	}
+    final public boolean isWarnEnabled() {
+        return isLevelEnabled(LOG_LEVEL_WARN);
+    }
 
-	final public boolean isErrorEnabled()
-	{
-		return isLevelEnabled(LOG_LEVEL_ERROR);
-	}
+    final public boolean isErrorEnabled() {
+        return isLevelEnabled(LOG_LEVEL_ERROR);
+    }
 
 //	public boolean isFatalEnabled()
 //	{

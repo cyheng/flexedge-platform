@@ -4,17 +4,9 @@
 
 package cn.doraro.flexedge.server;
 
-import java.io.FileOutputStream;
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.StringReader;
-import java.io.FilenameFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.File;
+import java.io.*;
 
-public class ServiceWrapperUtil
-{
+public class ServiceWrapperUtil {
     public static String readFileTxt(final File f, final String encod) throws IOException {
         final byte[] bs = readFileBuf(f);
         if (encod == null || encod.equals("")) {
@@ -22,7 +14,7 @@ public class ServiceWrapperUtil
         }
         return new String(bs, encod);
     }
-    
+
     public static byte[] readFileBuf(final File f) throws IOException {
         if (f.length() > 10485760L) {
             throw new RuntimeException("file is too long");
@@ -35,19 +27,16 @@ public class ServiceWrapperUtil
                 final byte[] buffer = new byte[size];
                 fis.read(buffer);
                 return buffer;
-            }
-            finally {
+            } finally {
                 if (fis != null) {
                     fis.close();
                 }
             }
-        }
-        finally {
+        } finally {
             if (t == null) {
                 final Throwable exception;
                 t = exception;
-            }
-            else {
+            } else {
                 final Throwable exception;
                 if (t != exception) {
                     t.addSuppressed(exception);
@@ -55,7 +44,7 @@ public class ServiceWrapperUtil
             }
         }
     }
-    
+
     private static String getJarCPInDir(final String prefix, final File dirf) {
         final String[] fns = dirf.list(new FilenameFilter() {
             @Override
@@ -72,7 +61,7 @@ public class ServiceWrapperUtil
         }
         return ret;
     }
-    
+
     private static String getClasspathStr() {
         final File libdir = new File("./lib/");
         final File tlibdir = new File("./tomcat/lib/");
@@ -81,7 +70,7 @@ public class ServiceWrapperUtil
         ret = String.valueOf(ret) + ";./tomcat/bin/bootstrap.jar;./tomcat/bin/tomcat-juli.jar";
         return ret;
     }
-    
+
     private static void setupWrapperClasspath() throws IOException {
         final File conf_sor = new File("./wrapper.sor.conf");
         final File conff = new File("./wrapper.conf");
@@ -97,13 +86,11 @@ public class ServiceWrapperUtil
                         File jdkdir = new File("./jdk/");
                         if (jdkdir.exists()) {
                             ln = "wrapper.java.command=.\\jdk\\bin\\java";
-                        }
-                        else {
+                        } else {
                             jdkdir = new File("./jre/");
                             if (jdkdir.exists()) {
                                 ln = "wrapper.java.command=.\\jre\\bin\\java";
-                            }
-                            else {
+                            } else {
                                 jdkdir = new File("./jre8_x86/");
                                 if (jdkdir.exists()) {
                                     ln = "wrapper.java.command=.\\jre8_x86\\bin\\java";
@@ -117,19 +104,16 @@ public class ServiceWrapperUtil
                     fos.write(ln.getBytes("UTF-8"));
                     fos.write("\r\n".getBytes());
                 }
-            }
-            finally {
+            } finally {
                 if (fos != null) {
                     fos.close();
                 }
             }
-        }
-        finally {
+        } finally {
             if (t == null) {
                 final Throwable exception;
                 t = exception;
-            }
-            else {
+            } else {
                 final Throwable exception;
                 if (t != exception) {
                     t.addSuppressed(exception);
@@ -137,7 +121,7 @@ public class ServiceWrapperUtil
             }
         }
     }
-    
+
     public static void main(final String[] args) throws IOException {
         setupWrapperClasspath();
         System.out.println("wrapper util setup ok");

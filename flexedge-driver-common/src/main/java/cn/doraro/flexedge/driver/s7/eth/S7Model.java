@@ -5,39 +5,33 @@
 package cn.doraro.flexedge.driver.s7.eth;
 
 import cn.doraro.flexedge.core.DevAddr;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.UAVal;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashMap;
 import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.UAVal;
 
-public class S7Model extends DevDriver.Model
-{
+import java.util.*;
+
+public class S7Model extends DevDriver.Model {
     private LinkedHashMap<String, S7AddrDef> prefix2addrdef;
-    
+
     public S7Model(final String name, final String t) {
         super(name, t);
         this.prefix2addrdef = new LinkedHashMap<String, S7AddrDef>();
     }
-    
+
     public void setAddrDef(final S7AddrDef addr_def) {
         this.prefix2addrdef.put(addr_def.prefix, addr_def);
     }
-    
+
     public List<String> listPrefix() {
         final ArrayList<String> rets = new ArrayList<String>();
         rets.addAll(this.prefix2addrdef.keySet());
         return rets;
     }
-    
+
     public S7AddrDef getAddrDef(final String prefix) {
         return this.prefix2addrdef.get(prefix);
     }
-    
+
     public S7Addr transAddr(final String prefix, final String num_str, final String bit_num, UAVal.ValTP vtp, final StringBuilder failedr) {
         final S7AddrDef def = this.prefix2addrdef.get(prefix);
         if (def == null) {
@@ -61,8 +55,7 @@ public class S7Model extends DevDriver.Model
                 failedr.append("no AddrSeg match with ValTP=" + vtp.name());
                 return null;
             }
-        }
-        else {
+        } else {
             for (final S7AddrSeg seg : def.segs) {
                 iv = seg.matchAddr(num_str);
                 if (iv != null) {
@@ -112,7 +105,7 @@ public class S7Model extends DevDriver.Model
         final S7Addr ret = S7Addr.parseS7Addr(addrstr, vtp, failedr);
         return ret;
     }
-    
+
     public HashMap<S7AddrSeg, List<S7Addr>> filterAndSortAddrs(final String prefix, final List<S7Addr> addrs) {
         final S7AddrDef def = this.getAddrDef(prefix);
         if (def == null) {
@@ -139,10 +132,10 @@ public class S7Model extends DevDriver.Model
         }
         return rets;
     }
-    
+
     public List<DevAddr.IAddrDef> getAddrDefs() {
         final ArrayList<DevAddr.IAddrDef> rets = new ArrayList<DevAddr.IAddrDef>();
-        rets.addAll((Collection<? extends DevAddr.IAddrDef>)this.prefix2addrdef.values());
+        rets.addAll((Collection<? extends DevAddr.IAddrDef>) this.prefix2addrdef.values());
         return rets;
     }
 }

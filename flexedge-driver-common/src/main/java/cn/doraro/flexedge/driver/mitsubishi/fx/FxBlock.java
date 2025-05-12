@@ -4,35 +4,39 @@
 
 package cn.doraro.flexedge.driver.mitsubishi.fx;
 
-import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import cn.doraro.flexedge.core.basic.IConnEndPoint;
-import cn.doraro.flexedge.core.util.xmldata.DataUtil;
-import cn.doraro.flexedge.core.basic.ByteOrder;
 import cn.doraro.flexedge.core.UAVal;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.HashMap;
+import cn.doraro.flexedge.core.basic.ByteOrder;
+import cn.doraro.flexedge.core.basic.IConnEndPoint;
 import cn.doraro.flexedge.core.basic.MemSeg8;
 import cn.doraro.flexedge.core.basic.MemTable;
-import java.util.List;
 import cn.doraro.flexedge.core.util.logger.ILogger;
+import cn.doraro.flexedge.core.util.logger.LoggerManager;
+import cn.doraro.flexedge.core.util.xmldata.DataUtil;
 
-public class FxBlock
-{
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+
+public class FxBlock {
     public static final long MAX_Demotion_DELAY = 30000L;
     static ILogger log;
+
+    static {
+        FxBlock.log = LoggerManager.getLogger("Fx_Block");
+    }
+
     String prefix;
     List<FxAddr> addrs;
     int blockSize;
     long scanInterMS;
     MemTable<MemSeg8> memTb;
     transient HashMap<FxCmd, List<FxAddr>> cmd2addr;
+    transient int failedCount;
     private int failedSuccessive;
     private long reqTO;
     private long recvTO;
     private long interReqMs;
-    transient int failedCount;
     private transient long lastFailedDT;
     private transient int lastFailedCC;
     private transient long lastWriteFailedDT;
@@ -40,13 +44,13 @@ public class FxBlock
     private transient FxDriver fxDrv;
     private transient FxAddrSeg fxSeg;
     private LinkedList<FxCmd> writeCmds;
-    
+
     FxBlock(final FxAddrSeg seg, final List<FxAddr> addrs, final int block_size, final long scan_inter_ms) {
         this.prefix = null;
         this.addrs = null;
         this.blockSize = 32;
         this.scanInterMS = 100L;
-        this.memTb = (MemTable<MemSeg8>)new MemTable(8, 131072L);
+        this.memTb = (MemTable<MemSeg8>) new MemTable(8, 131072L);
         this.cmd2addr = new HashMap<FxCmd, List<FxAddr>>();
         this.failedSuccessive = 3;
         this.reqTO = 1000L;
@@ -71,21 +75,21 @@ public class FxBlock
         this.blockSize = block_size;
         this.scanInterMS = scan_inter_ms;
     }
-    
+
     public void setTimingParam(final long req_to, final long recv_to, final long inter_reqms) {
         this.reqTO = req_to;
         this.recvTO = recv_to;
         this.interReqMs = inter_reqms;
     }
-    
+
     public List<FxAddr> getAddrs() {
         return this.addrs;
     }
-    
+
     public MemTable<MemSeg8> getMemTable() {
         return this.memTb;
     }
-    
+
     boolean initCmds(final FxDriver drv) {
         this.fxDrv = drv;
         if (this.addrs == null || this.addrs.size() <= 0) {
@@ -95,8 +99,7 @@ public class FxBlock
         int base_addr = -1;
         if (this.fxSeg.isExtCmd()) {
             base_addr = fxaddr.addrSeg.extBaseValStart;
-        }
-        else {
+        } else {
             base_addr = fxaddr.addrSeg.getBaseAddr();
         }
         if (base_addr < 0) {
@@ -111,13 +114,11 @@ public class FxBlock
                 cur_reg = regp;
                 curaddrs = new ArrayList<FxAddr>();
                 curaddrs.add(ma);
-            }
-            else {
+            } else {
                 final int bytelen = regp - cur_reg + 1;
                 if (bytelen <= this.blockSize) {
                     curaddrs.add(ma);
-                }
-                else {
+                } else {
                     final FxAddr lastma = curaddrs.get(curaddrs.size() - 1);
                     final int regnum = lastma.getBytesInBase() - cur_reg + lastma.getValTP().getValByteLen();
                     curcmd = new FxCmdR(base_addr, cur_reg, regnum).withScanIntervalMS(this.scanInterMS);
@@ -144,16 +145,16 @@ public class FxBlock
         }
         return true;
     }
-    
+
     private void setAddrError(final List<FxAddr> addrs) {
         if (addrs == null) {
             return;
         }
         for (final FxAddr ma : addrs) {
-            ma.RT_setVal((Object)null);
+            ma.RT_setVal((Object) null);
         }
     }
-    
+
     private Object getValByAddr(final FxAddr da) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -162,16 +163,16 @@ public class FxBlock
         if (vt == UAVal.ValTP.vt_bool) {
             final int regp = da.getBytesInBase();
             final int inbit = da.getInBits();
-            final int vv = this.memTb.getValNumber(UAVal.ValTP.vt_byte, (long)regp, ByteOrder.LittleEndian).intValue();
+            final int vv = this.memTb.getValNumber(UAVal.ValTP.vt_byte, (long) regp, ByteOrder.LittleEndian).intValue();
             return (vv & 1 << inbit) > 0;
         }
         if (vt.isNumberVT()) {
-            final Number nbv = this.memTb.getValNumber(vt, (long)da.getBytesInBase(), ByteOrder.BigEndian);
+            final Number nbv = this.memTb.getValNumber(vt, (long) da.getBytesInBase(), ByteOrder.BigEndian);
             return nbv;
         }
         return null;
     }
-    
+
     public byte[] transValToBytesByAddr(final FxAddr da, final Object v, final StringBuilder failedr) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -188,9 +189,8 @@ public class FxBlock
         }
         int intv;
         if (v instanceof Number) {
-            intv = ((Number)v).intValue();
-        }
-        else {
+            intv = ((Number) v).intValue();
+        } else {
             if (!(v instanceof String)) {
                 failedr.append("invalid val,it must be number");
                 return null;
@@ -205,13 +205,13 @@ public class FxBlock
         }
         if (blen == 2) {
             final byte[] rets = new byte[2];
-            DataUtil.shortToBytes((short)intv, rets, 0, ByteOrder.BigEndian);
+            DataUtil.shortToBytes((short) intv, rets, 0, ByteOrder.BigEndian);
             return rets;
         }
         failedr.append("valtp is not 2 or 4");
         return null;
     }
-    
+
     public boolean setValByAddr(final FxAddr da, final Object v) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -220,15 +220,14 @@ public class FxBlock
         if (vt == UAVal.ValTP.vt_bool) {
             boolean bv = false;
             if (v instanceof Boolean) {
-                bv = (boolean)v;
-            }
-            else {
+                bv = (boolean) v;
+            } else {
                 if (!(v instanceof Number)) {
                     return false;
                 }
-                bv = (((Number)v).doubleValue() > 0.0);
+                bv = (((Number) v).doubleValue() > 0.0);
             }
-            this.memTb.setValBool((long)da.getBytesInBase(), da.getInBits(), bv);
+            this.memTb.setValBool((long) da.getBytesInBase(), da.getInBits(), bv);
             return true;
         }
         if (!vt.isNumberVT()) {
@@ -237,19 +236,19 @@ public class FxBlock
         if (!(v instanceof Number)) {
             return false;
         }
-        this.memTb.setValNumber(vt, (long)da.getBytesInBase(), (Number)v);
+        this.memTb.setValNumber(vt, (long) da.getBytesInBase(), (Number) v);
         return true;
     }
-    
+
     public boolean runCmds(final IConnEndPoint ep) throws Exception {
         this.runWriteCmdAndClear(ep);
         return this.runReadCmds(ep);
     }
-    
+
     public void runCmdsErr() {
         this.runReadCmdsErr();
     }
-    
+
     private void transMem2Addrs(final List<FxAddr> addrs) {
         for (final FxAddr ma : addrs) {
             final Object ov = this.getValByAddr(ma);
@@ -258,7 +257,7 @@ public class FxBlock
             }
         }
     }
-    
+
     private boolean chkSuccessiveFailed(final boolean bfailed) {
         if (!bfailed) {
             this.failedCount = 0;
@@ -278,7 +277,7 @@ public class FxBlock
         }
         return false;
     }
-    
+
     public boolean checkDemotionCanRun() {
         if (this.lastFailedCC <= 0) {
             return true;
@@ -289,14 +288,14 @@ public class FxBlock
         }
         return System.currentTimeMillis() - this.lastFailedDT >= dur_dt;
     }
-    
+
     private boolean runReadCmds(final IConnEndPoint ep) throws Exception {
         boolean ret = true;
         for (final FxCmd mc : this.cmd2addr.keySet()) {
             if (!mc.tickCanRun()) {
                 continue;
             }
-            final FxCmdR cmdr = (FxCmdR)mc;
+            final FxCmdR cmdr = (FxCmdR) mc;
             Thread.sleep(this.interReqMs);
             final List<FxAddr> addrs = this.cmd2addr.get(mc);
             cmdr.doCmd(ep.getInputStream(), ep.getOutputStream());
@@ -314,16 +313,15 @@ public class FxBlock
                 }
                 this.setAddrError(addrs);
                 ret = false;
-            }
-            else {
-                this.memTb.setValBlock((long)offsetbs, retbs.length, retbs, 0);
+            } else {
+                this.memTb.setValBlock((long) offsetbs, retbs.length, retbs, 0);
                 this.transMem2Addrs(addrs);
                 this.chkSuccessiveFailed(false);
             }
         }
         return ret;
     }
-    
+
     private boolean runReadCmdsErr() {
         final boolean ret = true;
         for (final FxCmd mc : this.cmd2addr.keySet()) {
@@ -332,7 +330,7 @@ public class FxBlock
         }
         return ret;
     }
-    
+
     private void runWriteCmdAndClear(final IConnEndPoint ep) throws Exception {
         final int s = this.writeCmds.size();
         if (s <= 0) {
@@ -349,18 +347,17 @@ public class FxBlock
                 Thread.sleep(this.interReqMs);
                 mc.doCmd(ep.getInputStream(), ep.getOutputStream());
                 if (mc instanceof FxCmdW) {
-                    final FxCmdW fcw = (FxCmdW)mc;
+                    final FxCmdW fcw = (FxCmdW) mc;
                     if (!fcw.isAck()) {
                         FxBlock.log.error(fcw.toString() + " is not ack");
-                    }
-                    else if (FxBlock.log.isDebugEnabled()) {
+                    } else if (FxBlock.log.isDebugEnabled()) {
                         FxBlock.log.debug(fcw.toString() + " is run ok (ack=true)");
                     }
                 }
             }
         }
     }
-    
+
     public boolean setWriteCmdAsyn(final FxAddr fxaddr, final Object v) {
         if (!this.fxSeg.matchAddr(fxaddr)) {
             return false;
@@ -370,8 +367,7 @@ public class FxBlock
             int base_addr = -1;
             if (this.fxSeg.isExtCmd()) {
                 base_addr = fxaddr.addrSeg.extBaseAddrForceOnOff;
-            }
-            else {
+            } else {
                 base_addr = fxaddr.addrSeg.baseAddrForceOnOff;
             }
             if (base_addr < 0) {
@@ -379,26 +375,22 @@ public class FxBlock
             }
             boolean bv;
             if (v instanceof Boolean) {
-                bv = (boolean)v;
-            }
-            else if (v instanceof Number) {
-                bv = (((Number)v).intValue() > 0);
-            }
-            else {
+                bv = (boolean) v;
+            } else if (v instanceof Number) {
+                bv = (((Number) v).intValue() > 0);
+            } else {
                 if (!(v instanceof String)) {
                     return false;
                 }
-                bv = ("true".equalsIgnoreCase((String)v) || "1".equalsIgnoreCase((String)v));
+                bv = ("true".equalsIgnoreCase((String) v) || "1".equalsIgnoreCase((String) v));
             }
             final int addrn = fxaddr.getAddrNum();
             fxcmd = new FxCmdOnOff(base_addr, addrn, bv);
-        }
-        else {
+        } else {
             int base_addr = -1;
             if (this.fxSeg.isExtCmd()) {
                 base_addr = fxaddr.addrSeg.extBaseValStart;
-            }
-            else {
+            } else {
                 base_addr = fxaddr.addrSeg.getBaseAddr();
             }
             if (base_addr < 0) {
@@ -420,16 +412,12 @@ public class FxBlock
         }
         return true;
     }
-    
+
     public long getLastWriteFailedDT() {
         return this.lastWriteFailedDT;
     }
-    
+
     public String getLastWriteFailedInf() {
         return this.lastWriteFailedInf;
-    }
-    
-    static {
-        FxBlock.log = LoggerManager.getLogger("Fx_Block");
     }
 }

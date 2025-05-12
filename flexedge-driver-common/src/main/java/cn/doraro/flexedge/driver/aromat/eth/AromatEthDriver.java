@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.aromat.eth;
 
-public class AromatEthDriver
-{
+public class AromatEthDriver {
 }

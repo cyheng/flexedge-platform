@@ -4,27 +4,27 @@
 
 package cn.doraro.flexedge.driver.omron.hostlink.fins;
 
-import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import cn.doraro.flexedge.core.basic.IConnEndPoint;
-import java.util.Arrays;
-import cn.doraro.flexedge.core.util.xmldata.DataUtil;
-import cn.doraro.flexedge.core.basic.ByteOrder;
 import cn.doraro.flexedge.core.UAVal;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import cn.doraro.flexedge.driver.omron.hostlink.HLAddrSeg;
-import java.util.HashMap;
+import cn.doraro.flexedge.core.basic.ByteOrder;
+import cn.doraro.flexedge.core.basic.IConnEndPoint;
 import cn.doraro.flexedge.core.basic.MemSeg8;
 import cn.doraro.flexedge.core.basic.MemTable;
-import cn.doraro.flexedge.driver.omron.hostlink.HLAddr;
-import java.util.List;
 import cn.doraro.flexedge.core.util.logger.ILogger;
+import cn.doraro.flexedge.core.util.logger.LoggerManager;
+import cn.doraro.flexedge.core.util.xmldata.DataUtil;
+import cn.doraro.flexedge.driver.omron.hostlink.HLAddr;
+import cn.doraro.flexedge.driver.omron.hostlink.HLAddrSeg;
 
-public class HLBlock
-{
+import java.util.*;
+
+public class HLBlock {
     public static final long MAX_Demotion_DELAY = 30000L;
     static ILogger log;
+
+    static {
+        HLBlock.log = LoggerManager.getLogger("HL_Block");
+    }
+
     HLDevItem devItem;
     String prefix;
     List<HLAddr> addrs;
@@ -32,10 +32,10 @@ public class HLBlock
     long scanInterMS;
     MemTable<MemSeg8> memTb;
     transient HashMap<HLCmd, List<HLAddr>> cmd2addr;
+    transient int failedCount;
     private int failedSuccessive;
     private long reqTO;
     private long interReqMs;
-    transient int failedCount;
     private transient long lastFailedDT;
     private transient int lastFailedCC;
     private transient long lastWriteFailedDT;
@@ -43,14 +43,14 @@ public class HLBlock
     private transient HLFinsDriver driver;
     private transient HLAddrSeg addrSeg;
     private LinkedList<HLCmd> writeCmds;
-    
+
     HLBlock(final HLDevItem devitem, final HLAddrSeg seg, final List<HLAddr> addrs, final int block_size, final long scan_inter_ms, final int failed_successive) {
         this.devItem = null;
         this.prefix = null;
         this.addrs = null;
         this.blockSize = 32;
         this.scanInterMS = 100L;
-        this.memTb = (MemTable<MemSeg8>)new MemTable(8, 131072L);
+        this.memTb = (MemTable<MemSeg8>) new MemTable(8, 131072L);
         this.cmd2addr = new HashMap<HLCmd, List<HLAddr>>();
         this.failedSuccessive = 3;
         this.reqTO = 2000L;
@@ -76,28 +76,28 @@ public class HLBlock
         this.scanInterMS = scan_inter_ms;
         this.failedSuccessive = failed_successive;
     }
-    
+
     public void setTimingParam(final long req_to, final long inter_reqms) {
         this.reqTO = req_to;
         this.interReqMs = inter_reqms;
     }
-    
+
     public List<HLAddr> getAddrs() {
         return this.addrs;
     }
-    
+
     public MemTable<MemSeg8> getMemTable() {
         return this.memTb;
     }
-    
+
     public long getReqTimeout() {
         return this.reqTO;
     }
-    
+
     public long getInterReqMS() {
         return this.interReqMs;
     }
-    
+
     protected boolean initCmds(final HLFinsDriver drv) {
         this.driver = drv;
         if (this.addrs == null || this.addrs.size() <= 0) {
@@ -114,13 +114,11 @@ public class HLBlock
                 cur_reg = regp;
                 curaddrs = new ArrayList<HLAddr>();
                 curaddrs.add(ma);
-            }
-            else {
+            } else {
                 final int bytelen = regp - cur_reg + 1;
                 if (bytelen <= this.blockSize) {
                     curaddrs.add(ma);
-                }
-                else {
+                } else {
                     final HLAddr lastma = curaddrs.get(curaddrs.size() - 1);
                     int blen = lastma.getValTP().getValByteLen() - 2;
                     if (blen < 0) {
@@ -155,16 +153,16 @@ public class HLBlock
         }
         return true;
     }
-    
+
     private void setAddrError(final List<HLAddr> addrs) {
         if (addrs == null) {
             return;
         }
         for (final HLAddr ma : addrs) {
-            ma.RT_setVal((Object)null);
+            ma.RT_setVal((Object) null);
         }
     }
-    
+
     private Object getValByAddr(final HLAddr da) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -174,21 +172,20 @@ public class HLBlock
         final int inbit = da.getBitNum();
         if (vt == UAVal.ValTP.vt_bool) {
             if (inbit >= 0) {
-                final int vv = this.memTb.getValNumber(UAVal.ValTP.vt_int16, (long)regp, ByteOrder.LittleEndian).intValue();
+                final int vv = this.memTb.getValNumber(UAVal.ValTP.vt_int16, (long) regp, ByteOrder.LittleEndian).intValue();
                 return (vv & 1 << inbit) > 0;
             }
             if (this.addrSeg.isValBitOnly()) {
-                final byte bv = this.memTb.getValNumber(UAVal.ValTP.vt_byte, (long)da.getAddrNum()).byteValue();
+                final byte bv = this.memTb.getValNumber(UAVal.ValTP.vt_byte, (long) da.getAddrNum()).byteValue();
                 return bv != 0;
             }
-        }
-        else if (vt.isNumberVT()) {
-            final Number nbv = this.memTb.getValNumber(vt, (long)regp, ByteOrder.LittleEndian);
+        } else if (vt.isNumberVT()) {
+            final Number nbv = this.memTb.getValNumber(vt, (long) regp, ByteOrder.LittleEndian);
             return nbv;
         }
         return null;
     }
-    
+
     public byte[] transValToBytesByAddr(final HLAddr da, final Object v, final StringBuilder failedr) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -205,9 +202,8 @@ public class HLBlock
         }
         int intv;
         if (v instanceof Number) {
-            intv = ((Number)v).intValue();
-        }
-        else {
+            intv = ((Number) v).intValue();
+        } else {
             if (!(v instanceof String)) {
                 failedr.append("invalid val,it must be number");
                 return null;
@@ -222,13 +218,13 @@ public class HLBlock
         }
         if (blen == 2) {
             final byte[] rets = new byte[2];
-            DataUtil.shortToBytes((short)intv, rets, 0, ByteOrder.BigEndian);
+            DataUtil.shortToBytes((short) intv, rets, 0, ByteOrder.BigEndian);
             return rets;
         }
         failedr.append("valtp is not 2 or 4");
         return null;
     }
-    
+
     public List<Short> transValToWordsByAddr(final HLAddr da, final Object v, final StringBuilder failedr) {
         final UAVal.ValTP vt = da.getValTP();
         if (vt == null) {
@@ -245,9 +241,8 @@ public class HLBlock
         }
         int intv;
         if (v instanceof Number) {
-            intv = ((Number)v).intValue();
-        }
-        else {
+            intv = ((Number) v).intValue();
+        } else {
             if (!(v instanceof String)) {
                 failedr.append("invalid val,it must be number");
                 return null;
@@ -256,26 +251,26 @@ public class HLBlock
         }
         final int blen = vt.getValByteLen();
         if (blen == 4) {
-            final short hv = (short)(intv >> 16 & 0xFFFF);
-            final short lv = (short)(intv & 0xFFFF);
+            final short hv = (short) (intv >> 16 & 0xFFFF);
+            final short lv = (short) (intv & 0xFFFF);
             return Arrays.asList(hv, lv);
         }
         if (blen == 2) {
-            return Arrays.asList((short)intv);
+            return Arrays.asList((short) intv);
         }
         failedr.append("valtp is not 2 or 4");
         return null;
     }
-    
+
     public boolean runCmds(final IConnEndPoint ep, final StringBuilder failedr) throws Exception {
         this.runWriteCmdAndClear(ep);
         return this.runReadCmds(ep, failedr);
     }
-    
+
     public void runCmdsErr() {
         this.runReadCmdsErr();
     }
-    
+
     private void transMem2Addrs(final List<HLAddr> addrs) {
         for (final HLAddr ma : addrs) {
             final Object ov = this.getValByAddr(ma);
@@ -284,7 +279,7 @@ public class HLBlock
             }
         }
     }
-    
+
     private boolean chkSuccessiveFailed(final boolean bfailed) {
         if (!bfailed) {
             this.failedCount = 0;
@@ -304,7 +299,7 @@ public class HLBlock
         }
         return false;
     }
-    
+
     public boolean checkDemotionCanRun() {
         if (this.lastFailedCC <= 0) {
             return true;
@@ -315,7 +310,7 @@ public class HLBlock
         }
         return System.currentTimeMillis() - this.lastFailedDT >= dur_dt;
     }
-    
+
     private boolean runReadCmds(final IConnEndPoint ep, final StringBuilder failedr) throws Exception {
         boolean ret = true;
         final boolean bbit_only = this.addrSeg.isValBitOnly();
@@ -323,7 +318,7 @@ public class HLBlock
             if (!mc.tickCanRun()) {
                 continue;
             }
-            final HLFinsCmdMemR cmdr = (HLFinsCmdMemR)mc;
+            final HLFinsCmdMemR cmdr = (HLFinsCmdMemR) mc;
             Thread.sleep(this.interReqMs);
             final List<HLAddr> addrs = this.cmd2addr.get(mc);
             final boolean cmdres = cmdr.doCmd(ep.getInputStream(), ep.getOutputStream(), failedr);
@@ -340,17 +335,15 @@ public class HLBlock
                 }
                 this.setAddrError(addrs);
                 ret = false;
-            }
-            else {
+            } else {
                 final int offsetbs = req.getBeginAddr();
                 if (bbit_only) {
                     for (int i = 0; i < retbs.length; ++i) {
                         final byte b = retbs[i];
-                        this.memTb.setValNumber(UAVal.ValTP.vt_byte, (long)(offsetbs + i), (Number)b);
+                        this.memTb.setValNumber(UAVal.ValTP.vt_byte, (long) (offsetbs + i), (Number) b);
                     }
-                }
-                else {
-                    this.memTb.setValBlock((long)(offsetbs * 2), retbs.length, retbs, 0);
+                } else {
+                    this.memTb.setValBlock((long) (offsetbs * 2), retbs.length, retbs, 0);
                 }
                 this.transMem2Addrs(addrs);
                 this.chkSuccessiveFailed(false);
@@ -358,7 +351,7 @@ public class HLBlock
         }
         return ret;
     }
-    
+
     private boolean runReadCmdsErr() {
         final boolean ret = true;
         for (final HLCmd mc : this.cmd2addr.keySet()) {
@@ -367,7 +360,7 @@ public class HLBlock
         }
         return ret;
     }
-    
+
     private void runWriteCmdAndClear(final IConnEndPoint ep) throws Exception {
         final int s = this.writeCmds.size();
         if (s <= 0) {
@@ -388,18 +381,17 @@ public class HLBlock
                     HLBlock.log.error(failedr.toString());
                 }
                 if (mc instanceof HLFinsCmdMemW) {
-                    final HLFinsCmdMemW fcw = (HLFinsCmdMemW)mc;
+                    final HLFinsCmdMemW fcw = (HLFinsCmdMemW) mc;
                     if (!fcw.isAck()) {
                         HLBlock.log.error(fcw.toString() + " is not ack");
-                    }
-                    else if (HLBlock.log.isDebugEnabled()) {
+                    } else if (HLBlock.log.isDebugEnabled()) {
                         HLBlock.log.debug(fcw.toString() + " is run ok (ack=true)");
                     }
                 }
             }
         }
     }
-    
+
     public boolean setWriteCmdAsyn(final HLAddr fxaddr, final Object v) {
         if (!this.addrSeg.matchAddr(fxaddr)) {
             return false;
@@ -408,27 +400,23 @@ public class HLBlock
         if (fxaddr.isBitVal()) {
             boolean bv;
             if (v instanceof Boolean) {
-                bv = (boolean)v;
-            }
-            else if (v instanceof Number) {
-                bv = (((Number)v).intValue() > 0);
-            }
-            else {
+                bv = (boolean) v;
+            } else if (v instanceof Number) {
+                bv = (((Number) v).intValue() > 0);
+            } else {
                 if (!(v instanceof String)) {
                     return false;
                 }
-                bv = ("true".equalsIgnoreCase((String)v) || "1".equalsIgnoreCase((String)v));
+                bv = ("true".equalsIgnoreCase((String) v) || "1".equalsIgnoreCase((String) v));
             }
             fxcmd = new HLFinsCmdMemW();
             fxcmd.withScanIntervalMS(this.scanInterMS);
             if (this.addrSeg.isValBitOnly()) {
                 fxcmd.asBitOnlyVals(fxaddr.getAddrNum(), Arrays.asList(bv));
-            }
-            else {
+            } else {
                 fxcmd.asBitVals(fxaddr.getAddrNum(), fxaddr.getBitNum(), Arrays.asList(bv));
             }
-        }
-        else {
+        } else {
             final StringBuilder failedr = new StringBuilder();
             final List<Short> ws = this.transValToWordsByAddr(fxaddr, v, failedr);
             if (ws == null) {
@@ -446,16 +434,12 @@ public class HLBlock
         }
         return true;
     }
-    
+
     public long getLastWriteFailedDT() {
         return this.lastWriteFailedDT;
     }
-    
+
     public String getLastWriteFailedInf() {
         return this.lastWriteFailedInf;
-    }
-    
-    static {
-        HLBlock.log = LoggerManager.getLogger("HL_Block");
     }
 }

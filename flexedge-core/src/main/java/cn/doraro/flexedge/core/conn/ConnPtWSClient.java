@@ -15,264 +15,165 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 
-public class ConnPtWSClient extends ConnPtMSGNor
-{
-	static ILogger log = LoggerManager.getLogger(ConnPtWSClient.class) ;
-	
-	String url = null;
+public class ConnPtWSClient extends ConnPtMSGNor {
+    static ILogger log = LoggerManager.getLogger(ConnPtWSClient.class);
 
-	@Override
-	public String getConnType()
-	{
-		return "ws_client";
-	}
+    String url = null;
+    WebSockClient wsClient = null;
+    private transient long lastChk = -1;
 
-	public String getUrl()
-	{
-		if (url == null)
-			return "";
-		return url;
-	}
+    @Override
+    public String getConnType() {
+        return "ws_client";
+    }
 
-	@Override
-	public String getStaticTxt()
-	{
-		// javax.websocket.Session ss =
-		return null;
-	}
-	
-	@Override
-	public boolean isPassiveRecv() 
-	{
-		return true;
-	}
+    public String getUrl() {
+        if (url == null)
+            return "";
+        return url;
+    }
 
-	@Override
-	public XmlData toXmlData()
-	{
-		XmlData xd = super.toXmlData();
-		xd.setParamValue("url", this.url);
-		// xd.setParamValue("method", this.method);
-		// xd.setParamValue("int_ms", intervalMS);
-		// if(params!=null&&params.size()>0)
-		// {
-		// XmlData tmpxd = xd.getOrCreateSubDataSingle("params") ;
-		// for(Map.Entry<String, String> n2v:params.entrySet())
-		// {
-		// tmpxd.setParamValue(n2v.getKey(), n2v.getValue());
-		// }
-		// }
+    @Override
+    public String getStaticTxt() {
+        // javax.websocket.Session ss =
+        return null;
+    }
 
-		return xd;
-	}
+    @Override
+    public boolean isPassiveRecv() {
+        return true;
+    }
 
-	@Override
-	public boolean fromXmlData(XmlData xd, StringBuilder failedr)
-	{
-		boolean r = super.fromXmlData(xd, failedr);
+    @Override
+    public XmlData toXmlData() {
+        XmlData xd = super.toXmlData();
+        xd.setParamValue("url", this.url);
+        // xd.setParamValue("method", this.method);
+        // xd.setParamValue("int_ms", intervalMS);
+        // if(params!=null&&params.size()>0)
+        // {
+        // XmlData tmpxd = xd.getOrCreateSubDataSingle("params") ;
+        // for(Map.Entry<String, String> n2v:params.entrySet())
+        // {
+        // tmpxd.setParamValue(n2v.getKey(), n2v.getValue());
+        // }
+        // }
 
-		// this.appName = xd.getParamValueStr("opc_app_name",
-		// "flexedge_opc_client_"+this.getName());
-		this.url = xd.getParamValueStr("url", "");
-		// this.method = xd.getParamValueStr("method", "");
-		// this.intervalMS = xd.getParamValueInt64("int_ms", 5000) ;
-		// XmlData tmpxd = xd.getSubDataSingle("params") ;
-		// if(tmpxd!=null)
-		// {
-		// params = tmpxd.toNameStrValMap();
-		// }
-		return r;
-	}
+        return xd;
+    }
 
-	private String optJSONString(JSONObject jo, String name, String defv)
-	{
-		String r = jo.optString(name);
-		if (r == null)
-			return defv;
-		return r;
-	}
+    @Override
+    public boolean fromXmlData(XmlData xd, StringBuilder failedr) {
+        boolean r = super.fromXmlData(xd, failedr);
 
-	private long optJSONInt64(JSONObject jo, String name, long defv)
-	{
-		Object v = jo.opt(name);
-		if (v == null)
-			return defv;
-		return jo.optLong(name);
-	}
+        // this.appName = xd.getParamValueStr("opc_app_name",
+        // "flexedge_opc_client_"+this.getName());
+        this.url = xd.getParamValueStr("url", "");
+        // this.method = xd.getParamValueStr("method", "");
+        // this.intervalMS = xd.getParamValueInt64("int_ms", 5000) ;
+        // XmlData tmpxd = xd.getSubDataSingle("params") ;
+        // if(tmpxd!=null)
+        // {
+        // params = tmpxd.toNameStrValMap();
+        // }
+        return r;
+    }
 
-	protected void injectByJson(JSONObject jo) throws Exception
-	{
-		super.injectByJson(jo);
+    private String optJSONString(JSONObject jo, String name, String defv) {
+        String r = jo.optString(name);
+        if (r == null)
+            return defv;
+        return r;
+    }
 
-		// this.appName =optJSONString(jo,"opc_app_name",getOpcAppNameDef()) ;
-		this.url = optJSONString(jo, "url", "");
-		// this.method = optJSONString(jo, "method", "GET");
-		// this.intervalMS = optJSONInt64(jo,"int_ms", 5000) ;
-	}
+    private long optJSONInt64(JSONObject jo, String name, long defv) {
+        Object v = jo.opt(name);
+        if (v == null)
+            return defv;
+        return jo.optLong(name);
+    }
 
-	class WebSockClient extends WebSocketClient
-	{
+    //private transient Session session = null ;
 
-		public WebSockClient(URI serveruri)
-		{
-			super(serveruri);
-			//
+    protected void injectByJson(JSONObject jo) throws Exception {
+        super.injectByJson(jo);
 
-		}
+        // this.appName =optJSONString(jo,"opc_app_name",getOpcAppNameDef()) ;
+        this.url = optJSONString(jo, "url", "");
+        // this.method = optJSONString(jo, "method", "GET");
+        // this.intervalMS = optJSONInt64(jo,"int_ms", 5000) ;
+    }
 
-		@Override
-		public void onOpen(ServerHandshake handshakedata)
-		{
+    @Override
+    public boolean isConnReady() {
+        if (this.wsClient == null)
+            return false;
+        return wsClient.getReadyState() == ReadyState.OPEN;
+    }
 
-		}
+    public String getConnErrInfo() {
+        return null;
+    }
 
-		@Override
-		public void onMessage(String message)
-		{
-			
-		}
-		
-		public void onMessage(ByteBuffer bytes)
-		{
-			try
-			{
-				ConnPtWSClient.this.onRecvedMsg("", bytes.array());
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
-		}
+    void disconnect() // throws IOException
+    {
+        WebSockClient ss = wsClient;
+        if (ss == null)
+            return;
 
-		@Override
-		public void onClose(int code, String reason, boolean remote)
-		{
+        try {
+            ss.close();
+        } catch (Exception e) {
+        } finally {
+            wsClient = null;
+        }
+    }
 
-		}
+    private void connectToWS() throws Exception {
+        if (this.wsClient == null) {
+            this.wsClient = new WebSockClient(new URI(url));
 
-		@Override
-		public void onError(Exception ex)
-		{
+        }
 
-		}
-
-		private void checkAndConn() throws Exception
-		{
-			switch(this.getReadyState())
-			{
-			case NOT_YET_CONNECTED:
-				if(isClosed())
-					reconnectBlocking();
-				else
-					connectBlocking();
-				//Thread.sleep(5000);
-				break;
-			case OPEN:
-//				if(wsLis.hasSendData())
-//				{
-//					byte[] bs = wsLis.getNextSendData();
-//					WSClient.this.sendByRandomKey(bs) ;
-//				}
-				//send("hello from pro");
-				//Thread.sleep(checkSendIntv);
-				break;
-			
-			case CLOSED:
-				reconnectBlocking() ;
-				//Thread.sleep(5000);
-				break;
-			default:
-				//Thread.sleep(5000);
-				break;
-			}
-		}
-	}
-
-	//private transient Session session = null ; 
-	
-	private transient long lastChk = -1 ;
-	
-	WebSockClient wsClient =null;
-	
-	@Override
-	public boolean isConnReady()
-	{
-		if(this.wsClient==null)
-			return false;
-		return wsClient.getReadyState()==ReadyState.OPEN ;
-	}
-
-	public String getConnErrInfo()
-	{
-		return null;
-	}
-	
-	void disconnect() // throws IOException
-	{
-		WebSockClient ss = wsClient;
-		if(ss==null)
-			return ;
-		
-		try
-		{
-			ss.close();
-		}
-		catch(Exception e) {}
-		finally
-		{
-			wsClient = null ;
-		}
-	}
-
-	private void connectToWS() throws Exception
-	{
-		if(this.wsClient==null)
-		{
-			this.wsClient = new WebSockClient(new URI(url)) ;
-			
-		}
-		
-		this.wsClient.checkAndConn() ;
+        this.wsClient.checkAndConn();
 //		WebSocketContainer container = null;
 //
 //		container = ContainerProvider.getWebSocketContainer();
 //
 //		URI r = URI.create(url);
 //		Session session = container.connectToServer(WSClient.class, r);
-//		
+//
 //		session.getBasicRemote().sendText("xxx");
-	}
-	
-	
-	
-	public void RT_checkConn()
-	{
-		if(System.currentTimeMillis()-lastChk<5000)
-			return ;
-		
-		try
-		{
-			connectToWS();
-		}
-		catch(Exception e)
-		{
-			if(log.isDebugEnabled())
-				log.debug("connect to websocket",e);
-		}
-		finally
-		{
-			lastChk = System.currentTimeMillis() ;
-		}
-	}
-	
+    }
 
-	@Override
-	public LinkedHashMap<String, ConnDev> getFoundConnDevs()
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+    public void RT_checkConn() {
+        if (System.currentTimeMillis() - lastChk < 5000)
+            return;
+
+        try {
+            connectToWS();
+        } catch (Exception e) {
+            if (log.isDebugEnabled())
+                log.debug("connect to websocket", e);
+        } finally {
+            lastChk = System.currentTimeMillis();
+        }
+    }
+
+    @Override
+    public LinkedHashMap<String, ConnDev> getFoundConnDevs() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean sendMsg(String topic, byte[] bs) throws Exception {
+        if (this.wsClient == null)
+            return false;
+        this.wsClient.send(ByteBuffer.wrap(bs));
+        return true;
+    }
+
 //	@ClientEndpoint()
 //	class WSClient
 //	{
@@ -295,25 +196,80 @@ public class ConnPtWSClient extends ConnPtMSGNor
 //		}
 //	}
 
-	@Override
-	public boolean sendMsg(String topic, byte[] bs) throws Exception
-	{
-		if(this.wsClient==null)
-			return false;
-		this.wsClient.send(ByteBuffer.wrap(bs));
-		return true;
-	}
+    @Override
+    public void runOnWrite(UATag tag, Object val) throws Exception {
 
-	@Override
-	public void runOnWrite(UATag tag, Object val) throws Exception
-	{
-		
-	}
-	
-	protected boolean readMsgToFile(File f) throws Exception
-	{
-		return false;
-	}
+    }
+
+    protected boolean readMsgToFile(File f) throws Exception {
+        return false;
+    }
+
+    class WebSockClient extends WebSocketClient {
+
+        public WebSockClient(URI serveruri) {
+            super(serveruri);
+            //
+
+        }
+
+        @Override
+        public void onOpen(ServerHandshake handshakedata) {
+
+        }
+
+        @Override
+        public void onMessage(String message) {
+
+        }
+
+        public void onMessage(ByteBuffer bytes) {
+            try {
+                ConnPtWSClient.this.onRecvedMsg("", bytes.array());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onClose(int code, String reason, boolean remote) {
+
+        }
+
+        @Override
+        public void onError(Exception ex) {
+
+        }
+
+        private void checkAndConn() throws Exception {
+            switch (this.getReadyState()) {
+                case NOT_YET_CONNECTED:
+                    if (isClosed())
+                        reconnectBlocking();
+                    else
+                        connectBlocking();
+                    //Thread.sleep(5000);
+                    break;
+                case OPEN:
+//				if(wsLis.hasSendData())
+//				{
+//					byte[] bs = wsLis.getNextSendData();
+//					WSClient.this.sendByRandomKey(bs) ;
+//				}
+                    //send("hello from pro");
+                    //Thread.sleep(checkSendIntv);
+                    break;
+
+                case CLOSED:
+                    reconnectBlocking();
+                    //Thread.sleep(5000);
+                    break;
+                default:
+                    //Thread.sleep(5000);
+                    break;
+            }
+        }
+    }
 }
 
 

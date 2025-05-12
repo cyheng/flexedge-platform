@@ -4,6 +4,5 @@
 
 package cn.doraro.flexedge.driver.nbiot;
 
-public class WaterMeter1
-{
+public class WaterMeter1 {
 }

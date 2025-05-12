@@ -5,20 +5,18 @@
 package cn.doraro.flexedge.driver.common.modbus;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PushbackInputStream;
 
-public class ModbusParserReqTCP extends ModbusParserReq
-{
+public class ModbusParserReqTCP extends ModbusParserReq {
     int pST;
+    transient int transId;
+    transient int protoId;
     private transient int lastTransId;
     private transient int devId;
     private transient short fc;
     private transient byte[] mbap;
-    transient int transId;
-    transient int protoId;
     private transient int len;
-    
+
     public ModbusParserReqTCP() {
         this.pST = 0;
         this.lastTransId = -1;
@@ -29,7 +27,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         this.protoId = -1;
         this.len = -1;
     }
-    
+
     @Override
     public ModbusCmd parseReqCmdInLoop(final PushbackInputStream inputs) throws IOException {
         final byte[] bs = new byte[7];
@@ -55,7 +53,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
             inputs.unread(bs, 1, 6);
             return null;
         }
-        this.fc = (short)inputs.read();
+        this.fc = (short) inputs.read();
         if (this.fc < 0) {
             throw new IOException("end of stream");
         }
@@ -72,7 +70,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         ModbusParser.readFill(inputs, data, 0, dlen);
         return this.parseReqFC(data);
     }
-    
+
     private int checkReqFCDataLen(final int fc) throws IOException {
         switch (fc) {
             case 1:
@@ -96,7 +94,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
             }
         }
     }
-    
+
     private ModbusCmd parseReqFC(final byte[] data) throws IOException {
         switch (this.fc) {
             case 1:
@@ -117,11 +115,11 @@ public class ModbusParserReqTCP extends ModbusParserReq
                 return this.parseReqWriteWords(data);
             }
             default: {
-                return new ModbusCmdErr(ModbusCmd.Protocol.tcp, this.mbap, (short)this.devId, this.fc, (short)4);
+                return new ModbusCmdErr(ModbusCmd.Protocol.tcp, this.mbap, (short) this.devId, this.fc, (short) 4);
             }
         }
     }
-    
+
     private ModbusCmdReadBits parseReqReadBits(final byte[] bs) throws IOException {
         int reg_addr = bs[0] & 0xFF;
         reg_addr <<= 8;
@@ -136,7 +134,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         r.mbap4Tcp = this.mbap;
         return r;
     }
-    
+
     private ModbusCmdReadWords parseReqReadInt16s(final byte[] bs) throws IOException {
         int reg_addr = bs[0] & 0xFF;
         reg_addr <<= 8;
@@ -151,7 +149,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         r.mbap4Tcp = this.mbap;
         return r;
     }
-    
+
     private ModbusCmdWriteBit parseReqWriteBit(final byte[] bs) throws IOException {
         int reg_addr = bs[0] & 0xFF;
         reg_addr <<= 8;
@@ -164,7 +162,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         r.mbap4Tcp = this.mbap;
         return r;
     }
-    
+
     private ModbusCmdWriteWord parseReqWriteWord(final byte[] bs) throws IOException {
         int reg_addr = bs[0] & 0xFF;
         reg_addr <<= 8;
@@ -179,7 +177,7 @@ public class ModbusParserReqTCP extends ModbusParserReq
         r.mbap4Tcp = this.mbap;
         return r;
     }
-    
+
     private ModbusCmdWriteWords parseReqWriteWords(final byte[] bs) throws IOException {
         int reg_addr = bs[0] & 0xFF;
         reg_addr <<= 8;

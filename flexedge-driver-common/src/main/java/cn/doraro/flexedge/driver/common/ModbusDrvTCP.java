@@ -4,35 +4,34 @@
 
 package cn.doraro.flexedge.driver.common;
 
-import java.util.Iterator;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
-import java.util.Arrays;
-import cn.doraro.flexedge.core.conn.ConnPtCOM;
 import cn.doraro.flexedge.core.ConnPt;
-import java.util.List;
 import cn.doraro.flexedge.core.DevDriver;
+import cn.doraro.flexedge.core.conn.ConnPtCOM;
+import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
 
-public class ModbusDrvTCP extends ModbusDrvRTU
-{
+import java.util.Arrays;
+import java.util.List;
+
+public class ModbusDrvTCP extends ModbusDrvRTU {
     @Override
     public String getName() {
         return "modbus_tcp";
     }
-    
+
     @Override
     public String getTitle() {
         return "Modbus TCP";
     }
-    
+
     @Override
     public DevDriver copyMe() {
         return new ModbusDrvTCP();
     }
-    
+
     public List<Class<? extends ConnPt>> notsupportConnPtClass() {
-        return (List<Class<? extends ConnPt>>)Arrays.asList(ConnPtCOM.class);
+        return (List<Class<? extends ConnPt>>) Arrays.asList(ConnPtCOM.class);
     }
-    
+
     @Override
     protected boolean initDriver(final StringBuilder failedr) throws Exception {
         final boolean b = super.initDriver(failedr);

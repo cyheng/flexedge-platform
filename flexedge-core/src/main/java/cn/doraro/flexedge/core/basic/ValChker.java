@@ -3,12 +3,11 @@ package cn.doraro.flexedge.core.basic;
 /**
  * value checker,
  * used to prop value or other value setup checker.
- * @author jason.zhu
  *
+ * @author jason.zhu
  */
-public interface ValChker<T>
-{
-	public boolean checkVal(T v,StringBuilder failedr) ;
+public interface ValChker<T> {
+    public boolean checkVal(T v, StringBuilder failedr);
 }
 
 //class ValChkerRange<T extends Number> implements ValChker<T>

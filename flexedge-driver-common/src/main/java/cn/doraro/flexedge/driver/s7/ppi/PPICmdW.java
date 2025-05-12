@@ -4,19 +4,19 @@
 
 package cn.doraro.flexedge.driver.s7.ppi;
 
-import cn.doraro.flexedge.core.util.Convert;
-import java.io.OutputStream;
-import java.io.InputStream;
 import cn.doraro.flexedge.core.basic.ByteOrder;
+import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.xmldata.DataUtil;
 
-public class PPICmdW extends PPICmd
-{
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class PPICmdW extends PPICmd {
     PPIAddr writeAddr;
     int wVal;
     private transient PPIMsgReqW req;
     private transient PPIMsgReqConfirm reqc;
-    
+
     public PPICmdW(final short dev_addr, final PPIMemTp ppi_mtp, final PPIAddr addr, final Object wval) {
         super(dev_addr, ppi_mtp);
         this.writeAddr = null;
@@ -25,21 +25,18 @@ public class PPICmdW extends PPICmd
         this.writeAddr = addr;
         if (wval instanceof Number) {
             if (wval instanceof Float) {
-                final byte[] bs = DataUtil.floatToBytes((float)wval);
+                final byte[] bs = DataUtil.floatToBytes((float) wval);
                 this.wVal = DataUtil.bytesToInt(bs, ByteOrder.LittleEndian);
+            } else {
+                this.wVal = ((Number) wval).intValue();
             }
-            else {
-                this.wVal = ((Number)wval).intValue();
-            }
-        }
-        else if (wval instanceof Boolean) {
-            this.wVal = (((boolean)wval) ? 1 : 0);
-        }
-        else {
+        } else if (wval instanceof Boolean) {
+            this.wVal = (((boolean) wval) ? 1 : 0);
+        } else {
             this.wVal = Integer.parseInt(wval + "");
         }
     }
-    
+
     @Override
     void initCmd(final PPIDriver drv) {
         super.initCmd(drv);
@@ -50,7 +47,7 @@ public class PPICmdW extends PPICmd
         this.reqc = new PPIMsgReqConfirm();
         this.reqc.withSorAddr(this.ppiDrv.getMasterID()).withDestAddr(this.devAddr);
     }
-    
+
     @Override
     public boolean doCmd(final InputStream inputs, final OutputStream outputs) throws Exception {
         Thread.sleep(this.ppiDrv.getCmdInterval());
@@ -61,7 +58,8 @@ public class PPICmdW extends PPICmd
         if (retbs == null) {
             return false;
         }
-        if (retbs.length == 1) {}
+        if (retbs.length == 1) {
+        }
         Thread.sleep(10L);
         inputs.skip(inputs.available());
         final byte[] bs3 = this.req.toBytes();

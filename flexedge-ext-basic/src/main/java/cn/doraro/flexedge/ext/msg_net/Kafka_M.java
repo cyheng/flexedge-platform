@@ -4,32 +4,29 @@
 
 package cn.doraro.flexedge.ext.msg_net;
 
-import java.util.Locale;
-import java.util.Collections;
-import java.util.Map;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import java.time.Duration;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import java.util.Iterator;
-import cn.doraro.flexedge.core.msgnet.MNNode;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Properties;
-import java.util.List;
-import org.json.JSONObject;
-import cn.doraro.flexedge.core.util.Convert;
-import cn.doraro.flexedge.core.util.logger.LoggerManager;
-import java.util.HashMap;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import cn.doraro.flexedge.core.util.logger.ILogger;
 import cn.doraro.flexedge.core.msgnet.IMNRunner;
 import cn.doraro.flexedge.core.msgnet.MNModule;
+import cn.doraro.flexedge.core.msgnet.MNNode;
+import cn.doraro.flexedge.core.util.Convert;
+import cn.doraro.flexedge.core.util.logger.ILogger;
+import cn.doraro.flexedge.core.util.logger.LoggerManager;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.json.JSONObject;
 
-public class Kafka_M extends MNModule implements IMNRunner
-{
+import java.time.Duration;
+import java.util.*;
+
+public class Kafka_M extends MNModule implements IMNRunner {
     static ILogger log;
+
+    static {
+        Kafka_M.log = LoggerManager.getLogger((Class) Kafka_M.class);
+    }
+
     String brokerHost;
     int brokerPort;
     long sendTo;
@@ -45,11 +42,7 @@ public class Kafka_M extends MNModule implements IMNRunner
     private KafkaConsumer<String, String> consumer;
     private transient HashMap<String, KafkaIn_NS> topic2in;
     private Runnable consumerRunner;
-    
-    static {
-        Kafka_M.log = LoggerManager.getLogger((Class)Kafka_M.class);
-    }
-    
+
     public Kafka_M() {
         this.brokerPort = 9092;
         this.sendTo = 1000L;
@@ -71,23 +64,23 @@ public class Kafka_M extends MNModule implements IMNRunner
             }
         };
     }
-    
+
     public String getTP() {
         return "kafka";
     }
-    
+
     public String getTPTitle() {
         return "Kafka";
     }
-    
+
     public String getColor() {
         return "#debed7";
     }
-    
+
     public String getIcon() {
         return "\\uf0ec";
     }
-    
+
     public boolean isParamReady(final StringBuilder failedr) {
         if (Convert.isNullOrEmpty(this.brokerHost)) {
             failedr.append("no host set");
@@ -99,29 +92,29 @@ public class Kafka_M extends MNModule implements IMNRunner
         }
         return true;
     }
-    
+
     public JSONObject getParamJO() {
         final JSONObject jo = new JSONObject();
-        jo.putOpt("host", (Object)this.brokerHost);
-        jo.putOpt("port", (Object)((this.brokerPort > 0) ? this.brokerPort : 9092));
-        jo.putOpt("sec_proto", (Object)this.securityProto.id);
-        jo.putOpt("sec_sasl_mech", (Object)this.saslMech.id);
-        jo.putOpt("send_to", (Object)this.sendTo);
-        jo.putOpt("user", (Object)this.user);
-        jo.putOpt("psw", (Object)this.psw);
+        jo.putOpt("host", (Object) this.brokerHost);
+        jo.putOpt("port", (Object) ((this.brokerPort > 0) ? this.brokerPort : 9092));
+        jo.putOpt("sec_proto", (Object) this.securityProto.id);
+        jo.putOpt("sec_sasl_mech", (Object) this.saslMech.id);
+        jo.putOpt("send_to", (Object) this.sendTo);
+        jo.putOpt("user", (Object) this.user);
+        jo.putOpt("psw", (Object) this.psw);
         return jo;
     }
-    
+
     protected void setParamJO(final JSONObject jo) {
         this.brokerHost = jo.optString("host", "");
         this.brokerPort = jo.optInt("port", 9092);
-        this.securityProto = SecurityProto.forId((short)jo.optInt("sec_proto", 0));
-        this.saslMech = SaslMech.fromId((short)jo.optInt("sec_sasl_mech", 0));
+        this.securityProto = SecurityProto.forId((short) jo.optInt("sec_proto", 0));
+        this.saslMech = SaslMech.fromId((short) jo.optInt("sec_sasl_mech", 0));
         this.sendTo = jo.optLong("send_to", 1000L);
         this.user = jo.optString("user", "");
         this.psw = jo.optString("psw", "");
     }
-    
+
     private boolean RT_init(final List<String> recv_topics, final StringBuilder failedr) {
         if (Convert.isNullOrEmpty(this.brokerHost) || this.brokerPort <= 0) {
             failedr.append("no borker host port set");
@@ -134,7 +127,8 @@ public class Kafka_M extends MNModule implements IMNRunner
             properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
             properties.put("acks", "1");
             properties.put("retries", "5");
-            Label_0305: {
+            Label_0305:
+            {
                 switch (this.securityProto) {
                     case SASL_PLAINTEXT: {
                         properties.put("security.protocol", "SASL_PLAINTEXT");
@@ -154,22 +148,21 @@ public class Kafka_M extends MNModule implements IMNRunner
                     }
                 }
             }
-            this.producer = (KafkaProducer<String, String>)new KafkaProducer(properties);
+            this.producer = (KafkaProducer<String, String>) new KafkaProducer(properties);
             if (recv_topics.size() > 0) {
                 properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
                 properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
                 properties.put("group.id", "experiment");
-                (this.consumer = (KafkaConsumer<String, String>)new KafkaConsumer(properties)).subscribe((Collection)recv_topics);
+                (this.consumer = (KafkaConsumer<String, String>) new KafkaConsumer(properties)).subscribe((Collection) recv_topics);
             }
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             ee.printStackTrace();
             failedr.append(ee.getMessage());
             return false;
         }
         return true;
     }
-    
+
     public synchronized boolean RT_start(final StringBuilder failedr) {
         if (this.RT_bRun) {
             return true;
@@ -184,19 +177,18 @@ public class Kafka_M extends MNModule implements IMNRunner
         final ArrayList<String> sendtopics = new ArrayList<String>();
         for (final MNNode rn : rns) {
             if (rn instanceof KafkaIn_NS) {
-                final KafkaIn_NS kin = (KafkaIn_NS)rn;
+                final KafkaIn_NS kin = (KafkaIn_NS) rn;
                 final String topic = kin.getTopic();
                 if (Convert.isNullOrEmpty(topic)) {
                     continue;
                 }
                 topic2in.put(topic, kin);
                 recvtopics.add(topic);
-            }
-            else {
+            } else {
                 if (!(rn instanceof KafkaOut_NE)) {
                     continue;
                 }
-                final KafkaOut_NE kout = (KafkaOut_NE)rn;
+                final KafkaOut_NE kout = (KafkaOut_NE) rn;
                 final String topic = kout.getTopic();
                 if (Convert.isNullOrEmpty(topic)) {
                     continue;
@@ -216,27 +208,27 @@ public class Kafka_M extends MNModule implements IMNRunner
         (this.RT_th = new Thread(this.consumerRunner)).start();
         return true;
     }
-    
+
     public synchronized void RT_stop() {
         this.RT_bRun = false;
     }
-    
+
     public boolean RT_isRunning() {
         return this.RT_th != null;
     }
-    
+
     public boolean RT_isSuspendedInRun(final StringBuilder reson) {
         return false;
     }
-    
+
     public boolean RT_runnerEnabled() {
         return true;
     }
-    
+
     public boolean RT_runnerStartInner() {
         return false;
     }
-    
+
     void RT_send(final String topic, final String msg) {
         if (this.producer == null) {
             this.RT_DEBUG_WARN.fire("send", "not send msg : [" + topic + "] size=" + msg.length() + ",may be Module is not running.");
@@ -245,16 +237,15 @@ public class Kafka_M extends MNModule implements IMNRunner
         final long st = System.currentTimeMillis();
         try {
             this.RT_DEBUG_INF.fire("send", "before send msg : [" + topic + "] size=" + msg.length(), msg);
-            final ProducerRecord<String, String> record = (ProducerRecord<String, String>)new ProducerRecord(topic, (Object)msg);
-            this.producer.send((ProducerRecord)record);
+            final ProducerRecord<String, String> record = (ProducerRecord<String, String>) new ProducerRecord(topic, (Object) msg);
+            this.producer.send((ProducerRecord) record);
             this.RT_DEBUG_INF.fire("send", "send msg : [" + topic + "] size=" + msg.length() + " cost=" + (System.currentTimeMillis() - st) + "MS", msg);
-        }
-        catch (final Exception ee) {
+        } catch (final Exception ee) {
             ee.printStackTrace();
-            this.RT_DEBUG_ERR.fire("send", "send msg : [" + topic + "] size=" + msg.length(), (Throwable)ee);
+            this.RT_DEBUG_ERR.fire("send", "send msg : [" + topic + "] size=" + msg.length(), (Throwable) ee);
         }
     }
-    
+
     private void consumerRun() {
         try {
             if (this.consumer == null) {
@@ -262,55 +253,51 @@ public class Kafka_M extends MNModule implements IMNRunner
             }
             while (this.RT_bRun) {
                 try {
-                    final ConsumerRecords<String, String> records = (ConsumerRecords<String, String>)this.consumer.poll(Duration.ofMillis(1000L));
+                    final ConsumerRecords<String, String> records = (ConsumerRecords<String, String>) this.consumer.poll(Duration.ofMillis(1000L));
                     for (final ConsumerRecord<String, String> record : records) {
                         final String topic = record.topic();
-                        final String msg = (String)record.value();
+                        final String msg = (String) record.value();
                         final KafkaIn_NS kin = this.topic2in.get(topic);
                         if (kin != null) {
                             kin.RT_onTopicMsgRecv(topic, msg);
                         }
                     }
-                }
-                catch (final Throwable ee) {
+                } catch (final Throwable ee) {
                     if (Kafka_M.log.isDebugEnabled()) {
                         Kafka_M.log.debug("consumer error", ee);
                     }
                     try {
                         Thread.sleep(100L);
+                    } catch (final Exception ex) {
                     }
-                    catch (final Exception ex) {}
                 }
             }
-        }
-        finally {
-            Label_0292: {
+        } finally {
+            Label_0292:
+            {
                 if (this.producer != null) {
                     try {
                         this.producer.close();
-                    }
-                    catch (final Exception e) {
+                    } catch (final Exception e) {
                         e.printStackTrace();
                         this.producer = null;
                         break Label_0292;
-                    }
-                    finally {
+                    } finally {
                         this.producer = null;
                     }
                     this.producer = null;
                 }
             }
-            Label_0339: {
+            Label_0339:
+            {
                 if (this.consumer != null) {
                     try {
                         this.consumer.close();
-                    }
-                    catch (final Exception e) {
+                    } catch (final Exception e) {
                         e.printStackTrace();
                         this.consumer = null;
                         break Label_0339;
-                    }
-                    finally {
+                    } finally {
                         this.consumer = null;
                     }
                     this.consumer = null;
@@ -319,31 +306,29 @@ public class Kafka_M extends MNModule implements IMNRunner
             this.RT_bRun = false;
             this.RT_th = null;
         }
-        Label_0399: {
+        Label_0399:
+        {
             if (this.producer != null) {
                 try {
                     this.producer.close();
-                }
-                catch (final Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                     break Label_0399;
-                }
-                finally {
+                } finally {
                     this.producer = null;
                 }
                 this.producer = null;
             }
         }
-        Label_0446: {
+        Label_0446:
+        {
             if (this.consumer != null) {
                 try {
                     this.consumer.close();
-                }
-                catch (final Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                     break Label_0446;
-                }
-                finally {
+                } finally {
                     this.consumer = null;
                 }
                 this.consumer = null;
@@ -352,21 +337,20 @@ public class Kafka_M extends MNModule implements IMNRunner
         this.RT_bRun = false;
         this.RT_th = null;
     }
-    
-    public enum SaslMech
-    {
-        PLAIN("PLAIN", 0, 0, "PLAIN"), 
-        SCRAM_SHA_256("SCRAM_SHA_256", 1, 1, "SCRAM-SHA-256"), 
+
+    public enum SaslMech {
+        PLAIN("PLAIN", 0, 0, "PLAIN"),
+        SCRAM_SHA_256("SCRAM_SHA_256", 1, 1, "SCRAM-SHA-256"),
         SCRAM_SHA_512("SCRAM_SHA_512", 2, 2, "SCRAM-SHA-512");
-        
+
         public final int id;
         public final String name;
-        
+
         private SaslMech(final String name2, final int ordinal, final int id, final String name) {
-            this.id = (short)id;
+            this.id = (short) id;
             this.name = name;
         }
-        
+
         public static SaslMech fromId(final int id) {
             switch (id) {
                 case 0: {
@@ -384,17 +368,14 @@ public class Kafka_M extends MNModule implements IMNRunner
             }
         }
     }
-    
-    public enum SecurityProto
-    {
-        PLAINTEXT("PLAINTEXT", 0, 0, "PLAINTEXT"), 
+
+    public enum SecurityProto {
+        PLAINTEXT("PLAINTEXT", 0, 0, "PLAINTEXT"),
         SASL_PLAINTEXT("SASL_PLAINTEXT", 1, 2, "SASL_PLAINTEXT");
-        
+
         private static final Map<Short, SecurityProto> CODE_TO_SECURITY_PROTOCOL;
         private static final List<String> NAMES;
-        public final short id;
-        public final String name;
-        
+
         static {
             final SecurityProto[] protocols = values();
             final List<String> names = new ArrayList<String>(protocols.length);
@@ -405,23 +386,26 @@ public class Kafka_M extends MNModule implements IMNRunner
                 codeToSecurityProtocol.put(proto.id, proto);
                 names.add(proto.name);
             }
-            CODE_TO_SECURITY_PROTOCOL = Collections.unmodifiableMap((Map<? extends Short, ? extends SecurityProto>)codeToSecurityProtocol);
-            NAMES = Collections.unmodifiableList((List<? extends String>)names);
+            CODE_TO_SECURITY_PROTOCOL = Collections.unmodifiableMap((Map<? extends Short, ? extends SecurityProto>) codeToSecurityProtocol);
+            NAMES = Collections.unmodifiableList((List<? extends String>) names);
         }
-        
+
+        public final short id;
+        public final String name;
+
         private SecurityProto(final String name2, final int ordinal, final int id, final String name) {
-            this.id = (short)id;
+            this.id = (short) id;
             this.name = name;
         }
-        
+
         public static List<String> names() {
             return SecurityProto.NAMES;
         }
-        
+
         public static SecurityProto forId(final short id) {
             return SecurityProto.CODE_TO_SECURITY_PROTOCOL.get(id);
         }
-        
+
         public static SecurityProto forName(final String name) {
             return valueOf(name.toUpperCase(Locale.ROOT));
         }

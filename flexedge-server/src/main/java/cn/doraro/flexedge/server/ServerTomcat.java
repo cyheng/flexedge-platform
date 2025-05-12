@@ -4,34 +4,25 @@
 
 package cn.doraro.flexedge.server;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Set;
-import javax.servlet.ServletContainerInitializer;
-import org.apache.jasper.servlet.JasperInitializer;
-import cn.doraro.flexedge.core.util.Convert;
-import org.apache.catalina.Context;
-import java.util.HashMap;
-import java.io.File;
-import org.apache.catalina.connector.Connector;
-import cn.doraro.flexedge.core.UAServer;
-import java.util.List;
 import cn.doraro.flexedge.core.Config;
-import org.apache.catalina.startup.Tomcat;
+import cn.doraro.flexedge.core.UAServer;
+import cn.doraro.flexedge.core.util.Convert;
 import cn.doraro.flexedge.core.util.IServerBootComp;
+import org.apache.catalina.Context;
+import org.apache.catalina.connector.Connector;
+import org.apache.catalina.startup.Tomcat;
+import org.apache.jasper.servlet.JasperInitializer;
 
-public class ServerTomcat implements IServerBootComp
-{
-    Tomcat tomcat;
-    private transient boolean bRunning;
-    
+import javax.servlet.ServletContainerInitializer;
+import java.io.File;
+import java.util.*;
+
+public class ServerTomcat implements IServerBootComp {
     static {
         System.setProperty("java.util.logging.manager", "org.apache.juli.ClassLoaderLogManager");
         if (Config.isDebug()) {
             System.setProperty("java.util.logging.config.file", "./log/logging_debug.properties");
-        }
-        else {
+        } else {
             System.setProperty("java.util.logging.config.file", "./log/logging.properties");
         }
         System.setProperty("java.endorsed.dirs", "./tomcat/common/endorsed");
@@ -40,12 +31,41 @@ public class ServerTomcat implements IServerBootComp
         System.setProperty("tomcat.util.scan.StandardJarScanFilter.jarsToSkip", "*");
         System.setProperty("java.io.tmpdir", "./tomcat/temp");
     }
-    
+
+    Tomcat tomcat;
+    private transient boolean bRunning;
+
     public ServerTomcat() {
         this.tomcat = null;
         this.bRunning = false;
     }
-    
+
+    private static Connector getNorConnector(final int port) {
+        final Connector connector = new Connector();
+        connector.setPort(port);
+        connector.setScheme("http");
+        connector.setAttribute("maxThreads", (Object) "200");
+        return connector;
+    }
+
+    private static Connector getSslConnector(final int port) {
+        final Connector connector = new Connector();
+        connector.setPort(port);
+        connector.setSecure(true);
+        connector.setScheme("https");
+        connector.setAttribute("keyAlias", (Object) "tomcat");
+        connector.setAttribute("keystorePass", (Object) "123456");
+        connector.setAttribute("keystoreType", (Object) "JKS");
+        connector.setAttribute("keystoreFile", (Object) "../keystore.jks");
+        connector.setAttribute("clientAuth", (Object) "false");
+        connector.setAttribute("protocol", (Object) "HTTP/1.1");
+        connector.setAttribute("sslProtocol", (Object) "TLS");
+        connector.setAttribute("maxThreads", (Object) "200");
+        connector.setAttribute("protocol", (Object) "org.apache.coyote.http11.Http11AprProtocol");
+        connector.setAttribute("SSLEnabled", (Object) true);
+        return connector;
+    }
+
     public List<UAServer.WebItem> startTomcat(final ClassLoader cl) throws Exception {
         final Config.Webapps w = Config.getWebapps();
         if (w == null) {
@@ -85,13 +105,12 @@ public class ServerTomcat implements IServerBootComp
             Context cxt = null;
             if ("ROOT".equals(appn)) {
                 cxt = this.tomcat.addWebapp("", fp);
-            }
-            else {
+            } else {
                 cxt = this.tomcat.addWebapp("/" + appn, fp);
             }
             app2cxt.put(appn, cxt);
             app2ff.put(appn, ff);
-            cxt.addServletContainerInitializer((ServletContainerInitializer)new JasperInitializer(), (Set)null);
+            cxt.addServletContainerInitializer((ServletContainerInitializer) new JasperInitializer(), (Set) null);
         }
         this.tomcat.getConnector();
         System.out.println("web port " + ((w.getPort() > 0) ? (" http:" + w.getPort()) : "") + ((w.getSslPort() > 0) ? ("  https:" + w.getSslPort()) : "") + " tomcat starting ...");
@@ -111,42 +130,16 @@ public class ServerTomcat implements IServerBootComp
         }
         return wis;
     }
-    
-    private static Connector getNorConnector(final int port) {
-        final Connector connector = new Connector();
-        connector.setPort(port);
-        connector.setScheme("http");
-        connector.setAttribute("maxThreads", (Object)"200");
-        return connector;
-    }
-    
-    private static Connector getSslConnector(final int port) {
-        final Connector connector = new Connector();
-        connector.setPort(port);
-        connector.setSecure(true);
-        connector.setScheme("https");
-        connector.setAttribute("keyAlias", (Object)"tomcat");
-        connector.setAttribute("keystorePass", (Object)"123456");
-        connector.setAttribute("keystoreType", (Object)"JKS");
-        connector.setAttribute("keystoreFile", (Object)"../keystore.jks");
-        connector.setAttribute("clientAuth", (Object)"false");
-        connector.setAttribute("protocol", (Object)"HTTP/1.1");
-        connector.setAttribute("sslProtocol", (Object)"TLS");
-        connector.setAttribute("maxThreads", (Object)"200");
-        connector.setAttribute("protocol", (Object)"org.apache.coyote.http11.Http11AprProtocol");
-        connector.setAttribute("SSLEnabled", (Object)true);
-        return connector;
-    }
-    
+
     public String getBootCompName() {
         return "tomcat";
     }
-    
+
     public void startComp() throws Exception {
         this.startTomcat(Thread.currentThread().getContextClassLoader());
         this.bRunning = true;
     }
-    
+
     public void stopComp() throws Exception {
         if (this.tomcat == null) {
             this.bRunning = false;
@@ -156,7 +149,7 @@ public class ServerTomcat implements IServerBootComp
         this.tomcat.destroy();
         this.bRunning = false;
     }
-    
+
     public boolean isRunning() throws Exception {
         return this.bRunning;
     }

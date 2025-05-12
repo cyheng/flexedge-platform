@@ -7,13 +7,12 @@ package cn.doraro.flexedge.driver.aromat.serial;
 import cn.doraro.flexedge.core.dict.DataNode;
 import cn.doraro.flexedge.core.util.Lan;
 
-public abstract class AMMsgResp extends AMMsg
-{
+public abstract class AMMsgResp extends AMMsg {
     protected AMMsgReq msgReq;
     char respMark;
     String respCode;
     private String retTxt;
-    
+
     public AMMsgResp(final AMMsgReq req) {
         this.msgReq = null;
         this.respMark = '\0';
@@ -21,27 +20,36 @@ public abstract class AMMsgResp extends AMMsg
         this.retTxt = null;
         this.msgReq = req;
     }
-    
+
+    public static String getRespCodeTitle(final String code) {
+        final Lan lan = Lan.getLangInPk((Class) AMMsgResp.class);
+        final DataNode dn = lan.gn("encode_" + code);
+        if (dn == null) {
+            return "";
+        }
+        return dn.getNameByLang("en");
+    }
+
     public char getRespMark() {
         return this.respMark;
     }
-    
+
     public boolean isRespErr() {
         return this.respMark == '!';
     }
-    
+
     public boolean isRespNor() {
         return this.respMark == '$';
     }
-    
+
     public String getRespCode() {
         return this.respCode;
     }
-    
+
     public String getRetTxt() {
         return this.retTxt;
     }
-    
+
     protected void parseFrom(final String str) throws Exception {
         this.retTxt = str;
         if ('@' != str.charAt(0)) {
@@ -59,15 +67,6 @@ public abstract class AMMsgResp extends AMMsg
         final String hl_txt = str.substring(6);
         this.parseRespTxt(hl_txt);
     }
-    
+
     protected abstract void parseRespTxt(final String p0) throws Exception;
-    
-    public static String getRespCodeTitle(final String code) {
-        final Lan lan = Lan.getLangInPk((Class)AMMsgResp.class);
-        final DataNode dn = lan.gn("encode_" + code);
-        if (dn == null) {
-            return "";
-        }
-        return dn.getNameByLang("en");
-    }
 }

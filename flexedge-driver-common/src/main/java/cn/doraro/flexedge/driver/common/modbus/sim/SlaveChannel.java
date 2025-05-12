@@ -5,52 +5,46 @@
 package cn.doraro.flexedge.driver.common.modbus.sim;
 
 import cn.doraro.flexedge.core.cxt.JsProp;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdWriteWord;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdWriteBit;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadWords;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmdReadBits;
+import cn.doraro.flexedge.core.sim.SimChannel;
+import cn.doraro.flexedge.core.sim.SimConn;
+import cn.doraro.flexedge.core.sim.SimDev;
+import cn.doraro.flexedge.core.util.xmldata.data_class;
+import cn.doraro.flexedge.driver.common.modbus.*;
+
 import java.io.InputStream;
 import java.io.OutputStream;
-import cn.doraro.flexedge.driver.common.modbus.ModbusCmd;
 import java.io.PushbackInputStream;
-import cn.doraro.flexedge.driver.common.modbus.ModbusParserReqRTU;
-import cn.doraro.flexedge.core.sim.SimConn;
-import java.util.Iterator;
-import java.util.List;
-import cn.doraro.flexedge.core.sim.SimDev;
 import java.util.ArrayList;
-import cn.doraro.flexedge.core.util.xmldata.data_class;
-import cn.doraro.flexedge.core.sim.SimChannel;
+import java.util.List;
 
 @data_class
-public class SlaveChannel extends SimChannel implements Runnable
-{
-    private ArrayList<Integer> limitIds;
+public class SlaveChannel extends SimChannel implements Runnable {
     static final int BUF_LEN = 255;
-    
+    private ArrayList<Integer> limitIds;
+
     public SlaveChannel() {
         this.limitIds = null;
     }
-    
+
     public String getTp() {
         return "mslave";
     }
-    
+
     public String getTpTitle() {
         return "Modbus Slave";
     }
-    
+
     public SimDev createNewDev() {
         return new SlaveDev();
     }
-    
+
     private void delay(final int ms) {
         try {
             Thread.sleep(ms);
+        } catch (final Exception ex) {
         }
-        catch (final Exception ex) {}
     }
-    
+
     public boolean RT_init(final StringBuilder failedr) {
         if (!super.RT_init(failedr)) {
             return false;
@@ -65,19 +59,19 @@ public class SlaveChannel extends SimChannel implements Runnable
             if (!dev.RT_init(failedr)) {
                 return false;
             }
-            final SlaveDev sd = (SlaveDev)dev;
+            final SlaveDev sd = (SlaveDev) dev;
             ids.add(sd.getDevAddr());
         }
         this.limitIds = ids;
         return true;
     }
-    
+
     protected void RT_runConnInLoop(final SimConn sc) throws Exception {
-        ModbusParserReqRTU mp = (ModbusParserReqRTU)sc.getRelatedOb();
+        ModbusParserReqRTU mp = (ModbusParserReqRTU) sc.getRelatedOb();
         if (mp == null) {
             mp = new ModbusParserReqRTU();
             mp.asLimitDevIds(this.limitIds);
-            sc.setRelatedOb((Object)mp);
+            sc.setRelatedOb((Object) mp);
         }
         final PushbackInputStream inputs = sc.getPushbackInputStream();
         final ModbusCmd reqmc = mp.parseReqCmdInLoop(inputs);
@@ -91,14 +85,14 @@ public class SlaveChannel extends SimChannel implements Runnable
             outputs.flush();
         }
     }
-    
+
     protected void RT_runConnInLoop0(final SimConn sc) throws Exception {
         int last_dlen = 0;
         long last_dt = -1L;
         long last_no_dt = System.currentTimeMillis();
         final byte[] buf = new byte[255];
         final int len = 0;
-    Label_0290_Outer:
+        Label_0290_Outer:
         while (true) {
             this.delay(1);
             final InputStream inputs = sc.getConnInputStream();
@@ -114,17 +108,14 @@ public class SlaveChannel extends SimChannel implements Runnable
                     }
                     last_no_dt = System.currentTimeMillis();
                     sc.pulseConn();
-                }
-                else {
+                } else {
                     last_dlen = inputs.available();
                     last_dt = System.currentTimeMillis();
                 }
-            }
-            else if (inputs.available() > last_dlen) {
+            } else if (inputs.available() > last_dlen) {
                 last_dlen = inputs.available();
                 last_dt = System.currentTimeMillis();
-            }
-            else {
+            } else {
                 if (System.currentTimeMillis() - last_dt < 10L) {
                     continue Label_0290_Outer;
                 }
@@ -134,15 +125,14 @@ public class SlaveChannel extends SimChannel implements Runnable
                         inputs.skip(last_dlen);
                         continue Label_0290_Outer;
                     }
-                }
-                finally {
+                } finally {
                     last_dlen = 0;
                     last_dt = 0L;
                 }
                 byte[] rdata = new byte[rlen];
                 inputs.read(rdata);
                 final long st = System.currentTimeMillis();
-                final int[] pl = { 0 };
+                final int[] pl = {0};
                 while (true) {
                     while (pl[0] >= 0) {
                         if (pl[0] > 0) {
@@ -164,7 +154,7 @@ public class SlaveChannel extends SimChannel implements Runnable
             }
         }
     }
-    
+
     private byte[] onReadReqAndResp(final byte[] reqbs, final int[] parseleft) {
         final ModbusCmd mc = ModbusCmd.parseRequest(reqbs, parseleft);
         if (mc == null) {
@@ -172,33 +162,33 @@ public class SlaveChannel extends SimChannel implements Runnable
         }
         return this.onReqAndResp(mc);
     }
-    
+
     private byte[] onReqAndResp(final ModbusCmd mc) {
         if (mc instanceof ModbusCmdReadBits) {
-            final ModbusCmdReadBits mcb = (ModbusCmdReadBits)mc;
+            final ModbusCmdReadBits mcb = (ModbusCmdReadBits) mc;
             return this.onReqAndRespReadBits(mcb);
         }
         if (mc instanceof ModbusCmdReadWords) {
-            return this.onReqAndRespReadWords((ModbusCmdReadWords)mc);
+            return this.onReqAndRespReadWords((ModbusCmdReadWords) mc);
         }
         if (mc instanceof ModbusCmdWriteBit) {
-            final ModbusCmdWriteBit wb = (ModbusCmdWriteBit)mc;
+            final ModbusCmdWriteBit wb = (ModbusCmdWriteBit) mc;
             return this.onReqAndRespWriteBit(wb);
         }
         if (mc instanceof ModbusCmdWriteWord) {
-            final ModbusCmdWriteWord ww = (ModbusCmdWriteWord)mc;
+            final ModbusCmdWriteWord ww = (ModbusCmdWriteWord) mc;
             return this.onReqAndRespWriteWord(ww);
         }
         return null;
     }
-    
+
     private byte[] onReqAndRespWriteBit(final ModbusCmdWriteBit mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
         final int req_idx = mcb.getRegAddr();
         final boolean bv = mcb.getWriteVal();
         for (final SimDev d : this.listDevItems()) {
-            final SlaveDev di = (SlaveDev)d;
+            final SlaveDev di = (SlaveDev) d;
             if (di.getDevAddr() != devid) {
                 continue;
             }
@@ -221,14 +211,14 @@ public class SlaveChannel extends SimChannel implements Runnable
         }
         return ModbusCmdWriteBit.createResp(mcb, devid, req_idx, bv);
     }
-    
+
     private byte[] onReqAndRespWriteWord(final ModbusCmdWriteWord mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
         final int req_idx = mcb.getRegAddr();
         final int bv = mcb.getWriteVal();
         for (final SimDev d : this.listDevItems()) {
-            final SlaveDev di = (SlaveDev)d;
+            final SlaveDev di = (SlaveDev) d;
             if (di.getDevAddr() != devid) {
                 continue;
             }
@@ -245,13 +235,13 @@ public class SlaveChannel extends SimChannel implements Runnable
                 if (req_idx >= seg_regidx + seg_regnum) {
                     continue;
                 }
-                seg.setSlaveDataInt16(req_idx - seg_regidx, (short)bv);
+                seg.setSlaveDataInt16(req_idx - seg_regidx, (short) bv);
                 break;
             }
         }
-        return ModbusCmdWriteWord.createResp(mcb, devid, req_idx, (short)bv);
+        return ModbusCmdWriteWord.createResp(mcb, devid, req_idx, (short) bv);
     }
-    
+
     private byte[] onReqAndRespReadBits(final ModbusCmdReadBits mcb) {
         final short fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -262,7 +252,7 @@ public class SlaveChannel extends SimChannel implements Runnable
             resp[i] = false;
         }
         for (final SimDev d : this.listDevItems()) {
-            final SlaveDev di = (SlaveDev)d;
+            final SlaveDev di = (SlaveDev) d;
             if (di.getDevAddr() != devid) {
                 continue;
             }
@@ -286,22 +276,19 @@ public class SlaveChannel extends SimChannel implements Runnable
                 if (req_idx < seg_regidx) {
                     if (req_idx + req_num < seg_regidx + bs.length) {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, req_num - (seg_regidx - req_idx));
-                    }
-                    else {
+                    } else {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, bs.length);
                     }
-                }
-                else if (req_idx + req_num < seg_regidx + bs.length) {
+                } else if (req_idx + req_num < seg_regidx + bs.length) {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, req_num);
-                }
-                else {
+                } else {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, bs.length - (req_idx - seg_regidx));
                 }
             }
         }
         return ModbusCmdReadBits.createResp(mcb, devid, mcb.getFC(), resp);
     }
-    
+
     private byte[] onReqAndRespReadWords(final ModbusCmdReadWords mcb) {
         final int fc = mcb.getFC();
         final short devid = mcb.getDevAddr();
@@ -312,7 +299,7 @@ public class SlaveChannel extends SimChannel implements Runnable
             resp[i] = 0;
         }
         for (final SimDev d : this.listDevItems()) {
-            final SlaveDev di = (SlaveDev)d;
+            final SlaveDev di = (SlaveDev) d;
             if (di.getDevAddr() != devid) {
                 continue;
             }
@@ -336,28 +323,25 @@ public class SlaveChannel extends SimChannel implements Runnable
                 if (req_idx < seg_regidx) {
                     if (req_idx + req_num < seg_regidx + bs.length) {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, req_num - (seg_regidx - req_idx));
-                    }
-                    else {
+                    } else {
                         System.arraycopy(bs, 0, resp, seg_regidx - req_idx, bs.length);
                     }
-                }
-                else if (req_idx + req_num < seg_regidx + bs.length) {
+                } else if (req_idx + req_num < seg_regidx + bs.length) {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, req_num);
-                }
-                else {
+                } else {
                     System.arraycopy(bs, req_idx - seg_regidx, resp, 0, bs.length - (req_idx - seg_regidx));
                 }
             }
         }
         return ModbusCmdReadWords.createResp(mcb, devid, mcb.getFC(), resp);
     }
-    
+
     protected void onConnOk(final SimConn sc) {
     }
-    
+
     protected void onConnBroken(final SimConn sc) {
     }
-    
+
     public Object JS_get(final String key) {
         final Object r = super.JS_get(key);
         if (r != null) {
@@ -372,10 +356,10 @@ public class SlaveChannel extends SimChannel implements Runnable
             }
         }
     }
-    
+
     public List<JsProp> JS_props() {
         final List<JsProp> rets = super.JS_props();
-        rets.add(new JsProp("_tp", (Object)null, (Class)String.class, false, this.getTpTitle(), ""));
+        rets.add(new JsProp("_tp", (Object) null, (Class) String.class, false, this.getTpTitle(), ""));
         return rets;
     }
 }

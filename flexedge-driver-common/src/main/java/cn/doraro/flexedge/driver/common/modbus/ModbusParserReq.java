@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.io.PushbackInputStream;
 import java.util.List;
 
-public abstract class ModbusParserReq extends ModbusParser
-{
+public abstract class ModbusParserReq extends ModbusParser {
     int[] limitDevIds;
-    
+
     public ModbusParserReq() {
         this.limitDevIds = null;
     }
-    
+
     public ModbusParser asLimitDevIds(final List<Integer> devids) {
         if (devids == null || devids.size() <= 0) {
             this.limitDevIds = null;
@@ -29,7 +28,7 @@ public abstract class ModbusParserReq extends ModbusParser
         this.limitDevIds = ids;
         return this;
     }
-    
+
     public boolean checkLimitDevId(final int devid) {
         if (this.limitDevIds == null || this.limitDevIds.length <= 0) {
             return true;
@@ -41,6 +40,6 @@ public abstract class ModbusParserReq extends ModbusParser
         }
         return false;
     }
-    
+
     public abstract ModbusCmd parseReqCmdInLoop(final PushbackInputStream p0) throws IOException;
 }
