@@ -1,0 +1,141 @@
+package cn.doraro.flexedge.core.msgnet.nodes;
+
+import cn.doraro.flexedge.core.msgnet.MNBase.DivBlk;
+import cn.doraro.flexedge.core.msgnet.MNConn;
+import cn.doraro.flexedge.core.msgnet.MNMsg;
+import cn.doraro.flexedge.core.msgnet.MNNode;
+import cn.doraro.flexedge.core.msgnet.MNNodeEnd;
+import cn.doraro.flexedge.core.msgnet.RTOut;
+import cn.doraro.flexedge.core.util.ILang;
+import cn.doraro.flexedge.core.util.jt.JSONTemp;
+import cn.doraro.flexedge.core.ws.WSMsgNetRoot;
+import org.json.JSONObject;
+
+import java.util.List;
+
+public class NE_Debug extends MNNodeEnd implements ILang
+{
+	boolean bOutWin = true;
+	boolean bOutConsole = false;
+	
+	int maxBufferedMsnNum = 100 ;
+	
+	@Override
+	public String getIcon()
+	{
+		return "\\uf188";
+	}
+	
+	@Override
+	public String getColor()
+	{
+		return "#7caa82";
+	}
+	
+	@Override
+	public String getTitleColor()
+	{
+		return "#eeeeee" ;
+	}
+	
+	@Override
+	public boolean supportOutOnOff()
+	{
+		return true;
+	}
+	
+	@Override
+	public JSONTemp getInJT()
+	{
+		return null;
+	}
+
+	@Override
+	public JSONTemp getOutJT()
+	{
+		return null;
+	}
+
+//	@Override
+	public String getTP()
+	{
+		return "debug";
+	}
+
+	@Override
+	public String getTPTitle()
+	{
+		return g("debug");
+	}
+
+	@Override
+	public boolean isParamReady(StringBuilder failedr)
+	{
+		return true;
+	}
+
+	@Override
+	public JSONObject getParamJO()
+	{
+		JSONObject jo = new JSONObject();
+		//jo.put("b_delay", this.bDelayExec) ;
+		jo.put("out_win", this.bOutWin) ;
+		jo.put("out_console", this.bOutConsole) ;
+		jo.put("buf_len", maxBufferedMsnNum) ;
+		return jo ;
+	}
+
+	@Override
+	protected void setParamJO(JSONObject jo)
+	{
+		this.bOutWin= jo.optBoolean("out_win", true) ;
+		this.bOutConsole = jo.optBoolean("out_console",false) ;
+		this.maxBufferedMsnNum = jo.optInt("buf_len",100) ;
+		if(this.maxBufferedMsnNum<=0)
+			this.maxBufferedMsnNum = 100 ;
+	}
+
+	
+	@Override
+	protected final RTOut RT_onMsgIn(MNConn in_conn,MNMsg msg)
+	{
+		if(!this.getOutOnOff())
+			return null;//
+		JSONObject jo = msg.toJO() ;
+//		if(bOutConsole)
+//		{
+//			System.out.println(Convert.toFullYMDHMS(new Date()) +" node "+this.getTitle()) ;
+//			System.out.println(jo) ;
+//		}
+//		if(bOutWin)
+//		{
+//			
+//		}
+		// push to client
+
+		MNNode fromn = in_conn.getFromBelongToNode() ;
+		int fromidx = in_conn.getOutIdx() ;
+		JSONObject debugjo = new JSONObject() ;
+		debugjo.put("from",fromn.getTitle());
+		debugjo.put("from_idx",fromidx);
+		debugjo.put("nodeid",this.getId());
+		debugjo.put("dt",System.currentTimeMillis());
+		debugjo.put("msg",jo) ;
+		WSMsgNetRoot.pushToClient(debugjo.toString());
+		return null;//RTOut.NONE;
+	}
+	
+	@Override
+	protected void RT_renderDiv(List<DivBlk> divblks)
+	{
+		StringBuilder divsb = new StringBuilder() ;
+
+		divsb.append("<div class=\"rt_blk\" style='position:relative;height:90%;'><div style='background-color:#aaaaaa;white-space: nowrap;'>Debug Messages  <button onclick=\"clear_debug_list('"+this.getId()+"')\">clear</button> &nbsp; <button onclick=\"start_stop_debug_list(this,'"+this.getId()+"')\">stop</button></div>") ;
+		divsb.append("<div class=\"rt_debug_list\" id=\"debug_n_"+this.getId()+"\" max_buf_num='"+this.maxBufferedMsnNum+"'></div>") ;
+		divsb.append("</div>") ;
+		
+		divblks.add(new DivBlk("node_debug",divsb.toString())) ;
+		
+		super.RT_renderDiv(divblks);
+	}
+}
