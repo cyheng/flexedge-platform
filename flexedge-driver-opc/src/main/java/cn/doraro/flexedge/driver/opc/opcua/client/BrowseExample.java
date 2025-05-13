@@ -1,6 +1,4 @@
-// 
-// Decompiled by Procyon v0.6.0
-// 
+
 
 package cn.doraro.flexedge.driver.opc.opcua.client;
 
@@ -46,13 +44,14 @@ public class BrowseExample implements ClientExample {
         final BrowseDescription browse = new BrowseDescription(browseRoot, BrowseDirection.Forward, Identifiers.References, Boolean.valueOf(true), Unsigned.uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()), Unsigned.uint(BrowseResultMask.All.getValue()));
         try {
             final BrowseResult browseResult = client.browse(browse).get();
-            final List<ReferenceDescription> references = ConversionUtil.toList((Object[]) browseResult.getReferences());
+            final List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
             for (final ReferenceDescription rd : references) {
                 final QualifiedName qn = rd.getBrowseName();
                 final String tn = rd.getTypeDefinition().getType().name();
                 this.logger.info("{} Node={}", (Object) indent, (Object) (String.valueOf(qn.getName()) + " " + tn));
-                rd.getNodeId().toNodeId(client.getNamespaceTable()).ifPresent(nodeId -> this.browseNode(String.valueOf(obj) + "  ", client2, nodeId));
-            }
+                rd.getNodeId().toNodeId(client.getNamespaceTable()).ifPresent((nodeId) -> {
+                    this.browseNode(indent + "  ", client, nodeId);
+                });            }
         } catch (final InterruptedException | ExecutionException e) {
             this.logger.error("Browsing nodeId={} failed: {}", new Object[]{browseRoot, e.getMessage(), e});
         }
