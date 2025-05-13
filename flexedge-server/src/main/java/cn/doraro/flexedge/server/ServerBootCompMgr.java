@@ -65,17 +65,15 @@ public class ServerBootCompMgr {
     public static ServerBootCompMgr getInstance() {
         if (ServerBootCompMgr.bcMgr != null) {
             return ServerBootCompMgr.bcMgr;
-        }
-        synchronized (ServerBootCompMgr.lockobj) {
-            if (ServerBootCompMgr.bcMgr != null) {
-                final ServerBootCompMgr bcMgr = ServerBootCompMgr.bcMgr;
-                monitorexit(ServerBootCompMgr.lockobj);
-                return bcMgr;
+        }else {
+            synchronized(lockobj) {
+                if (bcMgr != null) {
+                    return bcMgr;
+                } else {
+                    bcMgr = new ServerBootCompMgr();
+                    return bcMgr;
+                }
             }
-            ServerBootCompMgr.bcMgr = new ServerBootCompMgr();
-            final ServerBootCompMgr bcMgr2 = ServerBootCompMgr.bcMgr;
-            monitorexit(ServerBootCompMgr.lockobj);
-            return bcMgr2;
         }
     }
 

@@ -186,12 +186,11 @@ public class WaterMeter1Drv {
     }
 
     public void start() throws Exception {
-        synchronized (this) {
-            if (this.acceptTh != null) {
-                monitorexit(this);
-                return;
+        synchronized(this) {
+            if (this.acceptTh == null) {
+                this.acceptTh = new Thread(this.acceptRunner, "iottree-nbiot-watermeter1-tcpserver");
+                this.acceptTh.start();
             }
-            (this.acceptTh = new Thread(this.acceptRunner, "iottree-nbiot-watermeter1-tcpserver")).start();
         }
     }
 

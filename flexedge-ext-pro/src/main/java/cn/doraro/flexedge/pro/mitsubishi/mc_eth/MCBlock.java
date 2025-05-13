@@ -483,11 +483,15 @@ public class MCBlock {
             return;
         }
         final MCCmd[] cmds = new MCCmd[s];
-        synchronized (this.writeCmds) {
-            for (int i = 0; i < s; ++i) {
-                cmds[i] = this.writeCmds.removeFirst();
+        int i;
+        synchronized(this.writeCmds) {
+            i = 0;
+
+            while (i < s) {
+
+                cmds[i] = (MCCmd) this.writeCmds.removeFirst();
+                ++i;
             }
-            monitorexit(this.writeCmds);
         }
         MCCmd[] array;
         for (int length = (array = cmds).length, j = 0; j < length; ++j) {
@@ -569,11 +573,11 @@ public class MCBlock {
         if (fxcmd == null) {
             return false;
         }
-        synchronized (this.writeCmds) {
+        synchronized(this.writeCmds) {
             this.writeCmds.addLast(fxcmd);
-            monitorexit(this.writeCmds);
+            return true;
         }
-        return true;
+
     }
 
     private MCCmd setWriteCmdAsynBitBool(final int startidx, final boolean bv) {
