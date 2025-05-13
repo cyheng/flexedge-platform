@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/j2ee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+    <description></description>
+    <display-name>root</display-name>
+    <listener>
+        <listener-class>org.apache.commons.fileupload.servlet.FileCleanerCleanup</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>org.apache.tomcat.websocket.textBufferSize</param-name>
+        <param-value>5242800</param-value>
+    </context-param>
+    <context-param>
+        <param-name>org.apache.tomcat.websocket.binaryBufferSize</param-name>
+        <param-value>5242800</param-value>
+    </context-param>
+    <filter>
+        <filter-name>PrjFilter</filter-name>
+        <filter-class>cn.doraro.flexedge.core.util.web.PrjFilter</filter-class>
+        <init-param>
+            <param-name></param-name>
+            <param-value></param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>PrjFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 
+	<servlet>
+	  	<servlet-name>PrjServlet</servlet-name>
+	  	<servlet-class>cn.doraro.flexedge.core.util.web.PrjServlet</servlet-class>
+    </servlet>
+	  <servlet-mapping>
+	  	<servlet-name>PrjServlet</servlet-name>
+	  	<url-pattern>/*</url-pattern>
+	  </servlet-mapping>
+	 -->
+    <jsp-config>
+        <taglib>
+            <taglib-uri>wb_tag</taglib-uri>
+            <taglib-location>/WEB-INF/wb_tag.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+</web-app>

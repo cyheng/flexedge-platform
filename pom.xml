@@ -17,6 +17,7 @@
         <module>flexedge-ext-basic</module>
         <module>flexedge-ext-pro</module>
         <module>flexedge-server</module>
+        <module>flexedge-web</module>
     </modules>
 
 
@@ -148,7 +149,7 @@
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>servlet-api</artifactId>
-                <!--        <scope>system</scope>-->
+                <scope>compile</scope>
                 <version>${servlet-api.version}</version>
             </dependency>
 

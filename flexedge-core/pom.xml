@@ -96,14 +96,14 @@
             <groupId>javax.servlet</groupId>
             <artifactId>websocket-api</artifactId>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/websocket-api.jar</systemPath>
+            <systemPath>${basedir}/../lib/websocket-api.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>gun.io</groupId>
             <artifactId>RXTXcomm</artifactId>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/websocket-api.jar</systemPath>
+            <systemPath>${basedir}/../lib/websocket-api.jar</systemPath>
         </dependency>
 
         <dependency>
