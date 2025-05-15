@@ -93,14 +93,22 @@
         </tr>
         <tbody id="tag_list">
         <%
+            String pathn = "";
+            String patht = "";
+            String chked = "";
+            String addr = "";
             for (UATag tg : tags) {
-                String pathn = tg.getNodeCxtPathIn(ntags);
-                String patht = tg.getNodeCxtPathTitleIn(ntags);
-                //pathn = pathn.substring(parent_p.length()) ;
-                String chked = "";
-                if (pathn.equals(val))
-                    chked = "checked='checked'";
-                String addr = tg.getAddress();
+                try {
+                    pathn = tg.getNodeCxtPathIn(ntags);
+                    patht = tg.getNodeCxtPathTitleIn(ntags);
+                    //pathn = pathn.substring(parent_p.length()) ;
+                    chked = "";
+                    if (pathn.equals(val))
+                        chked = "checked='checked'";
+                    addr = tg.getAddress();
+                }catch (Exception e){
+
+                }
         %>
         <tr id="row_<%=pathn %>" height0='1' style0="height:5" onmouseover="mouseover(this)" onmouseout="mouseout(this)"
             onclick="clk_sel(this)">

@@ -1,7 +1,6 @@
 package cn.doraro.flexedge.core.util.logger;
 
 /**
- * ��־����
  *
  * @author Jason Zhu
  */

@@ -57,7 +57,7 @@ public class PrjsNamespace extends ManagedNamespaceWithLifecycle {
     private void addPrjNodes(final UAPrj prj) {
         final NodeId nodeid = this.newNodeId(prj.getName());
         final UaFolderNode pnode = new UaFolderNode(this.getNodeContext(), nodeid, this.newQualifiedName(prj.getName()), LocalizedText.english(prj.getTitle()));
-        this.getNodeManager().addNode((Node) pnode);
+        this.getNodeManager().addNode(pnode);
         pnode.addReference(new Reference(pnode.getNodeId(), Identifiers.Organizes, Identifiers.ObjectsFolder.expanded(), false));
         for (final UACh ch : prj.getChs()) {
             this.addChNodes(ch, pnode);
@@ -73,7 +73,7 @@ public class PrjsNamespace extends ManagedNamespaceWithLifecycle {
         for (final UATagG tagg : taggs) {
             final NodeId tggnid = this.newNodeId(tagg.getNodePathCxt());
             final UaFolderNode tggn = new UaFolderNode(this.getNodeContext(), tggnid, this.newQualifiedName(tagg.getName()), LocalizedText.english(tagg.getTitle()));
-            this.getNodeManager().addNode((Node) tggn);
+            this.getNodeManager().addNode( tggn);
             pnode.addOrganizes((UaNode) tggn);
             this.addTagGNodes((UANodeOCTagsGCxt) tagg, tggn);
             this.addTagsNodes((UANodeOCTagsCxt) tagg, tggn);
@@ -100,7 +100,7 @@ public class PrjsNamespace extends ManagedNamespaceWithLifecycle {
                     return new DataValue(StatusCode.BAD);
                 }
             })});
-            this.getNodeManager().addNode((Node) node);
+            this.getNodeManager().addNode( node);
             pnode.addOrganizes((UaNode) node);
         }
     }
@@ -108,14 +108,14 @@ public class PrjsNamespace extends ManagedNamespaceWithLifecycle {
     private void addChNodes(final UACh ch, final UaFolderNode prjn) {
         final NodeId chnid = this.newNodeId(ch.getNodePathCxt());
         final UaFolderNode chn = new UaFolderNode(this.getNodeContext(), chnid, this.newQualifiedName(ch.getName()), LocalizedText.english(ch.getTitle()));
-        this.getNodeManager().addNode((Node) chn);
+        this.getNodeManager().addNode(  chn);
         prjn.addOrganizes((UaNode) chn);
         final List<UADev> devs = ch.getDevs();
         if (devs != null) {
             for (final UADev dev : devs) {
                 final NodeId devnid = this.newNodeId(dev.getNodePathCxt());
                 final UaFolderNode devn = new UaFolderNode(this.getNodeContext(), devnid, this.newQualifiedName(dev.getName()), LocalizedText.english(dev.getTitle()));
-                this.getNodeManager().addNode((Node) devn);
+                this.getNodeManager().addNode(  devn);
                 chn.addOrganizes((UaNode) devn);
                 this.addTagGNodes((UANodeOCTagsGCxt) dev, devn);
                 this.addTagsNodes((UANodeOCTagsCxt) dev, devn);

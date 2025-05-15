@@ -56,12 +56,18 @@
         <slf4j.version>1.7.12</slf4j.version>
         <logback.version>1.1.11</logback.version>
         <wrapper.version>3.2.3</wrapper.version>
+        <org.openscada.opc.lib.version>1.5.0</org.openscada.opc.lib.version>
     </properties>
     <repositories>
 
     </repositories>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.openscada.utgard</groupId>
+                <artifactId>org.openscada.opc.lib</artifactId>
+                <version>${org.openscada.opc.lib.version}</version>
+            </dependency>
             <dependency>
                 <groupId>cn.doraro.flexedge</groupId>
                 <artifactId>flexedge-core</artifactId>
